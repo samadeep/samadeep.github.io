@@ -9,21 +9,22 @@ theme: jekyll-theme-chirpy
 lang: en
 
 # Change to your timezone › https://kevinnovak.github.io/Time-Zone-Picker
-timezone:
+timezone: America/New_York
 
 # jekyll-seo-tag settings › https://github.com/jekyll/jekyll-seo-tag/blob/master/docs/usage.md
 # ↓ --------------------------
 
-title: Samadeep's Blog  # the main title
+title: Samadeep's Tech Blog  # the main title
 
-tagline: To share and Explore # it will display as the sub-title
+tagline: Engineering Excellence • System Design • DevOps Mastery # it will display as the sub-title
 
 description: >- # used by seo meta and the atom feed
-  A minimal, responsive and feature-rich Jekyll theme for technical writing.
+  A comprehensive technical blog covering system design, software engineering, DevOps practices, 
+  and cutting-edge technology insights. Featuring interactive diagrams and real-world solutions.
 
 # Fill in the protocol & hostname for your site.
 # e.g. 'https://username.github.io', note that it does not end with a '/'.
-url: ""
+url: "https://samadeep.github.io"
 
 github:
   username: samadeep # change to your github username
@@ -42,7 +43,7 @@ social:
     - https://github.com/samadeep # change to your github homepage
     # Uncomment below to add more social links
     # - https://www.facebook.com/username
-    # - https://www.linkedin.com/in/username
+    - https://www.linkedin.com/in/samadeep # change to your linkedin homepage
 
 google_site_verification: # fill in to your verification string
 
@@ -73,13 +74,13 @@ theme_mode: # [light|dark]
 img_cdn:
 
 # the avatar on sidebar, support local or CORS resources
-avatar:
+avatar: /assets/img/avatar.jpg
 
 # boolean type, the global switch for TOC in posts.
 toc: true
 
 comments:
-  active: # The global switch for posts comments, e.g., 'disqus'.  Keep it empty means disable
+  active: giscus # The global switch for posts comments, e.g., 'disqus'.  Keep it empty means disable
   # The active options are as follows:
   disqus:
     shortname: # fill with the Disqus shortname. › https://help.disqus.com/en/articles/1717111-what-s-a-shortname
@@ -89,7 +90,7 @@ comments:
     issue_term: # < url | pathname | title | ...>
   # Giscus options › https://giscus.app
   giscus:
-    repo: # <gh-username>/<repo>
+    repo: samadeep/samadeep.github.io # <gh-username>/<repo>
     repo_id:
     category:
     category_id:
@@ -114,6 +115,35 @@ paginate: 10
 # The base URL of your site
 baseurl: ""
 
+# Enhanced Search Configuration
+search:
+  enabled: true
+  provider: algolia
+
+# Mermaid Configuration
+mermaid:
+  enabled: true
+
+# PlantUML Configuration  
+plantuml:
+  enabled: true
+
+# Blog Management Configuration
+blog_management:
+  auto_categories: true
+  auto_tags: true
+  reading_time: true
+  
+# Site Features
+features:
+  search: true
+  toc: true
+  code_copy: true
+  math: true
+  mermaid: true
+  plantuml: true
+  chart: true
+
 # ------------ The following options are not recommended to be modified ------------------
 
 kramdown:
@@ -126,6 +156,10 @@ kramdown:
     block:
       line_numbers: true
       start_line: 1
+  math_engine: mathjax
+  math_engine_opts:
+    preview: true
+    preview_as_code: true
 
 collections:
   tabs:
@@ -143,6 +177,9 @@ defaults:
       # DO NOT modify the following parameter unless you are confident enough
       # to update the code of all other post links in this project.
       permalink: /posts/:title/
+      author: Samadeep Sengupta
+      show_edit_on_github: true
+      
   - scope:
       path: _drafts
     values:
@@ -183,6 +220,8 @@ exclude:
   - LICENSE
   - rollup.config.js
   - package*.json
+  - node_modules
+  - vendor
 
 jekyll-archives:
   enabled: [categories, tags]
@@ -192,3 +231,15 @@ jekyll-archives:
   permalinks:
     tag: /tags/:name/
     category: /categories/:name/
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+  - jekyll-archives
+  - jekyll-paginate
+  - jekyll-redirect-from
+  - jekyll-compose
+  - jekyll-include-cache
+  - jemoji

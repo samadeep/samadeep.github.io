@@ -1,0 +1,81 @@
+<!-- Mermaid Diagram Support -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+
+<!-- Custom Diagram Styles -->
+<link rel="stylesheet" href="{{ '/assets/css/diagrams.css' | relative_url }}">
+
+<!-- Custom Diagram JavaScript -->
+<script src="{{ '/assets/js/diagrams.js' | relative_url }}"></script>
+
+<!-- Initialize Mermaid -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Configure Mermaid
+    if (typeof mermaid !== 'undefined') {
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: document.documentElement.getAttribute('data-mode') === 'dark' ? 'dark' : 'base',
+        securityLevel: 'loose',
+        themeVariables: {
+          primaryColor: '#007bff',
+          primaryTextColor: '#fff',
+          primaryBorderColor: '#7C0000',
+          lineColor: '#F8B229',
+          secondaryColor: '#006100',
+          tertiaryColor: '#fff'
+        },
+        flowchart: {
+          curve: 'basis',
+          nodeSpacing: 50,
+          rankSpacing: 50,
+          padding: 15
+        },
+        sequence: {
+          diagramMarginX: 50,
+          diagramMarginY: 10,
+          actorMargin: 50,
+          width: 150,
+          height: 65,
+          boxMargin: 10,
+          boxTextMargin: 5,
+          noteMargin: 10,
+          messageMargin: 35,
+          mirrorActors: true,
+          bottomMarginAdj: 1,
+          useMaxWidth: true
+        },
+        gantt: {
+          titleTopMargin: 25,
+          barHeight: 20,
+          fontFamily: '"Open Sans", sans-serif',
+          fontSize: 11,
+          fontWeight: 'normal',
+          gridLineStartPadding: 35,
+          leftPadding: 75,
+          numberSectionStyles: 4,
+          topPadding: 50,
+          topAxis: false
+        }
+      });
+    }
+  });
+</script>
+
+<!-- Math Support -->
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    options: {
+      ignoreHtmlClass: 'tex2jax_ignore',
+      processHtmlClass: 'tex2jax_process'
+    }
+  };
+</script> 

@@ -4,6 +4,31 @@ source "https://rubygems.org"
 
 gem "jekyll-theme-chirpy", "~> 6.3", ">= 6.3.1"
 
+# Essential Jekyll plugins for enhanced functionality
+gem "jekyll-feed", "~> 0.12"
+gem "jekyll-sitemap"
+gem "jekyll-seo-tag"
+gem "jekyll-archives"
+gem "jekyll-paginate"
+gem "jekyll-redirect-from"
+gem "jekyll-compose"
+gem "jekyll-include-cache"
+gem "jemoji"
+
+# Math and diagram support
+gem "kramdown-math-katex"
+gem "jekyll-katex"
+
+# Enhanced features
+gem "jekyll-optional-front-matter"
+gem "jekyll-readme-index"
+gem "jekyll-default-layout"
+gem "jekyll-titles-from-headings"
+
+group :jekyll_plugins do
+  gem "jekyll-timeago", "~> 0.13"
+end
+
 group :test do
   gem "html-proofer", "~> 4.4"
 end

@@ -1,0 +1,130 @@
+/* Mermaid Diagrams */
+.mermaid-diagram {
+  margin: 2rem 0;
+  text-align: center;
+  background: var(--card-bg);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: auto;
+}
+
+.mermaid {
+  max-width: 100%;
+  height: auto;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* PlantUML Diagrams */
+.plantuml-diagram {
+  margin: 2rem 0;
+  text-align: center;
+  background: var(--card-bg);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: auto;
+}
+
+.plantuml img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .mermaid-diagram,
+  .plantuml-diagram {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .mermaid-diagram,
+  .plantuml-diagram {
+    padding: 1rem;
+    margin: 1rem 0;
+  }
+}
+
+/* Diagram loading animation */
+.diagram-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  background: var(--card-bg);
+  border-radius: 8px;
+  margin: 2rem 0;
+}
+
+.diagram-loading::after {
+  content: "Loading diagram...";
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Diagram error states */
+.diagram-error {
+  background: #fee;
+  border: 1px solid #fcc;
+  color: #c33;
+  padding: 1rem;
+  border-radius: 4px;
+  margin: 2rem 0;
+  text-align: center;
+}
+
+/* Enhance diagram visibility */
+.mermaid-diagram:hover,
+.plantuml-diagram:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+/* Diagram toolbar */
+.diagram-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.diagram-toolbar button {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-color);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.diagram-toolbar button:hover {
+  background: var(--hover-bg);
+}
+
+/* Full-screen diagram support */
+.diagram-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.diagram-fullscreen .mermaid-diagram,
+.diagram-fullscreen .plantuml-diagram {
+  max-width: 90vw;
+  max-height: 90vh;
+  margin: 0;
+} 
