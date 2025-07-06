@@ -2,6 +2,7 @@
 layout: post
 title: "Dynamic Programming Mastery: Knapsack Problem and Minimum Swaps for Increasing Arrays"
 date: 2025-07-06 17:49:46 +0530
+author: Samadeep Sengupta
 categories: ["Algorithms", "Dynamic Programming"]
 tags: ["dynamic-programming", "knapsack", "optimization", "algorithms", "competitive-programming", "data-structures"]
 author: Samadeep Sengupta
@@ -32,21 +33,6 @@ Given **N items** with weights and values, and a knapsack with capacity **W**, d
 The beauty of the knapsack problem lies in its recursive nature. For each item, we have two choices:
 1. **Include it**: If current weight allows, add its value to the optimal solution of remaining capacity
 2. **Exclude it**: Take the optimal solution without this item
-
-{% mermaid %}
-graph TB
-    A["Item i, Weight w, Value v"] --> B["Include Item i"]
-    A --> C["Exclude Item i"]
-    B --> D["Value = v + DP[W-w]"]
-    C --> E["Value = DP[W]"]
-    D --> F["Max(Include, Exclude)"]
-    E --> F
-    
-    style A fill:#e1f5fe
-    style B fill:#c8e6c9
-    style C fill:#ffcdd2
-    style F fill:#fff3e0
-{% endmermaid %}
 
 ### Dynamic Programming Approach
 
@@ -144,23 +130,6 @@ At each position i, we have two states:
 2. **not_swap[i]**: Minimum swaps to make arrays increasing up to position i, without swapping A[i] and B[i]
 
 ### State Transitions
-
-{% mermaid %}
-graph TB
-    A["Position i-1"] --> B["A[i-1] < A[i] && B[i-1] < B[i]"]
-    A --> C["A[i-1] < B[i] && B[i-1] < A[i]"]
-    
-    B --> D["Case 1: Natural Order"]
-    C --> E["Case 2: Cross Order"]
-    
-    D --> F["not_swap[i] = not_swap[i-1]<br/>swap[i] = swap[i-1] + 1"]
-    E --> G["not_swap[i] = min(not_swap[i], swap[i-1])<br/>swap[i] = min(swap[i], not_swap[i-1] + 1)"]
-    
-    style B fill:#c8e6c9
-    style C fill:#ffcdd2
-    style D fill:#e1f5fe
-    style E fill:#fff3e0
-{% endmermaid %}
 
 ### Implementation
 
