@@ -21,9 +21,10 @@ Welcome to the ultimate guide for this enhanced blog platform! This comprehensiv
 - [💻 Code Features](#💻-code-features)
 - [🎯 Navigation & UX](#🎯-navigation--ux)
 - [📱 Mobile Experience](#📱-mobile-experience)
-- [🎨 Design System](#🎨-design-system)
+- [🎨 Design System](#🎨-design-system-1)
 - [🔧 Best Practices](#🔧-best-practices)
 - [🛠️ Technical Implementation](#🛠️-technical-implementation)
+- [🎯 Advanced Features](#🎯-advanced-features-1)
 
 ---
 
