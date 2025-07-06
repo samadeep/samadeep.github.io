@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Dynamic Programming Mastery: Knapsack Problem and Minimum Swaps for Increasing Arrays"
-date: 2025-07-06 17:00:00 +0000
+date: 2024-01-17 17:00:00 +0530
 categories: [Algorithms, Dynamic Programming]
 tags: [dynamic-programming, knapsack, optimization, algorithms, competitive-programming, data-structures]
 author: Samadeep Sengupta
