@@ -2,6 +2,7 @@
 
 require 'fileutils'
 require 'date'
+require 'time'
 require 'optparse'
 
 class BlogPostGenerator
@@ -61,7 +62,9 @@ class BlogPostGenerator
   end
 
   def create_post
-    date = Date.today
+    # Generate current time in India timezone (IST = UTC+5:30)
+    current_time = Time.now.getlocal("+05:30")
+    date = current_time.to_date
     filename = "#{date.strftime('%Y-%m-%d')}-#{slugify(@options[:title])}.md"
     filepath = File.join("_posts", filename)
 
@@ -70,11 +73,12 @@ class BlogPostGenerator
       exit 1
     end
 
-    content = generate_content(date)
+    content = generate_content(current_time)
     
     File.write(filepath, content)
     puts "Created new post: #{filepath}"
     puts "Title: #{@options[:title]}"
+    puts "Date: #{current_time.strftime('%Y-%m-%d %H:%M:%S %z')}"
     puts "Categories: #{@options[:categories].join(', ')}" unless @options[:categories].empty?
     puts "Tags: #{@options[:tags].join(', ')}" unless @options[:tags].empty?
     
@@ -84,11 +88,11 @@ class BlogPostGenerator
     end
   end
 
-  def generate_content(date)
+  def generate_content(current_time)
     template = load_template(@options[:template])
     
     template.gsub!('{{TITLE}}', @options[:title])
-    template.gsub!('{{DATE}}', date.strftime('%Y-%m-%d %H:%M:%S +0000'))
+    template.gsub!('{{DATE}}', current_time.strftime('%Y-%m-%d %H:%M:%S %z'))
     template.gsub!('{{AUTHOR}}', @options[:author])
     template.gsub!('{{CATEGORIES}}', format_yaml_array(@options[:categories]))
     template.gsub!('{{TAGS}}', format_yaml_array(@options[:tags]))

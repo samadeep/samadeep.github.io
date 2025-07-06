@@ -1,9 +1,9 @@
 ---
 layout: post
 title: "Dynamic Programming Mastery: Knapsack Problem and Minimum Swaps for Increasing Arrays"
-date: 2024-01-17 17:00:00 +0530
-categories: [Algorithms, Dynamic Programming]
-tags: [dynamic-programming, knapsack, optimization, algorithms, competitive-programming, data-structures]
+date: 2025-07-06 17:49:46 +0530
+categories: ["Algorithms", "Dynamic Programming"]
+tags: ["dynamic-programming", "knapsack", "optimization", "algorithms", "competitive-programming", "data-structures"]
 author: Samadeep Sengupta
 description: "Master two classic dynamic programming problems: the 0/1 Knapsack Problem and Minimum Swaps to Make Arrays Increasing. Learn the intuition, implementation, and optimization techniques with detailed explanations and code examples."
 ---
@@ -356,15 +356,14 @@ int main() {
 
 ## Conclusion
 
-Both the Knapsack Problem and Minimum Swaps algorithm demonstrate the power of dynamic programming in solving optimization problems. The key insights are:
+Both the Knapsack Problem and Minimum Swaps algorithm demonstrate the power of dynamic programming in solving optimization problems. 
+
+The key insights are:
 
 1. **Identify the State**: What information do we need to track?
 2. **Define Transitions**: How do we move between states?
 3. **Optimize Space**: Can we reduce memory usage?
 4. **Handle Edge Cases**: What are the boundary conditions?
-
-Master these patterns, and you'll be well-equipped to tackle a wide variety of dynamic programming challenges in competitive programming and real-world applications.
-
 ---
 
 *Want to practice these algorithms? Try implementing variations like the Unbounded Knapsack or exploring other DP problems like Longest Common Subsequence!* 
