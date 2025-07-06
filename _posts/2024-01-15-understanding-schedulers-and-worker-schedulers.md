@@ -30,12 +30,6 @@ graph TB
     A[Task Queue] --> B[Scheduler]
     B --> C[Worker Pool]
     C --> D[Task Execution]
-    D --> E[Result Processing]
-    E --> F[Completion Notification]
-    
-    B --> G[Priority Queue]
-    B --> H[Load Balancer]
-    B --> I[Resource Monitor]
     
     style A fill:#e1f5fe
     style B fill:#f3e5f5
@@ -57,46 +51,14 @@ Schedulers that manage batch jobs and long-running processes.
 ### 4. **Real-time Schedulers**
 Schedulers designed for time-critical applications with strict timing requirements.
 
-{% plantuml %}
-@startuml
-!define RECTANGLE class
+## Scheduler Types Overview
 
-RECTANGLE "Scheduler Types" {
-    + Process Scheduler
-    + Task Scheduler  
-    + Job Scheduler
-    + Real-time Scheduler
-}
-
-RECTANGLE "Process Scheduler" {
-    + Round Robin
-    + Priority-based
-    + Shortest Job First
-    + Multilevel Queue
-}
-
-RECTANGLE "Task Scheduler" {
-    + FIFO Queue
-    + Priority Queue
-    + Delay Queue
-    + Cron-based
-}
-
-RECTANGLE "Job Scheduler" {
-    + Batch Processing
-    + Workflow Engine
-    + ETL Pipeline
-    + MapReduce
-}
-
-RECTANGLE "Real-time Scheduler" {
-    + Rate Monotonic
-    + Earliest Deadline First
-    + Fixed Priority
-    + Dynamic Priority
-}
-@enduml
-{% endplantuml %}
+| Type | Use Case | Examples |
+|------|----------|----------|
+| **Process Scheduler** | OS-level CPU management | Round Robin, Priority-based |
+| **Task Scheduler** | Application-level async tasks | FIFO Queue, Priority Queue |
+| **Job Scheduler** | Batch processing | ETL Pipeline, MapReduce |
+| **Real-time Scheduler** | Time-critical applications | Rate Monotonic, EDF |
 
 ## Worker Schedulers Architecture
 
@@ -107,35 +69,11 @@ Worker schedulers are specialized systems that coordinate the execution of tasks
 - **Resource Management**: Optimize resource utilization
 - **Load Distribution**: Balance work across available resources
 
-{% mermaid %}
-sequenceDiagram
-    participant Client
-    participant API
-    participant Scheduler
-    participant Queue
-    participant Worker1
-    participant Worker2
-    participant Worker3
-    participant Database
-    
-    Client->>API: Submit Task
-    API->>Scheduler: Register Task
-    Scheduler->>Queue: Enqueue Task
-    
-    Note over Scheduler,Queue: Task queued with priority
-    
-    Scheduler->>Worker1: Check Availability
-    Worker1-->>Scheduler: Available
-    Scheduler->>Worker1: Assign Task
-    
-    Worker1->>Queue: Dequeue Task
-    Worker1->>Worker1: Process Task
-    Worker1->>Database: Store Result
-    Worker1->>Scheduler: Task Complete
-    
-    Scheduler->>API: Notify Completion
-    API->>Client: Task Result
-{% endmermaid %}
+### Basic Worker Flow
+
+```
+Client Request → API Gateway → Scheduler → Worker Pool → Database
+```
 
 ## Scheduling Algorithms
 
@@ -174,23 +112,13 @@ class PriorityScheduler:
 ### Round Robin Scheduling
 Each task gets a fixed time slice, and tasks are rotated in a circular manner.
 
-{% mermaid %}
-gantt
-    title Round Robin Scheduling Timeline
-    dateFormat X
-    axisFormat %L
-    
-    section Time Slice 1
-    Task A :0, 100
-    section Time Slice 2
-    Task B :100, 200
-    section Time Slice 3
-    Task C :200, 300
-    section Time Slice 4
-    Task A :300, 400
-    section Time Slice 5
-    Task B :400, 500
-{% endmermaid %}
+**Round Robin Timeline:**
+```
+Time: [0-100ms] → Task A
+Time: [100-200ms] → Task B  
+Time: [200-300ms] → Task C
+Time: [300-400ms] → Task A (continues)
+```
 
 ### Shortest Job First (SJF)
 Tasks with the shortest estimated execution time are prioritized.
@@ -214,21 +142,16 @@ class SJFScheduler:
 
 {% mermaid %}
 graph LR
-    A[Producer 1] --> D[Message Queue]
-    B[Producer 2] --> D
-    C[Producer 3] --> D
-    
-    D --> E[Consumer 1]
-    D --> F[Consumer 2]
-    D --> G[Consumer 3]
+    A[Producer] --> D[Queue]
+    B[Producer] --> D
+    D --> E[Consumer]
+    D --> F[Consumer]
     
     style D fill:#ffeb3b
     style A fill:#4caf50
     style B fill:#4caf50
-    style C fill:#4caf50
     style E fill:#2196f3
     style F fill:#2196f3
-    style G fill:#2196f3
 {% endmermaid %}
 
 ### 2. Work Stealing Pattern
@@ -263,30 +186,14 @@ class WorkStealingScheduler:
 
 ### 3. Actor Model Pattern
 
-{% plantuml %}
-@startuml
-!theme plain
+In the Actor Model, each component has its own message queue and processes messages sequentially:
 
-actor Client
-participant "Scheduler Actor" as Scheduler
-participant "Worker Actor 1" as Worker1
-participant "Worker Actor 2" as Worker2
-participant "Worker Actor 3" as Worker3
-
-Client -> Scheduler: Submit Task
-Scheduler -> Scheduler: Select Worker
-Scheduler -> Worker1: Assign Task
-Worker1 -> Worker1: Process Task
-Worker1 -> Scheduler: Task Complete
-Scheduler -> Client: Result
-
-note right of Scheduler
-    Each actor has its own
-    message queue and state
-end note
-
-@enduml
-{% endplantuml %}
+```
+Actor 1 ←→ Message Queue ←→ Actor 2
+   ↓                           ↓
+State &                    State &
+Behavior                   Behavior
+```
 
 ## Best Practices
 
@@ -331,30 +238,11 @@ def retry_with_backoff(max_retries=3, base_delay=1, max_delay=60):
 - Use connection pooling for database connections
 
 ### 4. **Monitoring and Observability**
-- Track task execution times and success rates
-- Monitor queue depths and worker utilization
-- Set up alerts for system anomalies
-
-{% mermaid %}
-graph TB
-    A[Task Submission] --> B[Metrics Collection]
-    B --> C[Queue Depth Monitoring]
-    B --> D[Worker Utilization]
-    B --> E[Task Success Rate]
-    B --> F[Execution Time Tracking]
-    
-    C --> G[Alert System]
-    D --> G
-    E --> G
-    F --> G
-    
-    G --> H[Dashboard]
-    G --> I[Notifications]
-    
-    style B fill:#ff9800
-    style G fill:#f44336
-    style H fill:#4caf50
-{% endmermaid %}
+Track these key metrics:
+- Task execution times and success rates
+- Queue depths and worker utilization
+- System resource usage
+- Error rates and patterns
 
 ## Real-World Examples
 
@@ -458,76 +346,28 @@ spec:
 
 {% mermaid %}
 graph TB
-    subgraph "Load Balancer"
+    subgraph "System Architecture"
         LB[Load Balancer]
-    end
-    
-    subgraph "Scheduler Cluster"
         S1[Scheduler 1]
         S2[Scheduler 2]
-        S3[Scheduler 3]
-    end
-    
-    subgraph "Message Queues"
-        MQ1[High Priority Queue]
-        MQ2[Normal Priority Queue]
-        MQ3[Low Priority Queue]
-    end
-    
-    subgraph "Worker Pools"
-        WP1[CPU Intensive Workers]
-        WP2[I/O Intensive Workers]
-        WP3[Memory Intensive Workers]
-    end
-    
-    subgraph "Storage"
+        MQ[Message Queue]
+        W1[Worker Pool 1]
+        W2[Worker Pool 2]
         DB[(Database)]
-        Cache[(Redis Cache)]
     end
     
     LB --> S1
     LB --> S2
-    LB --> S3
-    
-    S1 --> MQ1
-    S1 --> MQ2
-    S1 --> MQ3
-    
-    S2 --> MQ1
-    S2 --> MQ2
-    S2 --> MQ3
-    
-    S3 --> MQ1
-    S3 --> MQ2
-    S3 --> MQ3
-    
-    MQ1 --> WP1
-    MQ1 --> WP2
-    MQ1 --> WP3
-    
-    MQ2 --> WP1
-    MQ2 --> WP2
-    MQ2 --> WP3
-    
-    MQ3 --> WP1
-    MQ3 --> WP2
-    MQ3 --> WP3
-    
-    WP1 --> DB
-    WP2 --> DB
-    WP3 --> DB
-    
-    WP1 --> Cache
-    WP2 --> Cache
-    WP3 --> Cache
+    S1 --> MQ
+    S2 --> MQ
+    MQ --> W1
+    MQ --> W2
+    W1 --> DB
+    W2 --> DB
     
     style LB fill:#ff9800
-    style S1 fill:#2196f3
-    style S2 fill:#2196f3
-    style S3 fill:#2196f3
-    style MQ1 fill:#f44336
-    style MQ2 fill:#ff9800
-    style MQ3 fill:#4caf50
+    style MQ fill:#f44336
+    style DB fill:#4caf50
 {% endmermaid %}
 
 ## Performance Optimization Strategies
@@ -608,6 +448,15 @@ def cache_result(expiration=3600):
         return wrapper
     return decorator
 ```
+
+## Key Scheduling Algorithms Comparison
+
+| Algorithm | Time Complexity | Use Case | Pros | Cons |
+|-----------|-----------------|----------|------|------|
+| **FCFS** | O(1) | Simple queuing | Fair, simple | No prioritization |
+| **Priority** | O(log n) | Critical tasks | Handles urgency | Starvation possible |
+| **Round Robin** | O(1) | Interactive systems | Fair time slicing | Context switching overhead |
+| **SJF** | O(n log n) | Batch processing | Optimal turnaround | Requires time estimation |
 
 ## Conclusion
 

@@ -1,270 +1,350 @@
 // Mermaid Diagram Support
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Mermaid
-    if (typeof mermaid !== 'undefined') {
-        mermaid.initialize({
-            startOnLoad: true,
-            theme: document.documentElement.getAttribute('data-mode') === 'dark' ? 'dark' : 'base',
-            themeVariables: {
-                primaryColor: '#007bff',
-                primaryTextColor: '#fff',
-                primaryBorderColor: '#7C0000',
-                lineColor: '#F8B229',
-                secondaryColor: '#006100',
-                tertiaryColor: '#fff'
-            },
-            flowchart: {
-                curve: 'basis',
-                nodeSpacing: 50,
-                rankSpacing: 50,
-                padding: 15
-            },
-            sequence: {
-                diagramMarginX: 50,
-                diagramMarginY: 10,
-                actorMargin: 50,
-                width: 150,
-                height: 65,
-                boxMargin: 10,
-                boxTextMargin: 5,
-                noteMargin: 10,
-                messageMargin: 35,
-                mirrorActors: true,
-                bottomMarginAdj: 1,
-                useMaxWidth: true
-            },
-            gantt: {
-                titleTopMargin: 25,
-                barHeight: 20,
-                fontFamily: '"Open Sans", sans-serif',
-                fontSize: 11,
-                fontWeight: 'normal',
-                gridLineStartPadding: 35,
-                leftPadding: 75,
-                numberSectionStyles: 4,
-                topPadding: 50,
-                topAxis: false
-            }
-        });
-    }
-
-    // Add diagram enhancement features
-    addDiagramEnhancements();
-    
-    // Handle theme changes
-    handleThemeChanges();
-});
-
-// Add enhancement features to diagrams
-function addDiagramEnhancements() {
-    const diagrams = document.querySelectorAll('.mermaid-diagram, .plantuml-diagram');
-    
-    diagrams.forEach(diagram => {
-        // Add toolbar
-        addDiagramToolbar(diagram);
-        
-        // Add click to expand functionality
-        addClickToExpand(diagram);
-        
-        // Add copy functionality
-        addCopyFunctionality(diagram);
-    });
-}
-
-// Add toolbar to diagrams
-function addDiagramToolbar(diagram) {
-    const toolbar = document.createElement('div');
-    toolbar.className = 'diagram-toolbar';
-    
-    // Full-screen button
-    const fullscreenBtn = document.createElement('button');
-    fullscreenBtn.textContent = '⛶';
-    fullscreenBtn.title = 'Full Screen';
-    fullscreenBtn.onclick = () => toggleFullscreen(diagram);
-    
-    // Copy button
-    const copyBtn = document.createElement('button');
-    copyBtn.textContent = '📋';
-    copyBtn.title = 'Copy Diagram';
-    copyBtn.onclick = () => copyDiagram(diagram);
-    
-    // Download button
-    const downloadBtn = document.createElement('button');
-    downloadBtn.textContent = '💾';
-    downloadBtn.title = 'Download Diagram';
-    downloadBtn.onclick = () => downloadDiagram(diagram);
-    
-    toolbar.appendChild(fullscreenBtn);
-    toolbar.appendChild(copyBtn);
-    toolbar.appendChild(downloadBtn);
-    
-    diagram.insertBefore(toolbar, diagram.firstChild);
-}
-
-// Add click to expand functionality
-function addClickToExpand(diagram) {
-    const diagramContent = diagram.querySelector('.mermaid, .plantuml');
-    if (diagramContent) {
-        diagramContent.style.cursor = 'pointer';
-        diagramContent.onclick = () => toggleFullscreen(diagram);
-    }
-}
-
-// Toggle fullscreen mode
-function toggleFullscreen(diagram) {
-    const existing = document.querySelector('.diagram-fullscreen');
-    if (existing) {
-        existing.remove();
-        return;
-    }
-    
-    const fullscreenDiv = document.createElement('div');
-    fullscreenDiv.className = 'diagram-fullscreen';
-    
-    const clonedDiagram = diagram.cloneNode(true);
-    clonedDiagram.onclick = () => fullscreenDiv.remove();
-    
-    fullscreenDiv.appendChild(clonedDiagram);
-    document.body.appendChild(fullscreenDiv);
-    
-    // ESC key to close
-    const escHandler = (e) => {
-        if (e.key === 'Escape') {
-            fullscreenDiv.remove();
-            document.removeEventListener('keydown', escHandler);
-        }
-    };
-    document.addEventListener('keydown', escHandler);
-}
-
-// Copy diagram functionality
-function copyDiagram(diagram) {
-    const diagramContent = diagram.querySelector('.mermaid, .plantuml');
-    if (!diagramContent) return;
-    
-    if (diagram.classList.contains('mermaid-diagram')) {
-        // Copy Mermaid source
-        const mermaidText = diagramContent.textContent.trim();
-        navigator.clipboard.writeText(mermaidText).then(() => {
-            showNotification('Mermaid diagram copied to clipboard!');
-        });
-    } else if (diagram.classList.contains('plantuml-diagram')) {
-        // Copy PlantUML image
-        const img = diagramContent.querySelector('img');
-        if (img) {
-            fetch(img.src)
-                .then(response => response.blob())
-                .then(blob => {
-                    navigator.clipboard.write([
-                        new ClipboardItem({ 'image/png': blob })
-                    ]);
-                    showNotification('PlantUML diagram copied to clipboard!');
-                })
-                .catch(() => {
-                    showNotification('Failed to copy diagram');
-                });
-        }
-    }
-}
-
-// Download diagram functionality
-function downloadDiagram(diagram) {
-    const diagramContent = diagram.querySelector('.mermaid, .plantuml');
-    if (!diagramContent) return;
-    
-    if (diagram.classList.contains('mermaid-diagram')) {
-        // Download Mermaid as SVG
-        const svg = diagramContent.querySelector('svg');
-        if (svg) {
-            downloadSVG(svg, 'mermaid-diagram.svg');
-        }
-    } else if (diagram.classList.contains('plantuml-diagram')) {
-        // Download PlantUML image
-        const img = diagramContent.querySelector('img');
-        if (img) {
-            downloadImage(img.src, 'plantuml-diagram.png');
-        }
-    }
-}
-
-// Download SVG file
-function downloadSVG(svg, filename) {
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-    const svgUrl = URL.createObjectURL(svgBlob);
-    downloadFile(svgUrl, filename);
-}
-
-// Download image file
-function downloadImage(url, filename) {
-    fetch(url)
-        .then(response => response.blob())
-        .then(blob => {
-            const blobUrl = URL.createObjectURL(blob);
-            downloadFile(blobUrl, filename);
-        });
-}
-
-// Generic file download
-function downloadFile(url, filename) {
-    const downloadLink = document.createElement('a');
-    downloadLink.href = url;
-    downloadLink.download = filename;
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-}
-
-// Show notification
-function showNotification(message) {
-    const notification = document.createElement('div');
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: #007bff;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 4px;
-        z-index: 1001;
-        animation: slideIn 0.3s ease;
-    `;
-    
-    document.body.appendChild(notification);
-    setTimeout(() => {
-        notification.remove();
-    }, 3000);
-}
-
-// Handle theme changes
-function handleThemeChanges() {
-    const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'data-mode') {
-                // Re-initialize Mermaid with new theme
-                if (typeof mermaid !== 'undefined') {
-                    const newTheme = document.documentElement.getAttribute('data-mode') === 'dark' ? 'dark' : 'base';
-                    mermaid.initialize({
-                        startOnLoad: true,
-                        theme: newTheme
-                    });
-                    
-                    // Re-render existing diagrams
-                    const mermaidDiagrams = document.querySelectorAll('.mermaid');
-                    mermaidDiagrams.forEach(diagram => {
-                        mermaid.init(undefined, diagram);
-                    });
+    // Performance optimization: Lazy load diagrams
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const diagram = entry.target;
+                
+                // Check if diagram is already rendered
+                if (diagram.getAttribute('data-rendered') === 'true') {
+                    return;
                 }
+                
+                // Mark as rendered to prevent duplicate processing
+                diagram.setAttribute('data-rendered', 'true');
+                
+                // Render diagram based on type
+                if (diagram.classList.contains('mermaid')) {
+                    renderMermaidDiagram(diagram);
+                } else if (diagram.classList.contains('plantuml')) {
+                    renderPlantUMLDiagram(diagram);
+                }
+                
+                // Stop observing this element
+                observer.unobserve(diagram);
             }
         });
+    }, {
+        rootMargin: '50px 0px', // Start loading 50px before the diagram comes into view
+        threshold: 0.1
     });
     
-    observer.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ['data-mode']
+    // Observe all diagrams for lazy loading
+    document.querySelectorAll('.mermaid, .plantuml').forEach(diagram => {
+        observer.observe(diagram);
     });
-}
+    
+    // Add performance monitoring
+    const startTime = performance.now();
+    let diagramsRendered = 0;
+    
+    function renderMermaidDiagram(element) {
+        try {
+            // Check if Mermaid is loaded
+            if (typeof mermaid === 'undefined') {
+                console.warn('Mermaid library not loaded');
+                return;
+            }
+            
+            // Initialize Mermaid with performance-optimized settings
+            mermaid.initialize({
+                startOnLoad: false,
+                theme: 'default',
+                themeVariables: {
+                    primaryColor: '#ff6b6b',
+                    primaryTextColor: '#333',
+                    primaryBorderColor: '#ff6b6b',
+                    lineColor: '#666',
+                    secondaryColor: '#4ecdc4',
+                    tertiaryColor: '#ffe66d'
+                },
+                // Performance optimizations
+                flowchart: {
+                    htmlLabels: true,
+                    curve: 'basis'
+                },
+                sequence: {
+                    diagramMarginX: 50,
+                    diagramMarginY: 10,
+                    actorMargin: 50,
+                    width: 150,
+                    height: 65,
+                    boxMargin: 10,
+                    boxTextMargin: 5,
+                    noteMargin: 10,
+                    messageMargin: 35
+                },
+                gantt: {
+                    numberSectionStyles: 4,
+                    axisFormat: '%m/%d/%Y',
+                    topAxis: true
+                }
+            });
+            
+            // Render the diagram
+            const renderStartTime = performance.now();
+            mermaid.render('mermaid-' + Date.now(), element.textContent)
+                .then(result => {
+                    element.innerHTML = result.svg;
+                    diagramsRendered++;
+                    
+                    // Add interactive features
+                    addInteractiveFeatures(element);
+                    
+                    // Log performance
+                    const renderTime = performance.now() - renderStartTime;
+                    console.log(`Mermaid diagram rendered in ${renderTime.toFixed(2)}ms`);
+                })
+                .catch(error => {
+                    console.error('Mermaid rendering error:', error);
+                    element.innerHTML = '<div class="diagram-error">Error rendering diagram</div>';
+                });
+        } catch (error) {
+            console.error('Mermaid initialization error:', error);
+        }
+    }
+    
+    function renderPlantUMLDiagram(element) {
+        try {
+            const plantUMLText = element.textContent;
+            const encodedText = encodePlantUML(plantUMLText);
+            
+            // Use PlantUML server with performance optimization
+            const plantUMLServer = 'https://www.plantuml.com/plantuml/svg/';
+            const imageUrl = plantUMLServer + encodedText;
+            
+            // Create image element with lazy loading
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.alt = 'PlantUML Diagram';
+            img.className = 'plantuml-diagram';
+            img.loading = 'lazy'; // Native lazy loading
+            
+            // Add error handling
+            img.onerror = function() {
+                element.innerHTML = '<div class="diagram-error">Error loading PlantUML diagram</div>';
+            };
+            
+            img.onload = function() {
+                diagramsRendered++;
+                addInteractiveFeatures(element);
+                console.log('PlantUML diagram loaded successfully');
+            };
+            
+            element.innerHTML = '';
+            element.appendChild(img);
+        } catch (error) {
+            console.error('PlantUML rendering error:', error);
+            element.innerHTML = '<div class="diagram-error">Error rendering PlantUML diagram</div>';
+        }
+    }
+    
+    function addInteractiveFeatures(element) {
+        // Throttle the interactive features to prevent performance issues
+        const throttledAddFeatures = throttle(() => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'diagram-wrapper';
+            
+            // Wrap the diagram
+            element.parentNode.insertBefore(wrapper, element);
+            wrapper.appendChild(element);
+            
+            // Add controls
+            const controls = document.createElement('div');
+            controls.className = 'diagram-controls';
+            
+            // Fullscreen button
+            const fullscreenBtn = document.createElement('button');
+            fullscreenBtn.innerHTML = '🔍';
+            fullscreenBtn.className = 'diagram-btn fullscreen-btn';
+            fullscreenBtn.title = 'View Fullscreen';
+            fullscreenBtn.addEventListener('click', () => showFullscreen(element));
+            
+            // Copy button
+            const copyBtn = document.createElement('button');
+            copyBtn.innerHTML = '📋';
+            copyBtn.className = 'diagram-btn copy-btn';
+            copyBtn.title = 'Copy Diagram';
+            copyBtn.addEventListener('click', () => copyDiagram(element));
+            
+            // Download button
+            const downloadBtn = document.createElement('button');
+            downloadBtn.innerHTML = '💾';
+            downloadBtn.className = 'diagram-btn download-btn';
+            downloadBtn.title = 'Download as SVG';
+            downloadBtn.addEventListener('click', () => downloadDiagram(element));
+            
+            controls.appendChild(fullscreenBtn);
+            controls.appendChild(copyBtn);
+            controls.appendChild(downloadBtn);
+            
+            wrapper.appendChild(controls);
+        }, 100);
+        
+        throttledAddFeatures();
+    }
+    
+    // Throttle function to prevent excessive calls
+    function throttle(func, limit) {
+        let lastFunc;
+        let lastRan;
+        return function() {
+            const context = this;
+            const args = arguments;
+            if (!lastRan) {
+                func.apply(context, args);
+                lastRan = Date.now();
+            } else {
+                clearTimeout(lastFunc);
+                lastFunc = setTimeout(function() {
+                    if ((Date.now() - lastRan) >= limit) {
+                        func.apply(context, args);
+                        lastRan = Date.now();
+                    }
+                }, limit - (Date.now() - lastRan));
+            }
+        };
+    }
+    
+    function showFullscreen(element) {
+        const modal = document.createElement('div');
+        modal.className = 'diagram-modal';
+        
+        const modalContent = document.createElement('div');
+        modalContent.className = 'diagram-modal-content';
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.innerHTML = '×';
+        closeBtn.className = 'diagram-modal-close';
+        closeBtn.addEventListener('click', () => {
+            document.body.removeChild(modal);
+            document.body.style.overflow = '';
+        });
+        
+        const diagramClone = element.cloneNode(true);
+        diagramClone.className += ' fullscreen-diagram';
+        
+        modalContent.appendChild(closeBtn);
+        modalContent.appendChild(diagramClone);
+        modal.appendChild(modalContent);
+        
+        document.body.appendChild(modal);
+        document.body.style.overflow = 'hidden';
+        
+        // Close on ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.body.contains(modal)) {
+                document.body.removeChild(modal);
+                document.body.style.overflow = '';
+            }
+        });
+    }
+    
+    function copyDiagram(element) {
+        try {
+            // For SVG diagrams
+            const svg = element.querySelector('svg');
+            if (svg) {
+                const svgData = new XMLSerializer().serializeToString(svg);
+                navigator.clipboard.writeText(svgData).then(() => {
+                    showNotification('Diagram copied to clipboard!');
+                });
+            } else {
+                // For other diagram types
+                const text = element.textContent || element.innerText;
+                navigator.clipboard.writeText(text).then(() => {
+                    showNotification('Diagram text copied to clipboard!');
+                });
+            }
+        } catch (error) {
+            console.error('Copy failed:', error);
+            showNotification('Copy failed. Please try again.');
+        }
+    }
+    
+    function downloadDiagram(element) {
+        try {
+            const svg = element.querySelector('svg');
+            if (svg) {
+                const svgData = new XMLSerializer().serializeToString(svg);
+                const blob = new Blob([svgData], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'diagram.svg';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showNotification('Diagram downloaded!');
+            } else {
+                showNotification('Download not available for this diagram type.');
+            }
+        } catch (error) {
+            console.error('Download failed:', error);
+            showNotification('Download failed. Please try again.');
+        }
+    }
+    
+    function showNotification(message) {
+        const notification = document.createElement('div');
+        notification.className = 'diagram-notification';
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 10);
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                if (document.body.contains(notification)) {
+                    document.body.removeChild(notification);
+                }
+            }, 300);
+        }, 3000);
+    }
+    
+    function encodePlantUML(text) {
+        // Simple PlantUML encoding - you might want to use a proper library
+        const compressed = deflate(text);
+        return encode64(compressed);
+    }
+    
+    function deflate(text) {
+        // Simplified deflate - in production, use a proper compression library
+        return text;
+    }
+    
+    function encode64(text) {
+        // Base64 encoding
+        return btoa(unescape(encodeURIComponent(text)));
+    }
+    
+    // Performance monitoring
+    window.addEventListener('load', function() {
+        const totalTime = performance.now() - startTime;
+        console.log(`All diagrams loaded in ${totalTime.toFixed(2)}ms. Total diagrams: ${diagramsRendered}`);
+        
+        // Performance optimization: Clean up after rendering
+        if (diagramsRendered > 5) {
+            console.log('Multiple diagrams detected. Consider splitting content for better performance.');
+        }
+    });
+    
+    // Memory cleanup
+    window.addEventListener('beforeunload', function() {
+        // Clean up any remaining observers
+        if (observer) {
+            observer.disconnect();
+        }
+    });
+});
 
 // Add CSS animation for notifications
 const style = document.createElement('style');
