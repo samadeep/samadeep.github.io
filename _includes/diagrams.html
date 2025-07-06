@@ -1,5 +1,5 @@
-<!-- Mermaid.js - Using stable version -->
-<script src="https://cdn.jsdelivr.net/npm/mermaid@9.4.3/dist/mermaid.min.js"></script>
+<!-- Mermaid.js - Using latest stable version -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
 
 <!-- PlantUML Support -->
 <script src="https://cdn.jsdelivr.net/npm/plantuml-encoder@1.4.0/dist/plantuml-encoder.min.js"></script>
@@ -7,48 +7,10 @@
 <!-- Custom Diagram Styles -->
 <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/diagrams.css?v={{ site.time | date: '%s' }}">
 
+<!-- Mermaid will be initialized in diagrams.js -->
+
 <!-- Custom Diagram JavaScript -->
 <script src="{{ site.baseurl }}/assets/js/diagrams.js?v={{ site.time | date: '%s' }}"></script>
-
-<!-- Initialize Mermaid -->
-<script>
-  // Initialize Mermaid with compatible settings
-  if (typeof mermaid !== 'undefined') {
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: 'default',
-      securityLevel: 'loose',
-      themeVariables: {
-        primaryColor: '#007bff',
-        primaryTextColor: '#333',
-        primaryBorderColor: '#007bff',
-        lineColor: '#666',
-        secondaryColor: '#28a745',
-        tertiaryColor: '#ffc107'
-      },
-      flowchart: {
-        htmlLabels: true,
-        curve: 'basis'
-      },
-      sequence: {
-        diagramMarginX: 50,
-        diagramMarginY: 10,
-        actorMargin: 50,
-        width: 150,
-        height: 65,
-        boxMargin: 10,
-        boxTextMargin: 5,
-        noteMargin: 10,
-        messageMargin: 35,
-        mirrorActors: true
-      },
-      gantt: {
-        numberSectionStyles: 4,
-        axisFormat: '%m/%d/%Y'
-      }
-    });
-  }
-</script>
 
 <!-- Math Support -->
 <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
