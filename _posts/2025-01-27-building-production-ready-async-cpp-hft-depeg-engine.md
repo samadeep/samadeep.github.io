@@ -54,51 +54,73 @@ I envisioned a system that could:
 
 The transformation centered around building a **lock-free, event-driven architecture** that could handle high-frequency data without performance bottlenecks.
 
-```mermaid
-graph TB
-    subgraph "Async Depeg Engine System Architecture"
-        subgraph "Core Framework"
-            EB[Event Bus<br/>Async Message Passing]
-            WP[Master Worker Pool<br/>8 Threads]
-            IO[Async I/O Context<br/>External APIs]
-            SC[Task Scheduler<br/>Priority Queues]
-        end
-        
-        subgraph "Data Layer"
-            DA[Async Data Aggregator<br/>Market Data Collection]
-            EDS[Exchange Data Sources<br/>WebSocket + REST]
-            BDS[Blockchain Data Sources<br/>RPC + APIs]
-            LFQ[Lock-Free Queues<br/>High-Frequency Data]
-        end
-        
-        subgraph "ML Processing"
-            PE[Async Prediction Engine<br/>Risk Assessment]
-            MLM[ML Models<br/>RandomForest + Neural Net]
-            FE[Feature Extractor<br/>Technical Indicators]
-            RS[Risk Scorer<br/>Multi-Factor Analysis]
-        end
-        
-        subgraph "Alert System"
-            AM[Async Alert Manager<br/>Notification Processing]
-            NP[Notification Pipelines<br/>Email + Slack + Webhook]
-            TP[Template Engine<br/>Alert Messages]
-            SUB[Subscription Manager<br/>User Preferences]
-        end
-        
-        subgraph "System Health"
-            HM[Health Monitor<br/>Component Status]
-            PP[Performance Profiler<br/>Latency Tracking]
-            CB[Circuit Breakers<br/>Fault Tolerance]
-            SYS[System Metrics<br/>Resource Usage]
-        end
-        
-        subgraph "Coordination"
-            CE[Coordination Engine<br/>Component Orchestra]
-            CM[Configuration Manager<br/>Runtime Config]
-            EM[Engine Manager<br/>Multi-Instance]
-        end
-    end
-```
+{% plantuml %}
+@startuml
+title Async Depeg Engine – Vertical Component Layout
+!theme plain
+skinparam componentStyle rectangle
+skinparam roundcorner 15
+' make the guiding arrows unobtrusive
+skinparam ArrowColor Gray
+skinparam ArrowThickness 0.5
+skinparam ArrowFontSize 8
+
+' ─── Core Framework ─────────────────────────────
+package "Core Framework" as CF {
+  component EB  as "Event Bus\nAsync Message Passing"
+  component WP  as "Master Worker Pool\n8 Threads"
+  component IO  as "Async I/O Context\nExternal APIs"
+  component SC  as "Task Scheduler\nPriority Queues"
+}
+
+' ─── Data Layer ─────────────────────────────────
+package "Data Layer" as DL {
+  component DA  as "Async Data Aggregator\nMarket Data Collection"
+  component EDS as "Exchange Data Sources\nWebSocket + REST"
+  component BDS as "Blockchain Data Sources\nRPC + APIs"
+  component LFQ as "Lock-Free Queues\nHigh-Freq Data"
+}
+
+' ─── ML Processing ─────────────────────────────
+package "ML Processing" as MP {
+  component PE  as "Async Prediction Engine\nRisk Assessment"
+  component MLM as "ML Models\nRandomForest + NN"
+  component FE  as "Feature Extractor\nTechnical Indicators"
+  component RS  as "Risk Scorer\nMulti-Factor Analysis"
+}
+
+' ─── Alert System ──────────────────────────────
+package "Alert System" as AS {
+  component AM  as "Async Alert Manager\nNotification Processing"
+  component NP  as "Notification Pipelines\nEmail + Slack + Webhook"
+  component TP  as "Template Engine\nAlert Messages"
+  component SUB as "Subscription Manager\nUser Preferences"
+}
+
+' ─── System Health ─────────────────────────────
+package "System Health" as SH {
+  component HM  as "Health Monitor\nComponent Status"
+  component PP  as "Performance Profiler\nLatency Tracking"
+  component CB  as "Circuit Breakers\nFault Tolerance"
+  component SYS as "System Metrics\nResource Usage"
+}
+
+' ─── Coordination ──────────────────────────────
+package "Coordination" as CO {
+  component CE  as "Coordination Engine\nComponent Orchestra"
+  component CM  as "Configuration Manager\nRuntime Config"
+  component EM  as "Engine Manager\nMulti-Instance"
+}
+
+' ── Thin dashed links force vertical ordering ──
+CF ..> DL
+DL ..> MP
+MP ..> AS
+AS ..> SH
+SH ..> CO
+@enduml
+
+{% endplantuml %}
 
 ## 🔧 Technical Deep Dive: Core Components
 
@@ -313,85 +335,54 @@ participant "ML Models" as ML
 participant "Async Alert\nManager" as AAM
 participant "Notification\nChannels" as NC
 
-activate MDS
-activate ADA
-activate EB
-activate APE
-activate AFE
-activate ML
-activate AAM
-activate NC
-
 == Market Data Collection Phase ==
 MDS -> ADA: WebSocket/REST API data
-note right: 100,000+ data points/sec
+note right of ADA: 100,000+ data points/sec
 ADA -> ADA: Validate & normalize data
 ADA -> EB: Publish MARKET_DATA_UPDATE event
-note right: Lock-free event publishing
+note right of EB: Lock-free event publishing
 
 == Async Processing Phase ==
 EB -> APE: Event notification
-note right: Event-driven processing
+note right of APE: Event-driven processing
 APE -> AFE: extract_market_features(data)
-note right: Parallel feature extraction
+note right of AFE: Parallel feature extraction
 
-par Feature Extraction (Parallel)
-    AFE -> AFE: calculate_price_volatility()
-and
-    AFE -> AFE: calculate_volume_profile()
-and
-    AFE -> AFE: calculate_technical_indicators()
-end
+AFE -> AFE: calculate_price_volatility()
+AFE -> AFE: calculate_volume_profile()
+AFE -> AFE: calculate_technical_indicators()
 
-AFE -> APE: Return combined features
-note right: Sub-millisecond feature processing
+AFE --> APE: Return combined features
+note right of APE: Sub-millisecond feature processing
 
 == ML Prediction Phase ==
 APE -> ML: predict_risk_score(features)
-note right: Async model inference
+note right of ML: Async model inference
 
-par Model Predictions (Parallel)
-    ML -> ML: RandomForest prediction
-and
-    ML -> ML: Neural Network prediction
-end
+ML -> ML: RandomForest prediction
+ML -> ML: Neural Network prediction
 
-ML -> APE: Return risk predictions
+ML --> APE: Return risk predictions
 APE -> APE: Combine & validate predictions
 
-alt High Risk Detected
-    APE -> EB: Publish RISK_THRESHOLD_BREACH event
-    note right: Risk score > threshold
-    EB -> AAM: Alert generation trigger
-    
-    == Alert Processing Phase ==
-    AAM -> AAM: Process alert & find subscriptions
-    
-    par Notification Delivery (Parallel)
-        AAM -> NC: Send email notifications
-    and
-        AAM -> NC: Send Slack notifications
-    and
-        AAM -> NC: Send webhook notifications
-    end
-    
-    NC -> AAM: Delivery confirmations
-    AAM -> EB: Publish ALERT_GENERATED event
-    note right: Professional logging
-end
+== Alert Processing Phase ==
+APE -> EB: Publish RISK_THRESHOLD_BREACH event
+note right of EB: Risk score > threshold
+EB -> AAM: Alert generation trigger
+
+AAM -> AAM: Process alert & find subscriptions
+
+AAM -> NC: Send email notifications
+AAM -> NC: Send Slack notifications
+AAM -> NC: Send webhook notifications
+
+NC --> AAM: Delivery confirmations
+AAM -> EB: Publish ALERT_GENERATED event
+note right of EB: Professional logging
 
 == Performance Monitoring ==
 EB -> EB: Record processing metrics
-note right: Latency tracking & profiling
-
-deactivate MDS
-deactivate ADA
-deactivate EB
-deactivate APE
-deactivate AFE
-deactivate ML
-deactivate AAM
-deactivate NC
+note right of EB: Latency tracking & profiling
 
 @enduml
 {% endplantuml %}
@@ -920,21 +911,17 @@ partition "Data Preparation" {
 partition "Feature Engineering" {
     :Extract Technical Indicators;
     
-    fork
-        :Calculate Price Features;
-        :RSI, MACD, Bollinger Bands;
-    fork again
-        :Calculate Volume Features;
-        :Volume Profile, VWAP;
-    fork again
-        :Calculate Statistical Features;
-        :Volatility, Skewness, Kurtosis;
-    fork again
-        :Calculate Sentiment Features;
-        :News Sentiment, Social Media;
-    end fork
+    :Calculate Price Features;
+    note right: RSI, MACD, Bollinger Bands
+    :Calculate Volume Features;
+    note right: Volume Profile, VWAP
+    :Calculate Statistical Features;
+    note right: Volatility, Skewness, Kurtosis
+    :Calculate Sentiment Features;
+    note right: News Sentiment, Social Media
     
     :Combine Feature Vectors;
+    note right: Parallel processing complete
     :Feature Selection (Top 50);
     :Normalize Features;
 }
@@ -942,21 +929,15 @@ partition "Feature Engineering" {
 partition "Model Training" {
     :Initialize Model Pool;
     
-    fork
-        :Train Random Forest;
-        :100 trees, max depth 10;
-        :Record Training Time: ~2 minutes;
-    fork again
-        :Train Neural Network;
-        :3 hidden layers, 128 neurons each;
-        :Record Training Time: ~5 minutes;
-    fork again
-        :Train SVM;
-        :RBF kernel, C=1.0, gamma=0.1;
-        :Record Training Time: ~3 minutes;
-    end fork
+    :Train Random Forest;
+    note right: 100 trees, max depth 10\nTraining Time: ~2 minutes
+    :Train Neural Network;
+    note right: 3 hidden layers, 128 neurons each\nTraining Time: ~5 minutes
+    :Train SVM;
+    note right: RBF kernel, C=1.0, gamma=0.1\nTraining Time: ~3 minutes
     
     :Combine into Ensemble;
+    note right: Parallel training complete
     :Optimize Ensemble Weights;
 }
 
@@ -964,21 +945,17 @@ partition "Model Validation" {
     :K-Fold Cross Validation;
     note right: k=5 folds
     
-    fork
-        :Calculate Accuracy;
-        :Target: >95%;
-    fork again
-        :Calculate Precision/Recall;
-        :Target: >90%;
-    fork again
-        :Calculate AUC-ROC;
-        :Target: >0.95;
-    fork again
-        :Calculate F1-Score;
-        :Target: >0.92;
-    end fork
+    :Calculate Accuracy;
+    note right: Target: >95%
+    :Calculate Precision/Recall;
+    note right: Target: >90%
+    :Calculate AUC-ROC;
+    note right: Target: >0.95
+    :Calculate F1-Score;
+    note right: Target: >0.92
     
     :Time Series Walk-Forward Validation;
+    note right: Parallel validation complete
     :Evaluate Model Stability;
     
     if (All Metrics Pass?) then (yes)
@@ -995,13 +972,10 @@ partition "Model Deployment" {
     :Update Model Registry;
     :Deploy to Production Servers;
     
-    fork
-        :Load into Primary Engine;
-    fork again
-        :Load into Secondary Engine;
-    fork again
-        :Load into Backup Engine;
-    end fork
+    :Load into Primary Engine;
+    :Load into Secondary Engine;
+    :Load into Backup Engine;
+    note right: Parallel deployment processing
     
     :Enable Model Monitoring;
     :Start Performance Tracking;
@@ -1271,41 +1245,33 @@ partition "Event Processing Layer" {
     note right: Lock-free event publishing
     :Event Bus Dispatches to Subscribers;
     
-    fork
-        :Async Prediction Engine Notified;
-    fork again
-        :System Health Monitor Notified;
-    fork again
-        :Performance Profiler Notified;
-    end fork
+    :Async Prediction Engine Notified;
+    :System Health Monitor Notified;
+    :Performance Profiler Notified;
+    note right: Parallel notification processing
 }
 
 partition "ML Processing Layer" {
     :Start Feature Extraction;
     
-    fork
-        :Calculate Price Volatility;
-        :Record Latency: ~50μs;
-    fork again
-        :Calculate Volume Profile;
-        :Record Latency: ~30μs;
-    fork again
-        :Calculate Technical Indicators;
-        :Record Latency: ~80μs;
-    end fork
+    :Calculate Price Volatility;
+    note right: Latency ~50μs
+    :Calculate Volume Profile;
+    note right: Latency ~30μs
+    :Calculate Technical Indicators;
+    note right: Latency ~80μs
     
     :Combine Features;
+    note right: Parallel processing complete
     :Submit to ML Models;
     
-    fork
-        :Random Forest Prediction;
-        :Record Latency: ~200μs;
-    fork again
-        :Neural Network Prediction;
-        :Record Latency: ~150μs;
-    end fork
+    :Random Forest Prediction;
+    note right: Latency ~200μs
+    :Neural Network Prediction;
+    note right: Latency ~150μs
     
     :Combine Model Predictions;
+    note right: Ensemble processing
     :Calculate Risk Score;
     
     if (Risk Score > Threshold?) then (yes)
@@ -1322,17 +1288,12 @@ partition "Alert Processing Layer" {
     :Find Matching Subscriptions;
     :Generate Alert Messages;
     
-    fork
-        :Send Email Notifications;
-        :Record Delivery Status;
-    fork again
-        :Send Slack Notifications;
-        :Record Delivery Status;
-    fork again
-        :Send Webhook Notifications;
-        :Record Delivery Status;
-    end fork
+    :Send Email Notifications;
+    :Send Slack Notifications;
+    :Send Webhook Notifications;
+    note right: Parallel delivery processing
     
+    :Record Delivery Status;
     :Aggregate Delivery Results;
     :Publish ALERT_GENERATED Event;
     :Update Alert Statistics;
@@ -1443,7 +1404,6 @@ This timing diagram shows the optimization of critical operations:
 @startuml PerformanceOptimizationTimeline
 !theme plain
 skinparam participantPadding 20
-skinparam boxPadding 10
 skinparam sequenceArrowThickness 2
 
 participant "Market Data\nIngestion" as MDI
@@ -1452,61 +1412,72 @@ participant "ML Model\nInference" as MLI
 participant "Alert\nGeneration" as AG
 participant "Notification\nDelivery" as ND
 
-box "Before Optimization (Sync)" #FFE4E6
-    MDI -> FE: 50ms (blocking)
-    FE -> MLI: 30ms (sequential)
-    MLI -> AG: 20ms (single-threaded)
-    AG -> ND: 100ms (synchronous)
-    note over MDI, ND
-        **Total Latency: 200ms**
-        **Throughput: 5 ops/sec**
-    end note
-end box
+== Before Optimization (Synchronous) ==
+MDI -> FE: 50ms (blocking)
+note right: Sequential processing
+FE -> MLI: 30ms (sequential)
+note right: Single-threaded inference
+MLI -> AG: 20ms (single-threaded)
+note right: Synchronous alerts
+AG -> ND: 100ms (synchronous)
+note right: Blocking delivery
+
+note over MDI, ND
+  **BEFORE - Total Latency: 200ms**
+  **Throughput: 5 operations/sec**
+end note
 
 |||
 
-box "After Optimization (Async)" #E6FFE6
-    MDI -> FE: 100μs (lock-free)
-    FE -> MLI: 200μs (parallel)
-    MLI -> AG: 150μs (multi-model)
-    AG -> ND: 50μs (async delivery)
-    
-    note over MDI, ND
-        **Total Latency: 500μs**
-        **Throughput: 50,000 ops/sec**
-        **Improvement: 400x faster**
-    end note
-    
-    note over FE
-        **Parallel Feature Processing**
-        - Price volatility: 50μs
-        - Volume profile: 30μs  
-        - Technical indicators: 80μs
-        - Combined async: 80μs
-    end note
-    
-    note over MLI
-        **Multi-Model Inference**
-        - Random Forest: 200μs
-        - Neural Network: 150μs
-        - Ensemble: 200μs (parallel)
-    end note
-    
-    note over AG
-        **Async Alert Processing**
-        - Template generation: 20μs
-        - Subscription matching: 10μs
-        - Message formatting: 20μs
-    end note
-    
-    note over ND
-        **Parallel Notification**
-        - Email: 30μs (async)
-        - Slack: 25μs (async)
-        - Webhook: 20μs (async)
-        - Total: 30μs (parallel)
-    end note
-end box
+== After Optimization (Asynchronous) ==
+MDI -> FE: 100μs (lock-free)
+note right: Lock-free queues
+FE -> MLI: 200μs (parallel)
+note right: Multi-threaded processing
+MLI -> AG: 150μs (multi-model)
+note right: Ensemble predictions
+AG -> ND: 50μs (async delivery)
+note right: Parallel notifications
+
+note over MDI, ND
+  **AFTER - Total Latency: 500μs**
+  **Throughput: 50,000 operations/sec**
+  **Improvement: 400x faster**
+end note
+
+group Parallel Feature Processing
+  note over FE
+    Price volatility: 50μs
+    Volume profile: 30μs  
+    Technical indicators: 80μs
+    Combined async: 80μs
+  end note
+end
+
+group Multi-Model Inference
+  note over MLI
+    Random Forest: 200μs
+    Neural Network: 150μs
+    Ensemble: 200μs (parallel)
+  end note
+end
+
+group Async Alert Processing
+  note over AG
+    Template generation: 20μs
+    Subscription matching: 10μs
+    Message formatting: 20μs
+  end note
+end
+
+group Parallel Notification
+  note over ND
+    Email: 30μs (async)
+    Slack: 25μs (async)
+    Webhook: 20μs (async)
+    Total: 30μs (parallel)
+  end note
+end
 
 @enduml
 {% endplantuml %}
