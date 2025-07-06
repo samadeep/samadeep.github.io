@@ -1,6 +1,15 @@
 <!-- The Side Bar -->
 
-<aside aria-label="Sidebar" id="sidebar" class="d-flex flex-column align-items-end">
+<style>
+  .sidebar-search-input{
+    padding-left: 1.5rem;
+  }
+  .sidebar-search{
+    padding-left: 1.5rem;
+  }
+</style>
+
+<aside aria-label="Sidebar" id="sidebar" class="d-flex flex-column align-items-center">
   <header class="profile-wrapper">
     <a href="{{ '/' | relative_url }}" id="avatar" class="rounded-circle">
       {%- if site.avatar != empty and site.avatar -%}
@@ -19,7 +28,7 @@
   <!-- .profile-wrapper -->
 
   <!-- Search Bar in Sidebar -->
-  <div class="sidebar-search w-100 px-3 mb-3">
+  <div class="sidebar-search w-100 mb-3">
     <search class="d-flex align-items-center">
       <i class="fas fa-search fa-fw"></i>
       <input
@@ -36,7 +45,7 @@
   <nav class="flex-column flex-grow-1 w-100 ps-0">
     <ul class="nav">
       <!-- home -->
-      <li class="nav-item{% if page.layout == 'home' %}{{ " active" }}{% endif %}">
+      <li class="nav-item{% if page.layout == 'home' %}{{ ' active' }}{% endif %}">
         <a href="{{ '/' | relative_url }}" class="nav-link">
           <i class="fa-fw fas fa-home"></i>
           <span>{{ site.data.locales[include.lang].tabs.home | upcase }}</span>
@@ -44,11 +53,10 @@
       </li>
       <!-- the real tabs -->
       {% for tab in site.tabs %}
-        <li class="nav-item{% if tab.url == page.url %}{{ " active" }}{% endif %}">
+        <li class="nav-item{% if tab.url == page.url %}{{ ' active' }}{% endif %}">
           <a href="{{ tab.url | relative_url }}" class="nav-link">
             <i class="fa-fw {{ tab.icon }}"></i>
             {% capture tab_name %}{{ tab.url | split: '/' }}{% endcapture %}
-
             <span>{{ site.data.locales[include.lang].tabs.[tab_name] | default: tab.title | upcase }}</span>
           </a>
         </li>
@@ -57,7 +65,7 @@
     </ul>
   </nav>
 
-  <div class="sidebar-bottom d-flex flex-wrap  align-items-center w-100">
+  <div class="sidebar-bottom d-flex flex-wrap align-items-center w-100">
     {% unless site.theme_mode %}
       <button type="button" class="mode-toggle btn" aria-label="Switch Mode">
         <i class="fas fa-adjust"></i>
@@ -111,4 +119,4 @@
   </div>
   <!-- .sidebar-bottom -->
 </aside>
-<!-- #sidebar --> 
+<!-- #sidebar -->
