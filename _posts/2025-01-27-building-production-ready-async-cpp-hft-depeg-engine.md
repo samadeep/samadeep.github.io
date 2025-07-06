@@ -106,7 +106,7 @@ graph TB
 
 The following PlantUML diagram illustrates the detailed class structure and relationships within the async framework:
 
-```plantuml
+{% plantuml %}  
 @startuml AsyncFrameworkArchitecture
 !theme plain
 skinparam packageStyle rectangle
@@ -114,7 +114,7 @@ skinparam linetype ortho
 
 package "Core Async Framework" {
     
-    class LockFreeQueue<T> {
+    class LockFreeQueue<T> {    
         - struct Node
         - atomic<Node*> head_
         - atomic<Node*> tail_
@@ -291,13 +291,13 @@ AsyncSystemHealthMonitor --> EventBus : uses
 AsyncPerformanceProfiler --> LockFreeQueue : uses
 
 @enduml
-```
+{% plantuml %}
 
 ### Async Data Flow Sequence
 
 This sequence diagram shows how data flows through the system asynchronously:
 
-```plantuml
+{% plantuml %}
 @startuml AsyncDataFlowSequence
 !theme plain
 skinparam sequenceArrowThickness 2
@@ -394,13 +394,13 @@ deactivate AAM
 deactivate NC
 
 @enduml
-```
+{% plantuml %}
 
 ### Component Interaction Diagram
 
 This diagram shows the high-level component interactions and async communication patterns:
 
-```plantuml
+{% plantuml %}
 @startuml ComponentInteractionDiagram
 !theme plain
 skinparam componentStyle rectangle
@@ -494,7 +494,7 @@ LockFreeQueues --> EventBus : "Lock-Free\nMessage Passing"
 CircuitBreakers --> AsyncIOContext : "Failure\nProtection"
 
 @enduml
-```
+{% plantuml %}
 
 ### 1. Lock-Free Data Structures for Zero-Contention
 
@@ -692,7 +692,7 @@ The machine learning pipeline was redesigned to leverage **parallel processing**
 
 This detailed class diagram shows the complete machine learning pipeline architecture:
 
-```plantuml
+{% plantuml %}
 @startuml MLPipelineArchitecture
 !theme plain
 skinparam packageStyle rectangle
@@ -888,13 +888,13 @@ AsyncModelTrainer --> AsyncWorkerPool : uses
 AsyncModelServer --> AsyncWorkerPool : uses
 
 @enduml
-```
+{% plantuml %}
 
 #### Training Pipeline Workflow
 
 This activity diagram shows the complete model training and validation process:
 
-```plantuml
+{% plantuml %}
 @startuml MLTrainingWorkflow
 !theme plain
 skinparam activityArrowFontSize 12
@@ -1025,7 +1025,7 @@ note right: Total Time: ~15 minutes
 stop
 
 @enduml
-```
+{% plantuml %}
 
 ```cpp
 class AsyncFeatureExtractor {
@@ -1242,7 +1242,7 @@ The system consistently delivers **sub-millisecond performance** for critical op
 
 The following activity diagram illustrates the complete async processing workflow from data ingestion to alert delivery:
 
-```plantuml
+{% plantuml %}
 @startuml AsyncProcessingWorkflow
 !theme plain
 skinparam activityArrowFontSize 12
@@ -1358,13 +1358,13 @@ note right: ~50,000 operations/sec
 stop
 
 @enduml
-```
+{% plantuml %}
 
 ### Circuit Breaker State Management
 
 This state diagram shows the circuit breaker's fault tolerance mechanism:
 
-```plantuml
+{% plantuml %}
 @startuml CircuitBreakerStateDiagram
 !theme plain
 skinparam stateFontSize 14
@@ -1433,13 +1433,13 @@ OPEN --> OPEN : request blocked\n(fail-fast)
 CLOSED --> CLOSED : successful operation\n(reset failure count)
 
 @enduml
-```
+{% plantuml %}
 
 ### Performance Optimization Timeline
 
 This timing diagram shows the optimization of critical operations:
 
-```plantuml
+{% plantuml %}
 @startuml PerformanceOptimizationTimeline
 !theme plain
 skinparam participantPadding 20
@@ -1509,7 +1509,7 @@ box "After Optimization (Async)" #E6FFE6
 end box
 
 @enduml
-```
+{% plantuml %}
 
 ### Circuit Breaker Pattern for Fault Tolerance
 
@@ -1730,7 +1730,7 @@ public:
 
 The following deployment diagram shows the complete production infrastructure:
 
-```plantuml
+{% plantuml %}
 @startuml ProductionDeploymentArchitecture
 !theme plain
 skinparam nodeBackgroundColor #E8F4FD
@@ -1910,7 +1910,7 @@ note bottom of TimeSeriesDB
 end note
 
 @enduml
-```
+{% plantuml %}
 
 This deployment architecture provides:
 
