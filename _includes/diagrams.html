@@ -1,64 +1,53 @@
-<!-- Mermaid Diagram Support -->
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+<!-- Mermaid.js - Using stable version -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@9.4.3/dist/mermaid.min.js"></script>
+
+<!-- PlantUML Support -->
+<script src="https://cdn.jsdelivr.net/npm/plantuml-encoder@1.4.0/dist/plantuml-encoder.min.js"></script>
 
 <!-- Custom Diagram Styles -->
-<link rel="stylesheet" href="{{ '/assets/css/diagrams.css' | relative_url }}">
+<link rel="stylesheet" href="{{ site.baseurl }}/assets/css/diagrams.css?v={{ site.time | date: '%s' }}">
 
 <!-- Custom Diagram JavaScript -->
-<script src="{{ '/assets/js/diagrams.js' | relative_url }}"></script>
+<script src="{{ site.baseurl }}/assets/js/diagrams.js?v={{ site.time | date: '%s' }}"></script>
 
 <!-- Initialize Mermaid -->
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Configure Mermaid
-    if (typeof mermaid !== 'undefined') {
-      mermaid.initialize({
-        startOnLoad: true,
-        theme: document.documentElement.getAttribute('data-mode') === 'dark' ? 'dark' : 'base',
-        securityLevel: 'loose',
-        themeVariables: {
-          primaryColor: '#007bff',
-          primaryTextColor: '#fff',
-          primaryBorderColor: '#7C0000',
-          lineColor: '#F8B229',
-          secondaryColor: '#006100',
-          tertiaryColor: '#fff'
-        },
-        flowchart: {
-          curve: 'basis',
-          nodeSpacing: 50,
-          rankSpacing: 50,
-          padding: 15
-        },
-        sequence: {
-          diagramMarginX: 50,
-          diagramMarginY: 10,
-          actorMargin: 50,
-          width: 150,
-          height: 65,
-          boxMargin: 10,
-          boxTextMargin: 5,
-          noteMargin: 10,
-          messageMargin: 35,
-          mirrorActors: true,
-          bottomMarginAdj: 1,
-          useMaxWidth: true
-        },
-        gantt: {
-          titleTopMargin: 25,
-          barHeight: 20,
-          fontFamily: '"Open Sans", sans-serif',
-          fontSize: 11,
-          fontWeight: 'normal',
-          gridLineStartPadding: 35,
-          leftPadding: 75,
-          numberSectionStyles: 4,
-          topPadding: 50,
-          topAxis: false
-        }
-      });
-    }
-  });
+  // Initialize Mermaid with compatible settings
+  if (typeof mermaid !== 'undefined') {
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'default',
+      securityLevel: 'loose',
+      themeVariables: {
+        primaryColor: '#007bff',
+        primaryTextColor: '#333',
+        primaryBorderColor: '#007bff',
+        lineColor: '#666',
+        secondaryColor: '#28a745',
+        tertiaryColor: '#ffc107'
+      },
+      flowchart: {
+        htmlLabels: true,
+        curve: 'basis'
+      },
+      sequence: {
+        diagramMarginX: 50,
+        diagramMarginY: 10,
+        actorMargin: 50,
+        width: 150,
+        height: 65,
+        boxMargin: 10,
+        boxTextMargin: 5,
+        noteMargin: 10,
+        messageMargin: 35,
+        mirrorActors: true
+      },
+      gantt: {
+        numberSectionStyles: 4,
+        axisFormat: '%m/%d/%Y'
+      }
+    });
+  }
 </script>
 
 <!-- Math Support -->

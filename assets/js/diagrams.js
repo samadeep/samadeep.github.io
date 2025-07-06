@@ -47,46 +47,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Initialize Mermaid with performance-optimized settings
-            mermaid.initialize({
-                startOnLoad: false,
-                theme: 'default',
-                themeVariables: {
-                    primaryColor: '#ff6b6b',
-                    primaryTextColor: '#333',
-                    primaryBorderColor: '#ff6b6b',
-                    lineColor: '#666',
-                    secondaryColor: '#4ecdc4',
-                    tertiaryColor: '#ffe66d'
-                },
-                // Performance optimizations
-                flowchart: {
-                    htmlLabels: true,
-                    curve: 'basis'
-                },
-                sequence: {
-                    diagramMarginX: 50,
-                    diagramMarginY: 10,
-                    actorMargin: 50,
-                    width: 150,
-                    height: 65,
-                    boxMargin: 10,
-                    boxTextMargin: 5,
-                    noteMargin: 10,
-                    messageMargin: 35
-                },
-                gantt: {
-                    numberSectionStyles: 4,
-                    axisFormat: '%m/%d/%Y',
-                    topAxis: true
-                }
-            });
+            // Get diagram content
+            const diagramContent = element.textContent || element.innerHTML;
             
-            // Render the diagram
+            // Create unique ID for the diagram
+            const diagramId = 'mermaid-' + Math.random().toString(36).substr(2, 9);
+            
+            // Use Mermaid 9.x compatible API
             const renderStartTime = performance.now();
-            mermaid.render('mermaid-' + Date.now(), element.textContent)
-                .then(result => {
-                    element.innerHTML = result.svg;
+            
+            try {
+                // Render the diagram using Mermaid 9.x API
+                mermaid.render(diagramId, diagramContent, function(svgCode) {
+                    element.innerHTML = svgCode;
                     diagramsRendered++;
                     
                     // Add interactive features
@@ -95,13 +68,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Log performance
                     const renderTime = performance.now() - renderStartTime;
                     console.log(`Mermaid diagram rendered in ${renderTime.toFixed(2)}ms`);
-                })
-                .catch(error => {
-                    console.error('Mermaid rendering error:', error);
-                    element.innerHTML = '<div class="diagram-error">Error rendering diagram</div>';
                 });
+            } catch (error) {
+                console.error('Mermaid render error:', error);
+                // Fallback: try direct initialization
+                mermaid.init(undefined, element);
+                diagramsRendered++;
+                addInteractiveFeatures(element);
+            }
         } catch (error) {
             console.error('Mermaid initialization error:', error);
+            element.innerHTML = '<div class="diagram-error">Error rendering diagram: ' + error.message + '</div>';
         }
     }
     
@@ -147,39 +124,41 @@ document.addEventListener('DOMContentLoaded', function() {
             wrapper.className = 'diagram-wrapper';
             
             // Wrap the diagram
-            element.parentNode.insertBefore(wrapper, element);
-            wrapper.appendChild(element);
-            
-            // Add controls
-            const controls = document.createElement('div');
-            controls.className = 'diagram-controls';
-            
-            // Fullscreen button
-            const fullscreenBtn = document.createElement('button');
-            fullscreenBtn.innerHTML = '🔍';
-            fullscreenBtn.className = 'diagram-btn fullscreen-btn';
-            fullscreenBtn.title = 'View Fullscreen';
-            fullscreenBtn.addEventListener('click', () => showFullscreen(element));
-            
-            // Copy button
-            const copyBtn = document.createElement('button');
-            copyBtn.innerHTML = '📋';
-            copyBtn.className = 'diagram-btn copy-btn';
-            copyBtn.title = 'Copy Diagram';
-            copyBtn.addEventListener('click', () => copyDiagram(element));
-            
-            // Download button
-            const downloadBtn = document.createElement('button');
-            downloadBtn.innerHTML = '💾';
-            downloadBtn.className = 'diagram-btn download-btn';
-            downloadBtn.title = 'Download as SVG';
-            downloadBtn.addEventListener('click', () => downloadDiagram(element));
-            
-            controls.appendChild(fullscreenBtn);
-            controls.appendChild(copyBtn);
-            controls.appendChild(downloadBtn);
-            
-            wrapper.appendChild(controls);
+            if (element.parentNode) {
+                element.parentNode.insertBefore(wrapper, element);
+                wrapper.appendChild(element);
+                
+                // Add controls
+                const controls = document.createElement('div');
+                controls.className = 'diagram-controls';
+                
+                // Fullscreen button
+                const fullscreenBtn = document.createElement('button');
+                fullscreenBtn.innerHTML = '🔍';
+                fullscreenBtn.className = 'diagram-btn fullscreen-btn';
+                fullscreenBtn.title = 'View Fullscreen';
+                fullscreenBtn.addEventListener('click', () => showFullscreen(element));
+                
+                // Copy button
+                const copyBtn = document.createElement('button');
+                copyBtn.innerHTML = '📋';
+                copyBtn.className = 'diagram-btn copy-btn';
+                copyBtn.title = 'Copy Diagram';
+                copyBtn.addEventListener('click', () => copyDiagram(element));
+                
+                // Download button
+                const downloadBtn = document.createElement('button');
+                downloadBtn.innerHTML = '💾';
+                downloadBtn.className = 'diagram-btn download-btn';
+                downloadBtn.title = 'Download as SVG';
+                downloadBtn.addEventListener('click', () => downloadDiagram(element));
+                
+                controls.appendChild(fullscreenBtn);
+                controls.appendChild(copyBtn);
+                controls.appendChild(downloadBtn);
+                
+                wrapper.appendChild(controls);
+            }
         }, 100);
         
         throttledAddFeatures();
