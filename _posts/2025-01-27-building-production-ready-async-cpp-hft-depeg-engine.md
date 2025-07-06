@@ -5,7 +5,6 @@ date: 2025-01-27 12:00:00 +0000
 categories: [C++, High-Frequency Trading, Async Programming, Financial Technology]
 tags: [cpp, hft, async, stablecoin, trading, performance, architecture]
 author: samadeep
-image: /assets/img/hft-async-engine.jpg
 description: "A complete transformation journey from a basic synchronous C++ system to a professional, production-ready async HFT architecture with 500x performance improvements"
 ---
 
