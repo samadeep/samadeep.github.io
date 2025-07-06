@@ -1,0 +1,185 @@
+{% assign related_posts = site.posts | where_exp: "post", "post.url != page.url" %}
+
+{% comment %} Find related posts based on categories and tags {% endcomment %}
+{% assign scored_posts = "" | split: "" %}
+
+{% for post in related_posts limit: 20 %}
+  {% assign score = 0 %}
+  
+  {% comment %} Score based on shared categories {% endcomment %}
+  {% for category in page.categories %}
+    {% if post.categories contains category %}
+      {% assign score = score | plus: 3 %}
+    {% endif %}
+  {% endfor %}
+  
+  {% comment %} Score based on shared tags {% endcomment %}
+  {% for tag in page.tags %}
+    {% if post.tags contains tag %}
+      {% assign score = score | plus: 1 %}
+    {% endif %}
+  {% endfor %}
+  
+  {% if score > 0 %}
+    {% assign scored_post = post | append: "|" | append: score %}
+    {% assign scored_posts = scored_posts | push: scored_post %}
+  {% endif %}
+{% endfor %}
+
+{% comment %} Sort by score and get top 3 {% endcomment %}
+{% assign sorted_posts = scored_posts | sort: "score" | reverse %}
+
+{% if sorted_posts.size > 0 %}
+<section class="related-posts">
+  <div class="related-posts-container">
+    <h3 class="related-posts-title">📚 Related Posts</h3>
+    <div class="related-posts-grid">
+      {% for scored_post in sorted_posts limit: 3 %}
+        {% assign post_data = scored_post | split: "|" %}
+        {% assign post_url = post_data[0] %}
+        {% assign post = site.posts | where: "url", post_url | first %}
+        
+        <article class="related-post-card">
+          <div class="related-post-content">
+            <h4 class="related-post-title">
+              <a href="{{ post.url }}">{{ post.title | truncate: 60 }}</a>
+            </h4>
+            <p class="related-post-excerpt">
+              {{ post.excerpt | strip_html | truncate: 120 }}
+            </p>
+            <div class="related-post-meta">
+              <time class="related-post-date">
+                📅 {{ post.date | date: "%b %-d, %Y" }}
+              </time>
+              {% if post.categories.size > 0 %}
+                <div class="related-post-categories">
+                  {% for category in post.categories limit: 2 %}
+                    <span class="related-post-category">{{ category }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<style>
+  .related-posts {
+    margin: 3rem 0;
+    padding: 2rem;
+    background: var(--related-bg, #f9fafb);
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 12px;
+  }
+  
+  .related-posts-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    color: var(--heading-color, #1f2937);
+    text-align: center;
+    border-bottom: 2px solid var(--border-color, #e5e7eb);
+    padding-bottom: 1rem;
+  }
+  
+  .related-posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .related-post-card {
+    background: white;
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .related-post-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  }
+  
+  .related-post-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+  
+  .related-post-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+  }
+  
+  .related-post-title a {
+    color: var(--heading-color, #1f2937);
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+  
+  .related-post-title a:hover {
+    color: var(--primary-color, #667eea);
+  }
+  
+  .related-post-excerpt {
+    color: var(--text-muted, #6b7280);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+  }
+  
+  .related-post-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+  }
+  
+  .related-post-date {
+    color: var(--text-muted, #6b7280);
+  }
+  
+  .related-post-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .related-post-category {
+    background: var(--tag-bg, #f3f4f6);
+    color: var(--tag-color, #374151);
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+  
+  @media (max-width: 768px) {
+    .related-posts {
+      margin: 2rem 0;
+      padding: 1.5rem;
+    }
+    
+    .related-posts-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    
+    .related-post-card {
+      padding: 1rem;
+    }
+  }
+</style>
+{% endif %} 
