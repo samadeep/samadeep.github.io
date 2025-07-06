@@ -2,10 +2,9 @@
 layout: post
 title: "Dynamic Programming Mastery: Knapsack Problem and Minimum Swaps for Increasing Arrays"
 date: 2025-07-06 17:49:46 +0530
-author: Samadeep Sengupta
+author: samadeep
 categories: ["Algorithms", "Dynamic Programming"]
 tags: ["dynamic-programming", "knapsack", "optimization", "algorithms", "competitive-programming", "data-structures"]
-author: Samadeep Sengupta
 description: "Master two classic dynamic programming problems: the 0/1 Knapsack Problem and Minimum Swaps to Make Arrays Increasing. Learn the intuition, implementation, and optimization techniques with detailed explanations and code examples."
 ---
 

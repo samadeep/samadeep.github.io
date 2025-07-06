@@ -4,7 +4,7 @@ title: "Blog Enhancement Showcase: New Features Demo"
 date: 2025-07-06 18:06:03 +0530
 categories: ["Blog", "Features", "Enhancement"]
 tags: ["blog", "toc", "reading-progress", "javascript", "css", "features"]
-author: Samadeep Sengupta
+author: samadeep
 description: "Explore the exciting new features added to this blog: right-side table of contents, reading progress bar, enhanced navigation, copy code buttons, image lightbox, and much more!"
 ---
 
