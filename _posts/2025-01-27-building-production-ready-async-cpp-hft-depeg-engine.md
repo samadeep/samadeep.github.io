@@ -291,7 +291,7 @@ AsyncSystemHealthMonitor --> EventBus : uses
 AsyncPerformanceProfiler --> LockFreeQueue : uses
 
 @enduml
-{% plantuml %}
+{% endplantuml %}
 
 ### Async Data Flow Sequence
 
@@ -394,7 +394,7 @@ deactivate AAM
 deactivate NC
 
 @enduml
-{% plantuml %}
+{% endplantuml %}
 
 ### Component Interaction Diagram
 
@@ -494,7 +494,7 @@ LockFreeQueues --> EventBus : "Lock-Free\nMessage Passing"
 CircuitBreakers --> AsyncIOContext : "Failure\nProtection"
 
 @enduml
-{% plantuml %}
+{% endplantuml %}
 
 ### 1. Lock-Free Data Structures for Zero-Contention
 
@@ -888,7 +888,7 @@ AsyncModelTrainer --> AsyncWorkerPool : uses
 AsyncModelServer --> AsyncWorkerPool : uses
 
 @enduml
-{% plantuml %}
+{% endplantuml %}
 
 #### Training Pipeline Workflow
 
@@ -1025,7 +1025,7 @@ note right: Total Time: ~15 minutes
 stop
 
 @enduml
-{% plantuml %}
+{% endplantuml %}
 
 ```cpp
 class AsyncFeatureExtractor {
@@ -1358,7 +1358,7 @@ note right: ~50,000 operations/sec
 stop
 
 @enduml
-{% plantuml %}
+{% endplantuml %}
 
 ### Circuit Breaker State Management
 
@@ -1433,7 +1433,7 @@ OPEN --> OPEN : request blocked\n(fail-fast)
 CLOSED --> CLOSED : successful operation\n(reset failure count)
 
 @enduml
-{% plantuml %}
+{% endplantuml %}
 
 ### Performance Optimization Timeline
 
@@ -1509,7 +1509,7 @@ box "After Optimization (Async)" #E6FFE6
 end box
 
 @enduml
-{% plantuml %}
+{% endplantuml %}
 
 ### Circuit Breaker Pattern for Fault Tolerance
 
@@ -1910,7 +1910,7 @@ note bottom of TimeSeriesDB
 end note
 
 @enduml
-{% plantuml %}
+{% endplantuml %}
 
 This deployment architecture provides:
 
@@ -1937,7 +1937,6 @@ The system now processes over **100,000 market data points per second**, deliver
 
 **The future of high-frequency trading is async, and the future is now.**
 
----
 
 *Interested in implementing similar systems? The complete source code and detailed implementation guides are available in my [GitHub repository](https://github.com/samadeep/async-hft-engine). Feel free to reach out for consulting on high-performance C++ trading systems.*
 
