@@ -183,7 +183,7 @@ $$
 Edit `_config.yml` to customize:
 
 ```yaml
-title: Your Blog Name
+title: Blog Name
 tagline: Your Tagline
 description: Your blog description
 url: https://yourdomain.com
