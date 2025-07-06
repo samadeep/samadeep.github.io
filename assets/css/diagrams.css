@@ -1,89 +1,331 @@
-/* Mermaid Diagrams */
+/* Enhanced Mermaid and Diagram Styles with Transparent Backgrounds */
 .mermaid-diagram {
   margin: 2rem 0;
   text-align: center;
-  background: var(--card-bg);
-  border-radius: 8px;
+  background: transparent !important; /* Transparent background */
+  border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.1);
   overflow: auto;
+  transition: all 0.3s ease;
 }
 
 .mermaid {
   max-width: 100%;
   height: auto;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: transparent !important;
 }
 
-/* PlantUML Diagrams */
-.plantuml-diagram {
+/* Force transparent backgrounds for SVG elements */
+.mermaid svg {
+  background: transparent !important;
+}
+
+.mermaid .node rect,
+.mermaid .node circle,
+.mermaid .node ellipse,
+.mermaid .node polygon {
+  fill: rgba(102, 126, 234, 0.1) !important;
+  stroke: #667eea !important;
+  stroke-width: 2px !important;
+}
+
+.mermaid .node .label {
+  color: #1f2937 !important;
+  font-weight: 600 !important;
+}
+
+/* PlantUML and Kroki Diagrams */
+.plantuml-diagram, .kroki-diagram {
   margin: 2rem 0;
   text-align: center;
-  background: var(--card-bg);
-  border-radius: 8px;
+  background: transparent !important;
+  border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.1);
   overflow: auto;
+  transition: all 0.3s ease;
 }
 
-.plantuml img {
+.plantuml img, .kroki-diagram img {
   max-width: 100%;
   height: auto;
-  border-radius: 4px;
+  border-radius: 8px;
+  background: transparent !important;
 }
 
-/* Dark mode support */
+/* PlantUML SVG text adaptive colors */
+.plantuml-diagram svg text,
+.kroki-diagram svg text {
+  fill: #1f2937 !important; /* Dark text for light mode */
+  font-weight: 500 !important;
+}
+
+.plantuml-diagram svg .note text,
+.kroki-diagram svg .note text {
+  fill: #374151 !important; /* Slightly lighter for notes */
+  font-size: 12px !important;
+}
+
+/* Generic diagram container */
+.diagram-container {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: transparent !important;
+  transition: all 0.3s ease;
+}
+
+/* Dark mode support with transparent backgrounds */
 @media (prefers-color-scheme: dark) {
   .mermaid-diagram,
-  .plantuml-diagram {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
+  .plantuml-diagram,
+  .kroki-diagram,
+  .diagram-container {
+    background: transparent !important;
+  }
+  
+  .mermaid .node .label {
+    color: #f9fafb !important;
+  }
+  
+  .mermaid .node rect,
+  .mermaid .node circle,
+  .mermaid .node ellipse,
+  .mermaid .node polygon {
+    fill: rgba(102, 126, 234, 0.2) !important;
+    stroke: #a5b4fc !important;
+  }
+  
+  /* PlantUML text colors for dark mode */
+  .plantuml-diagram svg text,
+  .kroki-diagram svg text {
+    fill: #f9fafb !important; /* White text for dark mode */
+  }
+  
+  .plantuml-diagram svg .note text,
+  .kroki-diagram svg .note text {
+    fill: #e5e7eb !important; /* Light gray for notes in dark mode */
   }
 }
 
-/* Responsive design */
-@media (max-width: 768px) {
-  .mermaid-diagram,
-  .plantuml-diagram {
-    padding: 1rem;
-    margin: 1rem 0;
+/* Theme-aware styling for different modes */
+[data-mode="light"] .plantuml-diagram svg text,
+[data-mode="light"] .kroki-diagram svg text {
+  fill: #1f2937 !important; /* Black text for light mode */
+}
+
+[data-mode="light"] .plantuml-diagram svg .note text,
+[data-mode="light"] .kroki-diagram svg .note text {
+  fill: #374151 !important;
+}
+
+[data-mode="dark"] .plantuml-diagram svg text,
+[data-mode="dark"] .kroki-diagram svg text {
+  fill: #f9fafb !important; /* White text for dark mode */
+}
+
+[data-mode="dark"] .plantuml-diagram svg .note text,
+[data-mode="dark"] .kroki-diagram svg .note text {
+  fill: #e5e7eb !important;
+}
+
+/* Auto theme detection fallback */
+:root {
+  --diagram-text-color: #1f2937;
+  --diagram-note-color: #374151;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --diagram-text-color: #f9fafb;
+    --diagram-note-color: #e5e7eb;
   }
 }
 
-/* Diagram loading animation */
+/* Apply CSS variables to diagram text */
+.plantuml-diagram svg text,
+.kroki-diagram svg text {
+  fill: var(--diagram-text-color) !important;
+}
+
+.plantuml-diagram svg .note text,
+.kroki-diagram svg .note text {
+  fill: var(--diagram-note-color) !important;
+}
+
+
+/* Interactive diagram wrapper */
+.diagram-wrapper {
+  position: relative;
+  margin: 2rem 0;
+  background: transparent !important;
+}
+
+.diagram-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+.diagram-btn {
+  padding: 8px 12px;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: #667eea;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+.diagram-btn:hover {
+  background: rgba(102, 126, 234, 0.1);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Modal styles */
+.diagram-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.diagram-modal-content {
+  position: relative;
+  max-width: 95vw;
+  max-height: 95vh;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.diagram-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #667eea;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.diagram-modal-close:hover {
+  color: #4f46e5;
+}
+
+/* Error states with better visibility */
+.diagram-error {
+  background: rgba(254, 226, 226, 0.9);
+  border: 1px solid rgba(254, 202, 202, 0.8);
+  color: #991b1b;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin: 2rem 0;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.diagram-error h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  color: #dc2626;
+}
+
+.diagram-error pre {
+  background: rgba(249, 250, 251, 0.9);
+  padding: 0.5rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+/* Loading states */
 .diagram-loading {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100px;
-  background: var(--card-bg);
+  background: transparent !important;
   border-radius: 8px;
   margin: 2rem 0;
 }
 
 .diagram-loading::after {
   content: "Loading diagram...";
-  color: var(--text-muted);
+  color: #667eea;
   font-style: italic;
+  animation: pulse 1.5s infinite;
 }
 
-/* Diagram error states */
-.diagram-error {
-  background: #fee;
-  border: 1px solid #fcc;
-  color: #c33;
-  padding: 1rem;
-  border-radius: 4px;
-  margin: 2rem 0;
-  text-align: center;
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
-/* Enhance diagram visibility */
-.mermaid-diagram:hover,
-.plantuml-diagram:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
-  transition: all 0.3s ease;
+/* Enhanced notification styles */
+.diagram-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+  z-index: 10000;
+  font-size: 14px;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+}
+
+/* Accessibility improvements */
+.diagram-btn:focus,
+.diagram-modal-close:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .mermaid-diagram,
+  .plantuml-diagram,
+  .kroki-diagram,
+  .diagram-container {
+    box-shadow: none;
+  }
+  
+  .diagram-btn {
+    background: #fff;
+    color: #000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .plantuml-diagram svg text,
+  .kroki-diagram svg text {
+    fill: #000 !important;
+    font-weight: bold !important;
+  }
 }
 
 /* Diagram toolbar */

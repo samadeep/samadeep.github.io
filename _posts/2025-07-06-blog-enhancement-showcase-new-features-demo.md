@@ -196,95 +196,175 @@ print(result)
 
 The blog now supports beautiful Mermaid diagrams with interactive features:
 
-{% mermaid %}
-graph TD
-    A[Blog Post] --> B[Reading Progress]
-    A --> C[Table of Contents]
-    A --> D[Interactive Features]
-    
-    B --> E[Progress Bar]
-    B --> F[Reading Time]
-    
-    C --> G[Auto-generated TOC]
-    C --> H[Scroll Spy]
-    C --> I[Click Navigation]
-    
-    D --> J[Copy Code Buttons]
-    D --> K[Image Lightbox]
-    D --> L[Back to Top]
-    
-    style A fill:#667eea,stroke:#4f46e5,color:#fff
-    style B fill:#10b981,stroke:#059669,color:#fff
-    style C fill:#f59e0b,stroke:#d97706,color:#fff
-    style D fill:#ef4444,stroke:#dc2626,color:#fff
-    style E fill:#8b5cf6,stroke:#7c3aed,color:#fff
-    style F fill:#8b5cf6,stroke:#7c3aed,color:#fff
-    style G fill:#06b6d4,stroke:#0891b2,color:#fff
-    style H fill:#06b6d4,stroke:#0891b2,color:#fff
-    style I fill:#06b6d4,stroke:#0891b2,color:#fff
-    style J fill:#f97316,stroke:#ea580c,color:#fff
-    style K fill:#f97316,stroke:#ea580c,color:#fff
-    style L fill:#f97316,stroke:#ea580c,color:#fff
-{% endmermaid %}
+{% plantuml %}
+@startuml
+!theme plain
+skinparam backgroundColor rgb(219, 218, 218) 
+skinparam shadowing false
+skinparam roundcorner 15
+skinparam fontcolor rgb(226, 229, 233)
+
+skinparam component {
+    BackgroundColor #667eea20
+    BorderColor #667eea
+    BorderThickness 2
+}
+
+skinparam package {
+    BackgroundColor #10b98120
+    BorderColor #10b981
+    BorderThickness 2
+}
+
+component "Blog Post" as BP
+
+package "Reading Progress" {
+    component "Progress Bar" as PB
+    component "Reading Time" as RT
+}
+
+package "Table of Contents" {
+    component "Auto-generated TOC" as TOC
+    component "Scroll Spy" as SS
+    component "Click Navigation" as CN
+}
+
+package "Interactive Features" {
+    component "Copy Code Buttons" as CCB
+    component "Image Lightbox" as IL
+    component "Back to Top" as BTT
+}
+
+BP --> PB
+BP --> TOC
+BP --> CCB
+
+note right of BP : Enhanced blog post\nwith transparent styling
+note left of PB : Visual progress\ntracking system
+note top of TOC : Smart navigation\nwith scroll spy
+note bottom of CCB : Interactive code\nand media features
+@enduml
+{% endplantuml %}
 
 ### User Experience Flow
 
 Here's how users interact with the enhanced blog:
 
-{% mermaid %}
-journey
-    title Blog Reading Experience
-    section Arrival
-      Open Blog Post     : 5: Reader
-      See Progress Bar   : 4: Reader
-      Notice TOC         : 3: Reader
-    section Reading
-      Use TOC Navigation : 5: Reader
-      Copy Code Snippets : 4: Reader
-      View Images        : 3: Reader
-    section Interaction
-      Share Post         : 4: Reader
-      Read Related Posts : 3: Reader
-      Navigate to Next   : 5: Reader
-{% endmermaid %}
+{% plantuml %}
+@startuml
+!theme plain
+skinparam backgroundColor rgb(219, 218, 218) 
+skinparam shadowing false
+skinparam roundcorner 15
+skinparam fontcolor rgb(226, 229, 233)
+
+skinparam participant {
+    BackgroundColor #667eea20
+    BorderColor #667eea
+    BorderThickness 2
+}
+
+skinparam activity {
+    BackgroundColor #10b98120
+    BorderColor #10b981
+    BorderThickness 2
+}
+
+actor Reader
+
+group "Arrival Phase"
+    Reader -> Reader : Open Blog Post (★★★★★)
+    Reader -> Reader : See Progress Bar (★★★★☆)
+    Reader -> Reader : Notice TOC (★★★☆☆)
+end
+
+group "Reading Phase"
+    Reader -> Reader : Use TOC Navigation (★★★★★)
+    Reader -> Reader : Copy Code Snippets (★★★★☆)
+    Reader -> Reader : View Images (★★★☆☆)
+end
+
+group "Interaction Phase"
+    Reader -> Reader : Share Post (★★★★☆)
+    Reader -> Reader : Read Related Posts (★★★☆☆)
+    Reader -> Reader : Navigate to Next (★★★★★)
+end
+
+note right : Enhanced user journey\nwith transparent styling\nand improved ratings
+@enduml
+{% endplantuml %}
 
 ### Technical Architecture
 
 The enhancement system follows this architecture:
 
-{% mermaid %}
-flowchart LR
-    subgraph "Frontend"
-        A[HTML Layout] --> B[CSS Styles]
-        B --> C[JavaScript Logic]
-    end
-    
-    subgraph "Features"
-        D[TOC Generator] --> E[Scroll Spy]
-        F[Progress Tracker] --> G[Reading Time]
-        H[Code Enhancer] --> I[Copy Buttons]
-        J[Image Handler] --> K[Lightbox]
-    end
-    
-    subgraph "User Actions"
-        L[Click TOC] --> M[Smooth Scroll]
-        N[Copy Code] --> O[Clipboard API]
-        P[View Image] --> Q[Modal Display]
-    end
-    
-    C --> D
-    C --> F
-    C --> H
-    C --> J
-    
-    style A fill:#e1f5fe
-    style B fill:#f3e5f5
-    style C fill:#e8f5e8
-    style D fill:#fff3e0
-    style F fill:#fce4ec
-    style H fill:#e0f2f1
-    style J fill:#f1f8e9
-{% endmermaid %}
+{% plantuml %}
+@startuml
+!theme plain
+skinparam backgroundColor rgb(219, 218, 218) 
+skinparam shadowing false
+skinparam roundcorner 15
+skinparam fontcolor rgb(226, 229, 233)
+
+skinparam package {
+    BackgroundColor #667eea20
+    BorderColor #667eea
+    BorderThickness 2
+}
+
+skinparam component {
+    BackgroundColor #10b98120
+    BorderColor #10b981
+    BorderThickness 2
+}
+
+package "Frontend" {
+    component "HTML Layout" as HTML
+    component "CSS Styles" as CSS
+    component "JavaScript Logic" as JS
+}
+
+package "Features" {
+    component "TOC Generator" as TOC
+    component "Scroll Spy" as SS
+    component "Progress Tracker" as PT
+    component "Reading Time" as RT
+    component "Code Enhancer" as CE
+    component "Copy Buttons" as CB
+    component "Image Handler" as IH
+    component "Lightbox" as LB
+}
+
+package "User Actions" {
+    component "Click TOC" as CT
+    component "Smooth Scroll" as SCROLL
+    component "Copy Code" as CC
+    component "Clipboard API" as CLIP
+    component "View Image" as VI
+    component "Modal Display" as MD
+}
+
+HTML --> CSS
+CSS --> JS
+
+JS --> TOC
+JS --> PT
+JS --> CE
+JS --> IH
+
+TOC --> SS
+PT --> RT
+CE --> CB
+IH --> LB
+
+CT --> SCROLL
+CC --> CLIP
+VI --> MD
+
+note top of JS : Central JavaScript\ncontroller with\ntransparent styling
+note bottom of Features : Enhanced feature\nmodules for\nbetter UX
+@enduml
+{% endplantuml %}
 
 ### Multiple Language Support
 

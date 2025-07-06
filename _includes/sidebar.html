@@ -1,12 +1,95 @@
-<!-- The Side Bar -->
-
+<!-- Responsive Sidebar Component -->
 <style>
-  .sidebar-search-input{
-    padding-left: 1.5rem;
+  :root {
+    /* tweak one value to resize */
+    --sidebar-desktop-width: 20%;
+    --sidebar-tablet-width: 260px;
   }
-  .sidebar-search{
-    padding-left: 1.5rem;
+
+  /* ---- Base layout ---- */
+  #sidebar {
+    width: var(--sidebar-desktop-width);
+    max-width: 320px;
+    min-width: 220px;
+    /* occupy full height if parent is flex */
+    flex: 0 0 auto;
   }
+
+  #sidebar .sidebar-search-input,
+  #sidebar .sidebar-search {
+    width: 100%;
+  }
+
+  /* spacing utilities we used inline before */
+  #sidebar .profile-wrapper,
+  #sidebar .sidebar-search {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  /* ---- Tablet: collapsible narrow sidebar ---- */
+  @media (max-width: 992px) {
+    #sidebar {
+      width: var(--sidebar-tablet-width);
+    }
+  }
+
+  /* ---- Mobile: transform into top-bar ---- */
+  @media (max-width: 576px) {
+    /* move sidebar to top (order) and stretch full width */
+    #sidebar {
+      order: -1; /* flex hack – render before main */
+      width: 100%;
+      max-width: 100%;
+      flex-direction: row;
+      align-items: center;
+      padding: 0 .75rem;
+    }
+
+    /* stack avatar + titles inline */
+    #sidebar .profile-wrapper {
+      display: flex;
+      align-items: center;
+      padding: .75rem 0;
+    }
+    #sidebar .profile-wrapper h1 {
+      font-size: 1rem;
+      margin: 0 0 0 .5rem;
+    }
+    #sidebar .site-subtitle {
+      display: none; /* hide to save space */
+    }
+
+    /* make nav horizontal and align items left */
+    #sidebar nav {
+      flex: 1 1 auto;
+      padding-left: .75rem;
+    }
+    #sidebar nav .nav {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: .5rem;
+      justify-content: flex-start; /* align list items to the left */
+    }
+    #sidebar nav .nav-link {
+      padding: .25rem .5rem;
+      font-size: .875rem;
+    }
+
+    /* search bar fills full width under profile on narrow screens */
+    #sidebar .sidebar-search {
+      width: 100%;
+      padding: 0;
+      margin-bottom: .5rem;
+    }
+
+  }
+
+  li.nav-item{
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+      margin: 0 !important;
+    }
 </style>
 
 <aside aria-label="Sidebar" id="sidebar" class="d-flex flex-column align-items-center">
@@ -20,7 +103,7 @@
       {%- endif -%}
     </a>
 
-    <h1 class="site-title">
+    <h1 class="site-title m-0">
       <a href="{{ '/' | relative_url }}">{{ site.title }}</a>
     </h1>
     <p class="site-subtitle fst-italic mb-0">{{ site.tagline }}</p>
@@ -28,9 +111,9 @@
   <!-- .profile-wrapper -->
 
   <!-- Search Bar in Sidebar -->
-  <div class="sidebar-search w-100 mb-3">
-    <search class="d-flex align-items-center">
-      <i class="fas fa-search fa-fw"></i>
+  <div class="sidebar-search mb-3 w-100">
+    <search class="d-flex align-items-center w-100">
+      <i class="fas fa-search fa-fw me-2"></i>
       <input
         class="form-control sidebar-search-input"
         id="search-input"
@@ -43,7 +126,7 @@
   </div>
 
   <nav class="flex-column flex-grow-1 w-100 ps-0">
-    <ul class="nav">
+    <ul class="nav flex-column w-100 px-3">
       <!-- home -->
       <li class="nav-item{% if page.layout == 'home' %}{{ ' active' }}{% endif %}">
         <a href="{{ '/' | relative_url }}" class="nav-link">
@@ -51,7 +134,7 @@
           <span>{{ site.data.locales[include.lang].tabs.home | upcase }}</span>
         </a>
       </li>
-      <!-- the real tabs -->
+      <!-- dynamic tabs -->
       {% for tab in site.tabs %}
         <li class="nav-item{% if tab.url == page.url %}{{ ' active' }}{% endif %}">
           <a href="{{ tab.url | relative_url }}" class="nav-link">
@@ -60,19 +143,17 @@
             <span>{{ site.data.locales[include.lang].tabs.[tab_name] | default: tab.title | upcase }}</span>
           </a>
         </li>
-        <!-- .nav-item -->
       {% endfor %}
     </ul>
   </nav>
 
-  <div class="sidebar-bottom d-flex flex-wrap align-items-center w-100">
+  <div class="sidebar-bottom d-flex flex-wrap align-items-center w-100 px-3 py-2">
     {% unless site.theme_mode %}
-      <button type="button" class="mode-toggle btn" aria-label="Switch Mode">
+      <button type="button" class="mode-toggle btn btn-sm" aria-label="Switch Mode">
         <i class="fas fa-adjust"></i>
       </button>
-
       {% if site.data.contact.size > 0 %}
-        <span class="icon-border"></span>
+        <span class="icon-border mx-2"></span>
       {% endif %}
     {% endunless %}
 
@@ -92,25 +173,22 @@
         {% else %}
           {% assign url = entry.url %}
       {% endcase %}
-
       {% if url %}
         <a
           href="{{ url }}"
           aria-label="{{ entry.type }}"
           {% assign link_types = '' %}
-
           {% unless entry.noblank %}
             target="_blank"
             {% assign link_types = 'noopener noreferrer' %}
           {% endunless %}
-
           {% if entry.type == 'mastodon' %}
             {% assign link_types = link_types | append: ' me' | strip %}
           {% endif %}
-
           {% unless link_types == empty %}
             rel="{{ link_types }}"
           {% endunless %}
+          class="text-decoration-none mx-1"
         >
           <i class="{{ entry.icon }}"></i>
         </a>

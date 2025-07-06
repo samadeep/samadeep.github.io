@@ -32,6 +32,34 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('Mermaid initialized with config');
 
+    // Enhanced PlantUML/Kroki diagram text color adaptation
+    function adaptDiagramTextColors() {
+        const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches ||
+                          document.documentElement.getAttribute('data-mode') === 'dark';
+        
+        const textColor = isDarkMode ? '#f9fafb' : '#1f2937';
+        const noteColor = isDarkMode ? '#e5e7eb' : '#374151';
+        
+        // Apply colors to all PlantUML/Kroki diagram text elements
+        const diagrams = document.querySelectorAll('.plantuml-diagram, .kroki-diagram');
+        diagrams.forEach(diagram => {
+            const textElements = diagram.querySelectorAll('svg text');
+            const noteElements = diagram.querySelectorAll('svg .note text, svg text[class*="note"]');
+            
+            textElements.forEach(text => {
+                text.style.fill = textColor;
+                text.style.fontWeight = '500';
+            });
+            
+            noteElements.forEach(note => {
+                note.style.fill = noteColor;
+                note.style.fontSize = '12px';
+            });
+        });
+        
+        console.log(`Adapted diagram text colors for ${isDarkMode ? 'dark' : 'light'} mode`);
+    }
+
     // Performance optimization: Lazy load diagrams
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -49,8 +77,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Render diagram based on type
                 if (diagram.classList.contains('mermaid')) {
                     renderMermaidDiagram(diagram);
-                } else if (diagram.classList.contains('plantuml')) {
-                    renderPlantUMLDiagram(diagram);
+                } else if (diagram.classList.contains('plantuml') || diagram.classList.contains('kroki-diagram')) {
+                    // Apply adaptive text colors after diagram loads
+                    setTimeout(() => {
+                        adaptDiagramTextColors();
+                    }, 500);
                 }
                 
                 // Stop observing this element
@@ -63,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Observe all diagrams for lazy loading
-    document.querySelectorAll('.mermaid, .plantuml').forEach(diagram => {
+    document.querySelectorAll('.mermaid, .plantuml, .kroki-diagram').forEach(diagram => {
         observer.observe(diagram);
     });
     
@@ -76,6 +107,27 @@ document.addEventListener('DOMContentLoaded', function() {
             renderMermaidDiagram(diagram);
         }
     });
+
+    // Watch for theme changes and adapt diagram colors
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    mediaQuery.addEventListener('change', adaptDiagramTextColors);
+    
+    // Watch for manual theme changes (if using data-mode attribute)
+    const observer2 = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-mode') {
+                adaptDiagramTextColors();
+            }
+        });
+    });
+    
+    observer2.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-mode']
+    });
+
+    // Initial color adaptation
+    setTimeout(adaptDiagramTextColors, 1000);
     
     // Performance monitoring
     let diagramsRendered = 0;
@@ -182,6 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
             img.onload = function() {
                 diagramsRendered++;
                 addInteractiveFeatures(element);
+                adaptDiagramTextColors();
                 console.log('PlantUML diagram loaded successfully');
             };
             
@@ -296,6 +349,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.body.appendChild(modal);
         
+        // Ensure text colors are adapted in modal
+        setTimeout(adaptDiagramTextColors, 100);
+        
         // Close on ESC key
         const handleEscape = (e) => {
             if (e.key === 'Escape') {
@@ -374,7 +430,7 @@ document.addEventListener('DOMContentLoaded', function() {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: #4CAF50;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 12px 24px;
             border-radius: 8px;
@@ -411,7 +467,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Log completion
-    console.log('Enhanced Mermaid diagram support initialized');
+    console.log('Enhanced Mermaid diagram support with adaptive text colors initialized');
 });
 
 // Add CSS animations for notifications

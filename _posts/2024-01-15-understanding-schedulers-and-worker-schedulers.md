@@ -25,17 +25,69 @@ In the world of modern distributed systems, **schedulers** and **worker schedule
 
 A **scheduler** is a system component responsible for managing the execution of tasks or processes. In the context of software systems, schedulers determine when, where, and how tasks are executed, optimizing resource utilization and ensuring system responsiveness.
 
-{% mermaid %}
-graph TB
-    A[Task Queue] --> B[Scheduler]
-    B --> C[Worker Pool]
-    C --> D[Task Execution]
-    
-    style A fill:#e1f5fe
-    style B fill:#f3e5f5
-    style C fill:#e8f5e8
-    style D fill:#fff3e0
-{% endmermaid %}
+{% plantuml %}
+@startuml
+!theme plain
+skinparam backgroundColor rgb(219, 218, 218) 
+skinparam shadowing false
+skinparam roundcorner 15
+skinparam fontcolor rgb(226, 229, 233)
+
+' ---------- Style ----------
+skinparam component {
+    BackgroundColor #10b98120
+    BorderColor      #10b981
+    BorderThickness  2
+}
+skinparam queue {
+    BackgroundColor #f59e0b20
+    BorderColor      #f59e0b
+    BorderThickness  2
+}
+
+' ---------- Actors ----------
+actor "Task Producer" as TP
+
+' ---------- Core Elements ----------
+queue       "Task Queue"            as TQ
+component   "Scheduler Service"     as SCH
+component   "Worker Pool\nManager"  as WPM
+component   "Worker Node"           as WK
+
+' ---------- Persistence ----------
+database    "Task & State\nDB"      as DB
+database    "Result Store"          as RS
+
+' ---------- Reliability ----------
+queue       "Dead-Letter Queue"     as DLQ
+
+' ---------- Observability ----------
+component   "Metrics & Alerting"    as MA
+
+' ---------- Flows ----------
+TP  --> TQ   : Submit task
+TQ  --> SCH  : New-task event / poll
+SCH --> DB   : Persist metadata
+SCH --> WPM  : Assign task
+WPM --> WK   : Dispatch task
+WK  --> RS   : Store result
+WK  --> DB   : Update status
+WK  --> MA   : Runtime metrics
+SCH ..> MA   : Scheduling metrics
+TQ  --> DLQ  : Fatal or max-retry
+
+' ---------- Notes ----------
+note top of TQ
+  Durable task queue
+end note
+
+note bottom of WK
+  Sandboxed execution
+end note
+@enduml
+
+
+{% endplantuml %}
 
 ## Types of Schedulers
 
@@ -140,19 +192,42 @@ class SJFScheduler:
 
 ### 1. Producer-Consumer Pattern
 
-{% mermaid %}
-graph LR
-    A[Producer] --> D[Queue]
-    B[Producer] --> D
-    D --> E[Consumer]
-    D --> F[Consumer]
-    
-    style D fill:#ffeb3b
-    style A fill:#4caf50
-    style B fill:#4caf50
-    style E fill:#2196f3
-    style F fill:#2196f3
-{% endmermaid %}
+{% plantuml %}
+@startuml
+!theme plain
+skinparam backgroundColor rgb(219, 218, 218) 
+skinparam shadowing false
+skinparam roundcorner 15
+skinparam fontcolor rgb(226, 229, 233)
+
+skinparam component {
+    BackgroundColor #10b98120
+    BorderColor #10b981
+    BorderThickness 2
+}
+
+skinparam queue {
+    BackgroundColor #f59e0b20
+    BorderColor #f59e0b
+    BorderThickness 2
+}
+
+component "Producer 1" as P1
+component "Producer 2" as P2
+queue "Message Queue" as Q
+component "Consumer 1" as C1
+component "Consumer 2" as C2
+
+P1 --> Q
+P2 --> Q
+Q --> C1
+Q --> C2
+
+note top of Q : Central message queue
+note bottom of P1 : Enhanced producer\ncomponents
+note bottom of C1 : Optimized consumer\nprocessing
+@enduml
+{% endplantuml %}
 
 ### 2. Work Stealing Pattern
 
@@ -344,31 +419,51 @@ spec:
 
 ### 4. **Advanced Scheduling Architecture**
 
-{% mermaid %}
-graph TB
-    subgraph "System Architecture"
-        LB[Load Balancer]
-        S1[Scheduler 1]
-        S2[Scheduler 2]
-        MQ[Message Queue]
-        W1[Worker Pool 1]
-        W2[Worker Pool 2]
-        DB[(Database)]
-    end
-    
-    LB --> S1
-    LB --> S2
-    S1 --> MQ
-    S2 --> MQ
-    MQ --> W1
-    MQ --> W2
-    W1 --> DB
-    W2 --> DB
-    
-    style LB fill:#ff9800
-    style MQ fill:#f44336
-    style DB fill:#4caf50
-{% endmermaid %}
+{% plantuml %}
+@startuml
+!theme plain
+skinparam backgroundColor rgb(219, 218, 218) 
+skinparam shadowing false
+skinparam roundcorner 15
+skinparam fontcolor rgb(226, 229, 233)
+skinparam linetype ortho
+
+' Enhanced styling
+skinparam component {
+    BackgroundColor #667eea20
+    BorderColor #667eea
+    BorderThickness 2
+}
+
+skinparam database {
+    BackgroundColor #10b98120
+    BorderColor #10b981
+    BorderThickness 2
+}
+
+' System Architecture Components
+component "Load Balancer" as LB
+component "Scheduler 1" as S1 
+component "Scheduler 2" as S2
+component "Message Queue" as MQ
+component "Worker Pool 1" as W1
+component "Worker Pool 2" as W2
+database "Database" as DB
+
+' Connections with transparent styling
+LB --> S1
+LB --> S2
+S1 --> MQ
+S2 --> MQ
+MQ --> W1
+MQ --> W2
+W1 --> DB
+W2 --> DB
+
+note right of LB : Enhanced visibility\nTransparent backgrounds
+note left of DB : Optimized performance\nScalable architecture
+@enduml
+{% endplantuml %}
 
 ## Performance Optimization Strategies
 
@@ -475,10 +570,3 @@ Whether you're building a simple background job processor or a complex distribut
 ---
 
 *Have questions about schedulers or want to share your own experiences? Feel free to reach out on [Twitter](https://twitter.com/samadeepviews) or [LinkedIn](https://www.linkedin.com/in/samadeep)!*
-
-## Further Reading
-
-- [Distributed Systems Concepts](https://example.com)
-- [Concurrency in Python](https://example.com)
-- [Microservices Architecture Patterns](https://example.com)
-- [System Design Interview Questions](https://example.com) 

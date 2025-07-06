@@ -16,7 +16,7 @@ timezone: America/New_York
 
 title: Samadeep's Tech Blog  # the main title
 
-tagline: Engineering Excellence • System Design • DevOps Mastery # it will display as the sub-title
+tagline: Explorations • Algorithms • System Design • DevOps  # it will display as the sub-title
 
 description: >- # used by seo meta and the atom feed
   A comprehensive technical blog covering system design, software engineering, DevOps practices, 

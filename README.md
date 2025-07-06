@@ -360,8 +360,46 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [PlantUML](https://plantuml.com/) - UML diagrams
 - [MathJax](https://www.mathjax.org/) - Math rendering
 
+## Diagrams Support
+
+This blog uses **Kroki** (https://kroki.io) for embedding various diagram types with reliable cloud-based rendering - no local dependencies or encoding issues.
+
+### PlantUML Diagrams
+```liquid
+{% raw %}
+{% plantuml %}
+@startuml
+Alice -> Bob: Hello
+Bob -> Alice: Hi there
+@enduml
+{% endplantuml %}
+{% endraw %}
+```
+
+### Mermaid Diagrams
+```liquid
+{% raw %}
+{% mermaid %}
+graph TD
+    A[Start] --> B[Process]
+    B --> C[End]
+{% endmermaid %}
+{% endraw %}
+```
+
+### Other Supported Types
+- `{% graphviz %}` - DOT graphs and network diagrams
+- `{% svgbob %}` - ASCII art converted to SVG
+
+**Benefits of Kroki:**
+- ✅ No local installations required
+- ✅ Reliable encoding (no "deflate data" errors)
+- ✅ Fast cloud-based rendering
+- ✅ Supports 20+ diagram types
+- ✅ Responsive SVG output
+
+See [Kroki.io](https://kroki.io) for the complete list of supported diagram formats.
+
 ---
 
 Built with ❤️ by [Samadeep Sengupta](https://github.com/samadeep)
-
-*Happy blogging! 🚀*
