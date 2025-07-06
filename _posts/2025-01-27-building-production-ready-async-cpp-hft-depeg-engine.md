@@ -102,6 +102,400 @@ graph TB
 
 ## 🔧 Technical Deep Dive: Core Components
 
+### System Architecture Overview
+
+The following PlantUML diagram illustrates the detailed class structure and relationships within the async framework:
+
+```plantuml
+@startuml AsyncFrameworkArchitecture
+!theme plain
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+package "Core Async Framework" {
+    
+    class LockFreeQueue<T> {
+        - struct Node
+        - atomic<Node*> head_
+        - atomic<Node*> tail_
+        + void push(T item)
+        + bool try_pop(T& result)
+        + bool empty() const
+    }
+    
+    class EventBus {
+        - unordered_map<EventType, vector<EventHandler>> handlers_
+        - mutex handlers_mutex_
+        - LockFreeQueue<shared_ptr<Event>> event_queue_
+        - vector<thread> processing_threads_
+        + void publish(shared_ptr<Event> event)
+        + void subscribe(EventType type, EventHandler handler)
+        - void dispatch_event(shared_ptr<Event> event)
+    }
+    
+    class AsyncWorkerPool {
+        - array<queue<function<void()>>, 4> priority_queues_
+        - vector<thread> workers_
+        - mutex queue_mutex_
+        - condition_variable condition_
+        - atomic<bool> stop_flag_
+        + future<T> submit_with_priority(TaskPriority priority, F&& f, Args&&... args)
+        - void worker_thread()
+        - function<void()> get_next_task()
+    }
+    
+    enum TaskPriority {
+        CRITICAL = 0
+        HIGH = 1
+        MEDIUM = 2
+        LOW = 3
+    }
+    
+    class AsyncCircuitBreaker {
+        - enum State { CLOSED, OPEN, HALF_OPEN }
+        - atomic<State> state_
+        - atomic<size_t> failure_count_
+        - atomic<chrono::steady_clock::time_point> last_failure_time_
+        + future<invoke_result_t<F>> execute(F&& func)
+        - void record_success()
+        - void record_failure()
+    }
+}
+
+package "Data Processing Layer" {
+    
+    class AsyncDataAggregator {
+        - unique_ptr<AsyncWorkerPool> collection_workers_
+        - unique_ptr<AsyncWorkerPool> processing_workers_
+        - unordered_map<StablecoinType, vector<MarketData>> latest_market_data_
+        + future<void> collect_market_data_async(StablecoinType coin)
+        + void process_market_data(const MarketData& data)
+        + bool validate_market_data(const MarketData& data)
+    }
+    
+    class AsyncExchangeDataSource {
+        - Config config_
+        - shared_ptr<AsyncWorkerPool> worker_pool_
+        - unique_ptr<WebSocketClient> ws_client_
+        - unique_ptr<HTTPClient> http_client_
+        + future<vector<MarketData>> fetch_market_data(StablecoinType coin)
+        + void start_market_stream(StablecoinType coin, function<void(MarketData)> callback)
+    }
+    
+    class AsyncBlockchainDataSource {
+        - Config config_
+        - shared_ptr<AsyncWorkerPool> worker_pool_
+        - unique_ptr<RPCClient> rpc_client_
+        + future<vector<OnChainData>> fetch_onchain_data(StablecoinType coin)
+        + void start_blockchain_stream(StablecoinType coin, function<void(OnChainData)> callback)
+    }
+}
+
+package "ML Processing Layer" {
+    
+    class AsyncPredictionEngine {
+        - unique_ptr<AsyncWorkerPool> prediction_workers_
+        - vector<unique_ptr<AsyncMLModel>> models_
+        - unique_ptr<AsyncFeatureExtractor> feature_extractor_
+        - unique_ptr<AsyncRiskScorer> risk_scorer_
+        + future<DepegAlert> process_market_data(const MarketData& data)
+        + future<double> predict_risk_score(const vector<double>& features)
+    }
+    
+    class AsyncFeatureExtractor {
+        - shared_ptr<AsyncWorkerPool> worker_pool_
+        + future<vector<double>> extract_market_features(const vector<MarketData>& market_history, const MarketData& current_data)
+        + future<vector<double>> calculate_technical_indicators(const vector<MarketData>& data)
+        - double calculate_price_volatility(const vector<MarketData>& data)
+        - double calculate_volume_profile(const vector<MarketData>& data)
+    }
+    
+    class AsyncRandomForestModel {
+        - Config config_
+        - shared_ptr<AsyncWorkerPool> training_workers_
+        - unique_ptr<RandomForestClassifier> classifier_
+        + future<double> predict_risk_score(const vector<double>& features)
+        + future<bool> train(const vector<vector<double>>& training_data, const vector<double>& labels)
+    }
+    
+    class AsyncNeuralNetworkModel {
+        - Config config_
+        - shared_ptr<AsyncWorkerPool> inference_workers_
+        - unique_ptr<NeuralNetwork> network_
+        + future<double> predict_risk_score(const vector<double>& features)
+        + future<bool> train(const vector<vector<double>>& training_data, const vector<double>& labels)
+    }
+}
+
+package "Alert System Layer" {
+    
+    class AsyncAlertManager {
+        - unique_ptr<AsyncWorkerPool> alert_workers_
+        - unique_ptr<AsyncWorkerPool> delivery_workers_
+        - vector<unique_ptr<AsyncNotificationDelivery>> delivery_channels_
+        - unique_ptr<AsyncAlertProcessor> alert_processor_
+        + future<void> process_depeg_alert(const DepegAlert& alert)
+        + void subscribe_to_alerts(const AsyncAlertSubscription& subscription)
+    }
+    
+    class AsyncEmailDelivery {
+        - Config config_
+        - shared_ptr<AsyncWorkerPool> worker_pool_
+        - unique_ptr<SMTPClient> smtp_client_
+        + future<bool> send_notification(const string& recipient, const string& subject, const string& message)
+    }
+    
+    class AsyncSlackDelivery {
+        - Config config_
+        - shared_ptr<AsyncWorkerPool> worker_pool_
+        - unique_ptr<SlackClient> slack_client_
+        + future<bool> send_notification(const string& channel, const string& message)
+    }
+}
+
+package "System Health Layer" {
+    
+    class AsyncSystemHealthMonitor {
+        - HealthMetrics metrics_
+        - thread monitoring_thread_
+        - shared_ptr<EventBus> event_bus_
+        + void start_monitoring()
+        - void update_component_health()
+        - void update_system_metrics()
+        - void publish_health_events()
+    }
+    
+    class AsyncPerformanceProfiler {
+        - shared_ptr<AsyncWorkerPool> worker_pool_
+        - LockFreeQueue<ProfileData> profile_queue_
+        + void record_latency(const string& operation, chrono::microseconds duration)
+        + future<unordered_map<string, double>> analyze_latencies()
+        + future<vector<string>> identify_bottlenecks()
+    }
+}
+
+' Relationships
+EventBus --> LockFreeQueue : uses
+AsyncWorkerPool --> TaskPriority : uses
+AsyncDataAggregator --> AsyncWorkerPool : uses
+AsyncDataAggregator --> AsyncExchangeDataSource : uses
+AsyncDataAggregator --> AsyncBlockchainDataSource : uses
+AsyncPredictionEngine --> AsyncWorkerPool : uses
+AsyncPredictionEngine --> AsyncFeatureExtractor : uses
+AsyncPredictionEngine --> AsyncRandomForestModel : uses
+AsyncPredictionEngine --> AsyncNeuralNetworkModel : uses
+AsyncAlertManager --> AsyncWorkerPool : uses
+AsyncAlertManager --> AsyncEmailDelivery : uses
+AsyncAlertManager --> AsyncSlackDelivery : uses
+AsyncSystemHealthMonitor --> EventBus : uses
+AsyncPerformanceProfiler --> LockFreeQueue : uses
+
+@enduml
+```
+
+### Async Data Flow Sequence
+
+This sequence diagram shows how data flows through the system asynchronously:
+
+```plantuml
+@startuml AsyncDataFlowSequence
+!theme plain
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 200
+
+participant "Market Data\nSources" as MDS
+participant "Async Data\nAggregator" as ADA
+participant "Event Bus" as EB
+participant "Async Prediction\nEngine" as APE
+participant "Async Feature\nExtractor" as AFE
+participant "ML Models" as ML
+participant "Async Alert\nManager" as AAM
+participant "Notification\nChannels" as NC
+
+activate MDS
+activate ADA
+activate EB
+activate APE
+activate AFE
+activate ML
+activate AAM
+activate NC
+
+== Market Data Collection Phase ==
+MDS -> ADA: WebSocket/REST API data
+note right: 100,000+ data points/sec
+ADA -> ADA: Validate & normalize data
+ADA -> EB: Publish MARKET_DATA_UPDATE event
+note right: Lock-free event publishing
+
+== Async Processing Phase ==
+EB -> APE: Event notification
+note right: Event-driven processing
+APE -> AFE: extract_market_features(data)
+note right: Parallel feature extraction
+
+par Feature Extraction (Parallel)
+    AFE -> AFE: calculate_price_volatility()
+and
+    AFE -> AFE: calculate_volume_profile()
+and
+    AFE -> AFE: calculate_technical_indicators()
+end
+
+AFE -> APE: Return combined features
+note right: Sub-millisecond feature processing
+
+== ML Prediction Phase ==
+APE -> ML: predict_risk_score(features)
+note right: Async model inference
+
+par Model Predictions (Parallel)
+    ML -> ML: RandomForest prediction
+and
+    ML -> ML: Neural Network prediction
+end
+
+ML -> APE: Return risk predictions
+APE -> APE: Combine & validate predictions
+
+alt High Risk Detected
+    APE -> EB: Publish RISK_THRESHOLD_BREACH event
+    note right: Risk score > threshold
+    EB -> AAM: Alert generation trigger
+    
+    == Alert Processing Phase ==
+    AAM -> AAM: Process alert & find subscriptions
+    
+    par Notification Delivery (Parallel)
+        AAM -> NC: Send email notifications
+    and
+        AAM -> NC: Send Slack notifications
+    and
+        AAM -> NC: Send webhook notifications
+    end
+    
+    NC -> AAM: Delivery confirmations
+    AAM -> EB: Publish ALERT_GENERATED event
+    note right: Professional logging
+end
+
+== Performance Monitoring ==
+EB -> EB: Record processing metrics
+note right: Latency tracking & profiling
+
+deactivate MDS
+deactivate ADA
+deactivate EB
+deactivate APE
+deactivate AFE
+deactivate ML
+deactivate AAM
+deactivate NC
+
+@enduml
+```
+
+### Component Interaction Diagram
+
+This diagram shows the high-level component interactions and async communication patterns:
+
+```plantuml
+@startuml ComponentInteractionDiagram
+!theme plain
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+package "External Systems" {
+    [Exchange APIs\nBinance, Coinbase, etc.] as ExchangeAPIs
+    [Blockchain RPCs\nEthereum, Tron, etc.] as BlockchainRPCs
+    [Email SMTP\nServers] as EmailSMTP
+    [Slack API] as SlackAPI
+    [Webhook\nEndpoints] as WebhookEndpoints
+}
+
+package "Async Depeg Engine Core" {
+    
+    package "Core Framework" {
+        [Event Bus\nAsync Message Passing] as EventBus
+        [Master Worker Pool\n8 Priority Threads] as MasterWorkerPool
+        [Async I/O Context\nNon-blocking Operations] as AsyncIOContext
+        [Task Scheduler\nPriority Queues] as TaskScheduler
+    }
+    
+    package "Data Layer" {
+        [Async Data Aggregator\nMarket Data Collection] as AsyncDataAggregator
+        [Exchange Data Sources\nWebSocket + REST] as ExchangeDataSources
+        [Blockchain Data Sources\nRPC + APIs] as BlockchainDataSources
+        [Lock-Free Queues\nHigh-Frequency Data] as LockFreeQueues
+    }
+    
+    package "ML Processing" {
+        [Async Prediction Engine\nRisk Assessment] as AsyncPredictionEngine
+        [ML Models\nRandomForest + Neural Net] as MLModels
+        [Feature Extractor\nTechnical Indicators] as FeatureExtractor
+        [Risk Scorer\nMulti-Factor Analysis] as RiskScorer
+    }
+    
+    package "Alert System" {
+        [Async Alert Manager\nNotification Processing] as AsyncAlertManager
+        [Notification Pipelines\nEmail + Slack + Webhook] as NotificationPipelines
+        [Template Engine\nAlert Messages] as TemplateEngine
+        [Subscription Manager\nUser Preferences] as SubscriptionManager
+    }
+    
+    package "System Health" {
+        [Health Monitor\nComponent Status] as HealthMonitor
+        [Performance Profiler\nLatency Tracking] as PerformanceProfiler
+        [Circuit Breakers\nFault Tolerance] as CircuitBreakers
+        [System Metrics\nResource Usage] as SystemMetrics
+    }
+}
+
+' External connections
+ExchangeAPIs --> ExchangeDataSources : "Market Data\nWebSocket/REST"
+BlockchainRPCs --> BlockchainDataSources : "On-chain Data\nRPC Calls"
+NotificationPipelines --> EmailSMTP : "SMTP\nDelivery"
+NotificationPipelines --> SlackAPI : "Slack Bot\nMessages"
+NotificationPipelines --> WebhookEndpoints : "HTTP\nWebhooks"
+
+' Core framework connections
+EventBus --> MasterWorkerPool : "Task\nDistribution"
+MasterWorkerPool --> AsyncIOContext : "I/O\nOperations"
+TaskScheduler --> MasterWorkerPool : "Priority\nScheduling"
+
+' Data layer connections
+AsyncDataAggregator --> ExchangeDataSources : "Data\nCollection"
+AsyncDataAggregator --> BlockchainDataSources : "Data\nCollection"
+AsyncDataAggregator --> LockFreeQueues : "High-Freq\nData Storage"
+AsyncDataAggregator --> EventBus : "MARKET_DATA_UPDATE\nEvents"
+
+' ML processing connections
+EventBus --> AsyncPredictionEngine : "Event\nNotifications"
+AsyncPredictionEngine --> FeatureExtractor : "Feature\nExtraction"
+AsyncPredictionEngine --> MLModels : "Risk\nPrediction"
+AsyncPredictionEngine --> RiskScorer : "Risk\nAssessment"
+AsyncPredictionEngine --> EventBus : "RISK_THRESHOLD_BREACH\nEvents"
+
+' Alert system connections
+EventBus --> AsyncAlertManager : "Alert\nTriggers"
+AsyncAlertManager --> NotificationPipelines : "Notification\nDelivery"
+AsyncAlertManager --> TemplateEngine : "Message\nFormatting"
+AsyncAlertManager --> SubscriptionManager : "User\nPreferences"
+
+' System health connections
+HealthMonitor --> SystemMetrics : "Resource\nMonitoring"
+PerformanceProfiler --> SystemMetrics : "Performance\nMetrics"
+CircuitBreakers --> EventBus : "Fault\nTolerance"
+SystemMetrics --> EventBus : "SYSTEM_HEALTH_CHECK\nEvents"
+
+' Internal async communication
+LockFreeQueues --> EventBus : "Lock-Free\nMessage Passing"
+CircuitBreakers --> AsyncIOContext : "Failure\nProtection"
+
+@enduml
+```
+
 ### 1. Lock-Free Data Structures for Zero-Contention
 
 The foundation of high-frequency performance lies in **eliminating lock contention**. I implemented custom lock-free data structures that allow multiple threads to operate without blocking:
@@ -293,6 +687,345 @@ private:
 ### 4. Async ML Engine with Parallel Feature Processing
 
 The machine learning pipeline was redesigned to leverage **parallel processing** for both feature extraction and model inference:
+
+#### ML Pipeline Architecture
+
+This detailed class diagram shows the complete machine learning pipeline architecture:
+
+```plantuml
+@startuml MLPipelineArchitecture
+!theme plain
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam classBackgroundColor #F0F8FF
+
+package "Async ML Pipeline" {
+    
+    abstract class AsyncMLModel {
+        # Config config_
+        # shared_ptr<AsyncWorkerPool> worker_pool_
+        # unique_ptr<ModelMetrics> metrics_
+        + {abstract} future<double> predict_risk_score(const vector<double>& features)
+        + {abstract} future<bool> train(const vector<vector<double>>& training_data, const vector<double>& labels)
+        + {abstract} future<ModelMetrics> get_performance_metrics()
+        + {abstract} future<void> save_model(const string& path)
+        + {abstract} future<void> load_model(const string& path)
+    }
+    
+    class AsyncRandomForestModel {
+        - struct TreeNode
+        - vector<unique_ptr<DecisionTree>> trees_
+        - atomic<size_t> trained_trees_
+        - LockFreeQueue<TrainingTask> training_queue_
+        - vector<thread> training_threads_
+        + future<double> predict_risk_score(const vector<double>& features) override
+        + future<bool> train(const vector<vector<double>>& training_data, const vector<double>& labels) override
+        + future<vector<double>> get_feature_importance()
+        - void train_tree_async(size_t tree_index, const TrainingData& data)
+        - double aggregate_predictions(const vector<double>& tree_predictions)
+    }
+    
+    class AsyncNeuralNetworkModel {
+        - struct Layer
+        - vector<unique_ptr<Layer>> layers_
+        - unique_ptr<Optimizer> optimizer_
+        - LockFreeQueue<BatchData> batch_queue_
+        - vector<thread> training_threads_
+        + future<double> predict_risk_score(const vector<double>& features) override
+        + future<bool> train(const vector<vector<double>>& training_data, const vector<double>& labels) override
+        + future<void> add_layer(LayerType type, size_t neurons, ActivationFunction activation)
+        - void forward_pass_async(const vector<double>& input)
+        - void backward_pass_async(const vector<double>& target)
+        - void update_weights_async()
+    }
+    
+    class AsyncSVMModel {
+        - struct SupportVector
+        - vector<SupportVector> support_vectors_
+        - unique_ptr<KernelFunction> kernel_
+        - atomic<double> bias_
+        + future<double> predict_risk_score(const vector<double>& features) override
+        + future<bool> train(const vector<vector<double>>& training_data, const vector<double>& labels) override
+        + future<void> optimize_hyperparameters()
+        - double compute_kernel_value(const vector<double>& x1, const vector<double>& x2)
+    }
+    
+    class AsyncEnsembleModel {
+        - vector<unique_ptr<AsyncMLModel>> models_
+        - vector<double> model_weights_
+        - EnsembleMethod ensemble_method_
+        + future<double> predict_risk_score(const vector<double>& features) override
+        + future<bool> train(const vector<vector<double>>& training_data, const vector<double>& labels) override
+        + future<void> add_model(unique_ptr<AsyncMLModel> model, double weight)
+        - future<double> weighted_voting(const vector<double>& predictions)
+        - future<double> stacked_generalization(const vector<double>& predictions)
+    }
+}
+
+package "Feature Engineering" {
+    
+    class AsyncFeatureExtractor {
+        - shared_ptr<AsyncWorkerPool> worker_pool_
+        - unordered_map<string, unique_ptr<FeatureCalculator>> calculators_
+        - LockFreeQueue<FeatureTask> feature_queue_
+        + future<vector<double>> extract_market_features(const vector<MarketData>& market_history, const MarketData& current_data)
+        + future<vector<double>> calculate_technical_indicators(const vector<MarketData>& data)
+        + future<vector<double>> calculate_statistical_features(const vector<MarketData>& data)
+        + future<vector<double>> calculate_sentiment_features(const vector<string>& news_data)
+        - future<double> calculate_rsi(const vector<double>& prices, int period)
+        - future<double> calculate_macd(const vector<double>& prices)
+        - future<double> calculate_bollinger_bands(const vector<double>& prices, int period)
+    }
+    
+    class AsyncFeatureSelector {
+        - shared_ptr<AsyncWorkerPool> worker_pool_
+        - vector<string> selected_features_
+        - unordered_map<string, double> feature_importance_
+        + future<vector<double>> select_features(const vector<double>& all_features)
+        + future<void> update_feature_importance(const unordered_map<string, double>& importance)
+        + future<vector<string>> get_top_features(size_t top_k)
+        - future<double> calculate_mutual_information(const vector<double>& feature, const vector<double>& target)
+    }
+    
+    class AsyncDataPreprocessor {
+        - shared_ptr<AsyncWorkerPool> worker_pool_
+        - unordered_map<string, pair<double, double>> feature_stats_
+        - unique_ptr<Scaler> scaler_
+        + future<vector<double>> normalize_features(const vector<double>& features)
+        + future<vector<double>> handle_missing_values(const vector<double>& features)
+        + future<vector<double>> detect_outliers(const vector<double>& features)
+        + future<void> update_statistics(const vector<vector<double>>& training_data)
+        - future<vector<double>> z_score_normalization(const vector<double>& features)
+        - future<vector<double>> min_max_scaling(const vector<double>& features)
+    }
+}
+
+package "Model Training" {
+    
+    class AsyncModelTrainer {
+        - shared_ptr<AsyncWorkerPool> training_pool_
+        - vector<unique_ptr<AsyncMLModel>> models_
+        - unique_ptr<CrossValidator> cv_
+        - LockFreeQueue<TrainingJob> training_queue_
+        + future<void> train_models_parallel(const vector<vector<double>>& training_data, const vector<double>& labels)
+        + future<ModelMetrics> evaluate_model_performance(const vector<vector<double>>& test_data, const vector<double>& test_labels)
+        + future<void> hyperparameter_tuning()
+        + future<void> cross_validation(size_t k_folds)
+        - future<void> train_single_model(unique_ptr<AsyncMLModel> model, const TrainingData& data)
+    }
+    
+    class AsyncHyperparameterOptimizer {
+        - shared_ptr<AsyncWorkerPool> optimization_pool_
+        - unique_ptr<OptimizationAlgorithm> optimizer_
+        - LockFreeQueue<ParameterSet> parameter_queue_
+        + future<ParameterSet> optimize_parameters(const vector<Parameter>& parameter_space)
+        + future<double> evaluate_parameter_set(const ParameterSet& params)
+        + future<void> bayesian_optimization()
+        + future<void> grid_search()
+        - future<double> objective_function(const ParameterSet& params)
+    }
+    
+    class AsyncModelValidator {
+        - shared_ptr<AsyncWorkerPool> validation_pool_
+        - vector<ValidationMetric> metrics_
+        - unique_ptr<TimeSeriesSplitter> splitter_
+        + future<ValidationResults> validate_model(const AsyncMLModel& model, const vector<vector<double>>& data)
+        + future<double> calculate_accuracy(const vector<double>& predictions, const vector<double>& actual)
+        + future<double> calculate_precision_recall(const vector<double>& predictions, const vector<double>& actual)
+        + future<double> calculate_auc_roc(const vector<double>& predictions, const vector<double>& actual)
+        - future<ValidationResults> time_series_validation(const AsyncMLModel& model, const TimeSeriesData& data)
+    }
+}
+
+package "Model Serving" {
+    
+    class AsyncModelServer {
+        - shared_ptr<AsyncWorkerPool> inference_pool_
+        - unordered_map<string, unique_ptr<AsyncMLModel>> loaded_models_
+        - LockFreeQueue<PredictionRequest> request_queue_
+        - atomic<size_t> active_requests_
+        + future<double> predict(const string& model_name, const vector<double>& features)
+        + future<void> load_model(const string& model_name, const string& model_path)
+        + future<void> unload_model(const string& model_name)
+        + future<ModelMetrics> get_model_metrics(const string& model_name)
+        - future<void> handle_prediction_request(const PredictionRequest& request)
+    }
+    
+    class AsyncModelCache {
+        - shared_ptr<AsyncWorkerPool> cache_pool_
+        - unordered_map<string, CachedPrediction> prediction_cache_
+        - LockFreeQueue<CacheEntry> cache_queue_
+        - atomic<size_t> cache_hits_
+        - atomic<size_t> cache_misses_
+        + future<optional<double>> get_cached_prediction(const string& feature_hash)
+        + future<void> cache_prediction(const string& feature_hash, double prediction)
+        + future<void> evict_expired_entries()
+        + future<CacheMetrics> get_cache_metrics()
+        - string compute_feature_hash(const vector<double>& features)
+    }
+}
+
+' Relationships
+AsyncMLModel <|-- AsyncRandomForestModel
+AsyncMLModel <|-- AsyncNeuralNetworkModel
+AsyncMLModel <|-- AsyncSVMModel
+AsyncMLModel <|-- AsyncEnsembleModel
+
+AsyncEnsembleModel --> AsyncMLModel : contains
+
+AsyncFeatureExtractor --> AsyncDataPreprocessor : uses
+AsyncFeatureExtractor --> AsyncFeatureSelector : uses
+
+AsyncModelTrainer --> AsyncMLModel : trains
+AsyncModelTrainer --> AsyncHyperparameterOptimizer : uses
+AsyncModelTrainer --> AsyncModelValidator : uses
+
+AsyncModelServer --> AsyncMLModel : serves
+AsyncModelServer --> AsyncModelCache : uses
+
+AsyncFeatureExtractor --> AsyncWorkerPool : uses
+AsyncModelTrainer --> AsyncWorkerPool : uses
+AsyncModelServer --> AsyncWorkerPool : uses
+
+@enduml
+```
+
+#### Training Pipeline Workflow
+
+This activity diagram shows the complete model training and validation process:
+
+```plantuml
+@startuml MLTrainingWorkflow
+!theme plain
+skinparam activityArrowFontSize 12
+skinparam activityFontSize 14
+skinparam partitionBorderColor black
+skinparam partitionBackgroundColor #F0F8FF
+
+start
+
+partition "Data Preparation" {
+    :Load Historical Market Data;
+    note right: 1M+ data points
+    :Validate Data Quality;
+    if (Data Quality OK?) then (yes)
+        :Split into Train/Validation/Test;
+        note right: 70% / 15% / 15%
+    else (no)
+        :Data Cleaning & Imputation;
+        :Outlier Detection & Removal;
+    endif
+}
+
+partition "Feature Engineering" {
+    :Extract Technical Indicators;
+    
+    fork
+        :Calculate Price Features;
+        :RSI, MACD, Bollinger Bands;
+    fork again
+        :Calculate Volume Features;
+        :Volume Profile, VWAP;
+    fork again
+        :Calculate Statistical Features;
+        :Volatility, Skewness, Kurtosis;
+    fork again
+        :Calculate Sentiment Features;
+        :News Sentiment, Social Media;
+    end fork
+    
+    :Combine Feature Vectors;
+    :Feature Selection (Top 50);
+    :Normalize Features;
+}
+
+partition "Model Training" {
+    :Initialize Model Pool;
+    
+    fork
+        :Train Random Forest;
+        :100 trees, max depth 10;
+        :Record Training Time: ~2 minutes;
+    fork again
+        :Train Neural Network;
+        :3 hidden layers, 128 neurons each;
+        :Record Training Time: ~5 minutes;
+    fork again
+        :Train SVM;
+        :RBF kernel, C=1.0, gamma=0.1;
+        :Record Training Time: ~3 minutes;
+    end fork
+    
+    :Combine into Ensemble;
+    :Optimize Ensemble Weights;
+}
+
+partition "Model Validation" {
+    :K-Fold Cross Validation;
+    note right: k=5 folds
+    
+    fork
+        :Calculate Accuracy;
+        :Target: >95%;
+    fork again
+        :Calculate Precision/Recall;
+        :Target: >90%;
+    fork again
+        :Calculate AUC-ROC;
+        :Target: >0.95;
+    fork again
+        :Calculate F1-Score;
+        :Target: >0.92;
+    end fork
+    
+    :Time Series Walk-Forward Validation;
+    :Evaluate Model Stability;
+    
+    if (All Metrics Pass?) then (yes)
+        :Model Validation Passed;
+    else (no)
+        :Hyperparameter Tuning;
+        :Bayesian Optimization;
+        :Return to Training;
+    endif
+}
+
+partition "Model Deployment" {
+    :Save Trained Models;
+    :Update Model Registry;
+    :Deploy to Production Servers;
+    
+    fork
+        :Load into Primary Engine;
+    fork again
+        :Load into Secondary Engine;
+    fork again
+        :Load into Backup Engine;
+    end fork
+    
+    :Enable Model Monitoring;
+    :Start Performance Tracking;
+}
+
+partition "Online Learning" {
+    :Continuous Data Collection;
+    :Incremental Model Updates;
+    :Drift Detection;
+    
+    if (Model Drift Detected?) then (yes)
+        :Trigger Retraining;
+        :Schedule Maintenance Window;
+    else (no)
+        :Continue Monitoring;
+    endif
+}
+
+:Training Pipeline Complete;
+note right: Total Time: ~15 minutes
+stop
+
+@enduml
+```
 
 ```cpp
 class AsyncFeatureExtractor {
@@ -504,6 +1237,279 @@ The system consistently delivers **sub-millisecond performance** for critical op
 - **Storage**: 50MB/s logging throughput
 
 ## 🛡️ Production-Ready Features
+
+### Async Processing Workflow
+
+The following activity diagram illustrates the complete async processing workflow from data ingestion to alert delivery:
+
+```plantuml
+@startuml AsyncProcessingWorkflow
+!theme plain
+skinparam activityArrowFontSize 12
+skinparam activityFontSize 14
+skinparam partitionBorderColor black
+skinparam partitionBackgroundColor #E8F4FD
+
+start
+
+partition "Data Collection Layer" {
+    :Market Data Received;
+    note right: 100,000+ data points/sec
+    :Validate Data Format;
+    if (Valid Data?) then (yes)
+        :Normalize Data;
+        :Store in Lock-Free Queue;
+    else (no)
+        :Log Validation Error;
+        :Increment Error Counter;
+        stop
+    endif
+}
+
+partition "Event Processing Layer" {
+    :Publish MARKET_DATA_UPDATE Event;
+    note right: Lock-free event publishing
+    :Event Bus Dispatches to Subscribers;
+    
+    fork
+        :Async Prediction Engine Notified;
+    fork again
+        :System Health Monitor Notified;
+    fork again
+        :Performance Profiler Notified;
+    end fork
+}
+
+partition "ML Processing Layer" {
+    :Start Feature Extraction;
+    
+    fork
+        :Calculate Price Volatility;
+        :Record Latency: ~50μs;
+    fork again
+        :Calculate Volume Profile;
+        :Record Latency: ~30μs;
+    fork again
+        :Calculate Technical Indicators;
+        :Record Latency: ~80μs;
+    end fork
+    
+    :Combine Features;
+    :Submit to ML Models;
+    
+    fork
+        :Random Forest Prediction;
+        :Record Latency: ~200μs;
+    fork again
+        :Neural Network Prediction;
+        :Record Latency: ~150μs;
+    end fork
+    
+    :Combine Model Predictions;
+    :Calculate Risk Score;
+    
+    if (Risk Score > Threshold?) then (yes)
+        :Publish RISK_THRESHOLD_BREACH Event;
+    else (no)
+        :Update System Metrics;
+        :Continue Monitoring;
+        stop
+    endif
+}
+
+partition "Alert Processing Layer" {
+    :Process Depeg Alert;
+    :Find Matching Subscriptions;
+    :Generate Alert Messages;
+    
+    fork
+        :Send Email Notifications;
+        :Record Delivery Status;
+    fork again
+        :Send Slack Notifications;
+        :Record Delivery Status;
+    fork again
+        :Send Webhook Notifications;
+        :Record Delivery Status;
+    end fork
+    
+    :Aggregate Delivery Results;
+    :Publish ALERT_GENERATED Event;
+    :Update Alert Statistics;
+}
+
+partition "System Health Layer" {
+    :Record Performance Metrics;
+    :Update Component Health Status;
+    :Check Resource Usage;
+    
+    if (System Health OK?) then (yes)
+        :Continue Normal Operation;
+    else (no)
+        :Trigger Circuit Breaker;
+        :Initiate Graceful Degradation;
+        :Alert System Administrators;
+    endif
+}
+
+:Log Processing Complete;
+:Update Throughput Metrics;
+note right: ~50,000 operations/sec
+stop
+
+@enduml
+```
+
+### Circuit Breaker State Management
+
+This state diagram shows the circuit breaker's fault tolerance mechanism:
+
+```plantuml
+@startuml CircuitBreakerStateDiagram
+!theme plain
+skinparam stateFontSize 14
+skinparam stateArrowFontSize 12
+skinparam stateBackgroundColor #E8F4FD
+skinparam stateStartColor #90EE90
+skinparam stateEndColor #FFB6C1
+
+[*] --> CLOSED : System Start
+
+state CLOSED {
+    CLOSED : Normal Operation
+    CLOSED : All requests processed
+    CLOSED : Failure count tracked
+    CLOSED : Latency monitored
+}
+
+state OPEN {
+    OPEN : Blocking all requests
+    OPEN : Fail-fast behavior
+    OPEN : Recovery timer running
+    OPEN : Health checks disabled
+}
+
+state HALF_OPEN {
+    HALF_OPEN : Limited requests allowed
+    HALF_OPEN : Testing system recovery
+    HALF_OPEN : Monitoring success rate
+    HALF_OPEN : Ready to transition
+}
+
+CLOSED --> OPEN : failure_count >= threshold\n(default: 5 failures)
+note on link
+    Triggers:
+    - API timeouts
+    - Connection failures
+    - ML model errors
+    - Database unavailability
+end note
+
+OPEN --> HALF_OPEN : recovery_timeout expired\n(default: 30 seconds)
+note on link
+    Conditions:
+    - System shows signs of recovery
+    - Error rate decreased
+    - Resource availability improved
+end note
+
+HALF_OPEN --> CLOSED : success_count >= threshold\n(default: 3 successes)
+note on link
+    Successful operations:
+    - Data processing completed
+    - ML predictions accurate
+    - Alerts delivered successfully
+end note
+
+HALF_OPEN --> OPEN : any failure detected
+note on link
+    Immediate triggers:
+    - Single operation failure
+    - Latency spike detected
+    - Resource exhaustion
+end note
+
+OPEN --> OPEN : request blocked\n(fail-fast)
+CLOSED --> CLOSED : successful operation\n(reset failure count)
+
+@enduml
+```
+
+### Performance Optimization Timeline
+
+This timing diagram shows the optimization of critical operations:
+
+```plantuml
+@startuml PerformanceOptimizationTimeline
+!theme plain
+skinparam participantPadding 20
+skinparam boxPadding 10
+skinparam sequenceArrowThickness 2
+
+participant "Market Data\nIngestion" as MDI
+participant "Feature\nExtraction" as FE
+participant "ML Model\nInference" as MLI
+participant "Alert\nGeneration" as AG
+participant "Notification\nDelivery" as ND
+
+box "Before Optimization (Sync)" #FFE4E6
+    MDI -> FE: 50ms (blocking)
+    FE -> MLI: 30ms (sequential)
+    MLI -> AG: 20ms (single-threaded)
+    AG -> ND: 100ms (synchronous)
+    note over MDI, ND
+        **Total Latency: 200ms**
+        **Throughput: 5 ops/sec**
+    end note
+end box
+
+|||
+
+box "After Optimization (Async)" #E6FFE6
+    MDI -> FE: 100μs (lock-free)
+    FE -> MLI: 200μs (parallel)
+    MLI -> AG: 150μs (multi-model)
+    AG -> ND: 50μs (async delivery)
+    
+    note over MDI, ND
+        **Total Latency: 500μs**
+        **Throughput: 50,000 ops/sec**
+        **Improvement: 400x faster**
+    end note
+    
+    note over FE
+        **Parallel Feature Processing**
+        - Price volatility: 50μs
+        - Volume profile: 30μs  
+        - Technical indicators: 80μs
+        - Combined async: 80μs
+    end note
+    
+    note over MLI
+        **Multi-Model Inference**
+        - Random Forest: 200μs
+        - Neural Network: 150μs
+        - Ensemble: 200μs (parallel)
+    end note
+    
+    note over AG
+        **Async Alert Processing**
+        - Template generation: 20μs
+        - Subscription matching: 10μs
+        - Message formatting: 20μs
+    end note
+    
+    note over ND
+        **Parallel Notification**
+        - Email: 30μs (async)
+        - Slack: 25μs (async)
+        - Webhook: 20μs (async)
+        - Total: 30μs (parallel)
+    end note
+end box
+
+@enduml
+```
 
 ### Circuit Breaker Pattern for Fault Tolerance
 
@@ -719,6 +1725,201 @@ public:
 - **Natural language processing** for news sentiment integration
 - **Reinforcement learning** for adaptive risk threshold optimization
 - **Quantum-inspired algorithms** for portfolio optimization
+
+### Production Deployment Architecture
+
+The following deployment diagram shows the complete production infrastructure:
+
+```plantuml
+@startuml ProductionDeploymentArchitecture
+!theme plain
+skinparam nodeBackgroundColor #E8F4FD
+skinparam rectangleBackgroundColor #F0F8FF
+skinparam cloudBackgroundColor #E6F3FF
+skinparam databaseBackgroundColor #F5F5DC
+
+cloud "External Data Sources" {
+    node "Binance API" as BinanceAPI
+    node "Coinbase API" as CoinbaseAPI
+    node "Kraken API" as KrakenAPI
+    node "Ethereum RPC" as EthereumRPC
+    node "Tron RPC" as TronRPC
+}
+
+cloud "Notification Services" {
+    node "SMTP Servers" as SMTPServers
+    node "Slack API" as SlackAPI
+    node "Discord API" as DiscordAPI
+    node "Webhook Endpoints" as WebhookEndpoints
+}
+
+node "Load Balancer\n(HAProxy)" as LoadBalancer {
+    rectangle "SSL Termination" as SSL
+    rectangle "Health Check" as HealthCheck
+    rectangle "Rate Limiting" as RateLimit
+}
+
+node "Primary HFT Engine\n(Docker Container)" as PrimaryEngine {
+    rectangle "Async Depeg Engine" as AsyncEngine1 {
+        rectangle "Event Bus" as EventBus1
+        rectangle "Worker Pool (8 threads)" as WorkerPool1
+        rectangle "ML Pipeline" as MLPipeline1
+        rectangle "Alert Manager" as AlertManager1
+    }
+    
+    rectangle "Monitoring Agent" as MonitoringAgent1
+    rectangle "Log Aggregator" as LogAggregator1
+}
+
+node "Secondary HFT Engine\n(Docker Container)" as SecondaryEngine {
+    rectangle "Async Depeg Engine" as AsyncEngine2 {
+        rectangle "Event Bus" as EventBus2
+        rectangle "Worker Pool (8 threads)" as WorkerPool2
+        rectangle "ML Pipeline" as MLPipeline2
+        rectangle "Alert Manager" as AlertManager2
+    }
+    
+    rectangle "Monitoring Agent" as MonitoringAgent2
+    rectangle "Log Aggregator" as LogAggregator2
+}
+
+node "Backup HFT Engine\n(Docker Container)" as BackupEngine {
+    rectangle "Async Depeg Engine" as AsyncEngine3 {
+        rectangle "Event Bus" as EventBus3
+        rectangle "Worker Pool (8 threads)" as WorkerPool3
+        rectangle "ML Pipeline" as MLPipeline3
+        rectangle "Alert Manager" as AlertManager3
+    }
+    
+    rectangle "Monitoring Agent" as MonitoringAgent3
+    rectangle "Log Aggregator" as LogAggregator3
+}
+
+node "Message Broker\n(Redis Cluster)" as MessageBroker {
+    database "Master Node" as RedisMaster
+    database "Slave Node 1" as RedisSlave1
+    database "Slave Node 2" as RedisSlave2
+}
+
+node "Time Series Database\n(InfluxDB Cluster)" as TimeSeriesDB {
+    database "InfluxDB Master" as InfluxMaster
+    database "InfluxDB Replica" as InfluxReplica
+}
+
+node "Monitoring Stack" as MonitoringStack {
+    rectangle "Prometheus" as Prometheus
+    rectangle "Grafana Dashboard" as Grafana
+    rectangle "AlertManager" as PrometheusAlertManager
+    rectangle "Jaeger Tracing" as JaegerTracing
+}
+
+node "Log Management" as LogManagement {
+    rectangle "ELK Stack" as ELKStack
+    rectangle "Elasticsearch" as Elasticsearch
+    rectangle "Logstash" as Logstash
+    rectangle "Kibana" as Kibana
+}
+
+node "Configuration Management" as ConfigManagement {
+    rectangle "Consul" as Consul
+    rectangle "Vault (Secrets)" as Vault
+    rectangle "Git Repository" as GitRepo
+}
+
+' External connections
+BinanceAPI --> LoadBalancer : "Market Data\nWebSocket/REST"
+CoinbaseAPI --> LoadBalancer : "Market Data\nWebSocket/REST"
+KrakenAPI --> LoadBalancer : "Market Data\nWebSocket/REST"
+EthereumRPC --> LoadBalancer : "Blockchain Data\nRPC Calls"
+TronRPC --> LoadBalancer : "Blockchain Data\nRPC Calls"
+
+' Load balancer connections
+LoadBalancer --> PrimaryEngine : "Primary Traffic\n(80%)"
+LoadBalancer --> SecondaryEngine : "Secondary Traffic\n(20%)"
+LoadBalancer --> BackupEngine : "Failover Only"
+
+' Engine connections
+PrimaryEngine --> MessageBroker : "Event Streaming\nRedis Pub/Sub"
+SecondaryEngine --> MessageBroker : "Event Streaming\nRedis Pub/Sub"
+BackupEngine --> MessageBroker : "Event Streaming\nRedis Pub/Sub"
+
+PrimaryEngine --> TimeSeriesDB : "Metrics Storage\nInfluxDB"
+SecondaryEngine --> TimeSeriesDB : "Metrics Storage\nInfluxDB"
+BackupEngine --> TimeSeriesDB : "Metrics Storage\nInfluxDB"
+
+' Notification connections
+AsyncEngine1 --> SMTPServers : "Email Alerts"
+AsyncEngine1 --> SlackAPI : "Slack Notifications"
+AsyncEngine1 --> DiscordAPI : "Discord Alerts"
+AsyncEngine1 --> WebhookEndpoints : "Webhook Calls"
+
+' Monitoring connections
+MonitoringAgent1 --> Prometheus : "Metrics Export"
+MonitoringAgent2 --> Prometheus : "Metrics Export"
+MonitoringAgent3 --> Prometheus : "Metrics Export"
+
+LogAggregator1 --> ELKStack : "Log Streaming"
+LogAggregator2 --> ELKStack : "Log Streaming"
+LogAggregator3 --> ELKStack : "Log Streaming"
+
+Prometheus --> Grafana : "Metrics Visualization"
+Prometheus --> PrometheusAlertManager : "Alert Rules"
+Prometheus --> JaegerTracing : "Distributed Tracing"
+
+' Configuration connections
+PrimaryEngine --> Consul : "Service Discovery"
+SecondaryEngine --> Consul : "Service Discovery"
+BackupEngine --> Consul : "Service Discovery"
+
+PrimaryEngine --> Vault : "Secret Management"
+SecondaryEngine --> Vault : "Secret Management"
+BackupEngine --> Vault : "Secret Management"
+
+ConfigManagement --> GitRepo : "Configuration\nVersioning"
+
+' High availability connections
+RedisMaster --> RedisSlave1 : "Replication"
+RedisMaster --> RedisSlave2 : "Replication"
+InfluxMaster --> InfluxReplica : "Replication"
+
+note bottom of PrimaryEngine
+    **Engine Specifications:**
+    - CPU: 8 cores @ 3.0GHz
+    - Memory: 16GB RAM
+    - Storage: 1TB NVMe SSD
+    - Network: 10Gbps
+    - OS: Ubuntu 22.04 LTS
+end note
+
+note bottom of MessageBroker
+    **Redis Cluster Config:**
+    - 3 Master nodes
+    - 3 Slave nodes
+    - Memory: 32GB per node
+    - Persistence: AOF + RDB
+    - Clustering: Hash slots
+end note
+
+note bottom of TimeSeriesDB
+    **InfluxDB Config:**
+    - Retention: 1 year
+    - Compression: Snappy
+    - Replication: 2x
+    - Sharding: Time-based
+    - Backup: S3 daily
+end note
+
+@enduml
+```
+
+This deployment architecture provides:
+
+- **High Availability**: Multiple engine instances with automatic failover
+- **Scalability**: Horizontal scaling with load balancing
+- **Monitoring**: Comprehensive observability with Prometheus, Grafana, and ELK stack
+- **Security**: Vault for secret management and SSL termination
+- **Resilience**: Circuit breakers, health checks, and graceful degradation
+- **Performance**: Optimized for sub-millisecond latency and high throughput
 
 ## 🏆 Key Takeaways
 
