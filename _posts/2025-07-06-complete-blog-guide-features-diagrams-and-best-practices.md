@@ -17,13 +17,13 @@ Welcome to the ultimate guide for this enhanced blog platform! This comprehensiv
 - [✨ Blog Features Overview](#blog-features-overview)
 - [📊 Interactive Diagrams](#interactive-diagrams)
 - [🎨 Mermaid Diagrams](#mermaid-diagrams)
-- [🏗️ PlantUML & Kroki](#plantuml--kroki)
+- [🏗️ PlantUML & Kroki](#️-plantuml--kroki)
 - [💻 Code Features](#code-features)
 - [🎯 Navigation & UX](#navigation--ux)
 - [📱 Mobile Experience](#mobile-experience)
 - [🎨 Design System](#design-system)
 - [🔧 Best Practices](#best-practices)
-- [🛠️ Technical Implementation](#technical-implementation)
+- [🛠️ Technical Implementation](#️-technical-implementation)
 - [🎯 Advanced Features](#advanced-features)
 
 ---
