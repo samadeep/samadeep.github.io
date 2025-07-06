@@ -75,27 +75,31 @@ A modern, feature-rich Jekyll blog with interactive diagrams, easy content manag
 
 ## 📝 Creating New Posts
 
-### Using the Ruby Script (Recommended)
+### 🚀 Quick Start (Enhanced Script)
 
-Create a new post with the automated script:
+Create a new post with automatic India timezone timestamps:
 
 ```bash
 # Basic post
 ruby scripts/new_post.rb --title "My Amazing Post"
 
-# Technical post with categories and tags
+# Technical post with full options
 ruby scripts/new_post.rb \
   --title "Advanced System Design Patterns" \
   --categories "System Design,Architecture" \
   --tags "patterns,scalability,microservices" \
   --template technical
-
-# Tutorial post
-ruby scripts/new_post.rb \
-  --title "Building a REST API with Node.js" \
-  --template tutorial \
-  --categories "Tutorial,Backend"
 ```
+
+**✨ Features:**
+- ✅ **Automatic India timezone timestamps** (IST +0530)
+- ✅ **SEO-friendly URL slugs**
+- ✅ **Auto-generated descriptions**
+- ✅ **Multiple templates** (default, technical, tutorial, review)
+- ✅ **Automatic file opening** in your editor
+
+### 📖 Complete Guide
+👉 **For detailed instructions, examples, and troubleshooting, see [POST_CREATION_GUIDE.md](POST_CREATION_GUIDE.md)**
 
 ### Available Templates
 
@@ -104,21 +108,13 @@ ruby scripts/new_post.rb \
 - **tutorial**: Step-by-step tutorial with checkboxes
 - **review**: Product/service review template
 
-### Manual Creation
-
-1. Create a new file in `_posts/` with format: `YYYY-MM-DD-title.md`
-2. Add front matter:
-   ```yaml
-   ---
-   layout: post
-   title: "Your Post Title"
-   date: 2024-01-15 10:00:00 +0000
-   categories: [Category1, Category2]
-   tags: [tag1, tag2, tag3]
-   author: Your Name
-   description: "Post description for SEO"
-   ---
-   ```
+### Script Options
+- `--title` or `-t`: Post title (required)
+- `--categories` or `-c`: Categories (comma-separated)
+- `--tags` or `-g`: Tags (comma-separated)
+- `--template` or `-T`: Template type
+- `--author` or `-a`: Author name
+- `--help` or `-h`: Show help
 
 ## 🎨 Using Diagrams
 
