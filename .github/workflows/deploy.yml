@@ -28,7 +28,7 @@ jobs:
       - name: Deploy to public repo
         uses: peaceiris/actions-gh-pages@v3
         with:
-          external_repository: samadeep/samadeep.github.io
+          external_repository: samadeep/tech-blog-deploy
           publish_branch: gh-pages
           publish_dir: _site
           deploy_key: ${{ secrets.DEPLOY_KEY }}
