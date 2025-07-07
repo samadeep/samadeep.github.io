@@ -1,191 +1,144 @@
-# 🚀 Samadeep's Amazing Tech Blog
+# Samadeep's Tech Blog
 
-A modern, feature-rich Jekyll blog with interactive diagrams, easy content management, and professional design.
+A modern Jekyll blog focused on system design, software engineering, and technical content with interactive diagrams and clean design.
 
-## ✨ Features
+## Features
 
-### 🎨 Modern Design
-- Clean, responsive design with dark/light mode support
+### Design & UI
+- Clean, responsive design with dark/light mode
 - Professional typography and spacing
-- Mobile-first approach
-- Smooth animations and transitions
+- Mobile-first responsive layout
+- Smooth transitions and animations
 
-### 📊 Interactive Diagrams
-- **Mermaid Support**: Create flowcharts, sequence diagrams, Gantt charts, and more
-- **PlantUML Support**: Generate UML diagrams, system architecture diagrams
-- **Click to expand**: Full-screen diagram viewing
-- **Export Options**: Download diagrams as SVG/PNG
-- **Copy to Clipboard**: Easy sharing of diagram code
+### Interactive Content
+- **Mermaid diagrams** for flowcharts, sequence diagrams, and more
+- **PlantUML support** via Kroki for UML and architecture diagrams
+- **Full-screen viewing** with click-to-expand functionality
+- **Copy-to-clipboard** for code blocks and diagrams
+- **Math expressions** with MathJax support
 
-### 🛠️ Easy Content Management
-- **Automated Post Generation**: Ruby script to create new posts from templates
-- **Multiple Templates**: Technical, Tutorial, Review, and Default templates
-- **Category & Tag Management**: Automatic organization
-- **SEO Optimization**: Built-in SEO tags and meta descriptions
+### Content Management
+- **Automated post creation** via Ruby script with templates
+- **Multiple templates** for different content types
+- **SEO optimization** with meta tags and structured data
+- **Category and tag organization**
+- **Reading time estimation**
 
-### 🔧 Developer Features
-- **Syntax Highlighting**: Beautiful code blocks with copy functionality
-- **Math Support**: LaTeX math expressions with MathJax
-- **Table of Contents**: Auto-generated TOC for long posts
-- **Reading Time**: Estimated reading time calculation
-- **Social Sharing**: Built-in sharing buttons
+### Technical Features
+- **Syntax highlighting** for code blocks
+- **Table of contents** auto-generation
+- **Progressive Web App** capabilities
+- **RSS feed** generation
+- **Performance optimized** with lazy loading
 
-### 🚀 Performance & SEO
-- **Fast Loading**: Optimized assets and lazy loading
-- **SEO Friendly**: Schema markup, OpenGraph tags
-- **PWA Support**: Progressive Web App capabilities
-- **RSS Feed**: Automatic feed generation
-- **Sitemap**: XML sitemap for search engines
+## Installation
 
-## 🛠️ Installation & Setup
-
-### Prerequisites
-- Ruby (>= 2.7)
-- Jekyll (>= 4.0)
+### Requirements
+- Ruby 2.7+
+- Jekyll 4.0+
 - Node.js (for asset compilation)
 - Git
 
-### Quick Start
+### Setup
 
-1. **Clone the repository**
+1. Clone the repository
    ```bash
    git clone https://github.com/samadeep/samadeep.github.io.git
    cd samadeep.github.io
    ```
 
-2. **Install dependencies**
+2. Install dependencies
    ```bash
    bundle install
    ```
 
-3. **Install Node.js dependencies** (if needed)
-   ```bash
-   npm install
-   ```
-
-4. **Start the development server**
+3. Start development server
    ```bash
    bundle exec jekyll serve
    ```
 
-5. **Open in browser**
-   ```
-   http://localhost:4000
-   ```
+4. Visit `http://localhost:4000`
 
-## 📝 Creating New Posts
+## Creating Posts
 
-### 🚀 Quick Start (Enhanced Script)
+### Quick Start
 
-Create a new post with automatic India timezone timestamps:
+Create a new post with the automated script:
 
 ```bash
 # Basic post
-ruby scripts/new_post.rb --title "My Amazing Post"
+ruby scripts/new_post.rb --title "Your Post Title"
 
-# Technical post with full options
+# Technical post with categories and tags
 ruby scripts/new_post.rb \
-  --title "Advanced System Design Patterns" \
+  --title "Advanced System Design" \
   --categories "System Design,Architecture" \
-  --tags "patterns,scalability,microservices" \
+  --tags "scalability,microservices,patterns" \
   --template technical
 ```
 
-**✨ Features:**
-- ✅ **Automatic India timezone timestamps** (IST +0530)
-- ✅ **SEO-friendly URL slugs**
-- ✅ **Auto-generated descriptions**
-- ✅ **Multiple templates** (default, technical, tutorial, review)
-- ✅ **Automatic file opening** in your editor
-
-### 📖 Complete Guide
-👉 **For detailed instructions, examples, and troubleshooting, see [POST_CREATION_GUIDE.md](POST_CREATION_GUIDE.md)**
-
 ### Available Templates
 
-- **default**: Basic blog post template
-- **technical**: Technical deep-dive with diagrams and code
-- **tutorial**: Step-by-step tutorial with checkboxes
-- **review**: Product/service review template
+- **default**: Standard blog post
+- **technical**: Technical deep-dive with diagram support
+- **tutorial**: Step-by-step guide format
+- **review**: Product or service review
 
 ### Script Options
-- `--title` or `-t`: Post title (required)
-- `--categories` or `-c`: Categories (comma-separated)
-- `--tags` or `-g`: Tags (comma-separated)
-- `--template` or `-T`: Template type
-- `--author` or `-a`: Author name
-- `--help` or `-h`: Show help
 
-## 🎨 Using Diagrams
+| Option | Description |
+|--------|-------------|
+| `--title, -t` | Post title (required) |
+| `--categories, -c` | Categories (comma-separated) |
+| `--tags, -g` | Tags (comma-separated) |
+| `--template, -T` | Template type |
+| `--author, -a` | Author name |
+| `--help, -h` | Show help |
 
-### Mermaid Diagrams
+For detailed instructions, see [POST_CREATION_GUIDE.md](POST_CREATION_GUIDE.md).
+
+## Diagrams
+
+### Mermaid
 
 ```markdown
 {% mermaid %}
-graph TB
+graph TD
     A[Start] --> B[Process]
     B --> C[Decision]
-    C -->|Yes| D[Action 1]
-    C -->|No| E[Action 2]
-    D --> F[End]
-    E --> F
+    C -->|Yes| D[Action]
+    C -->|No| E[End]
+    D --> E
 {% endmermaid %}
 ```
 
-### PlantUML Diagrams
+### PlantUML
 
 ```markdown
 {% plantuml %}
 @startuml
-Alice -> Bob: Hello Bob
-Bob -> Alice: Hello Alice
+Alice -> Bob: Authentication Request
+Bob -> Alice: Authentication Response
 @enduml
 {% endplantuml %}
 ```
 
-### Supported Diagram Types
+### Supported Types
 
-#### Mermaid
-- Flowcharts
-- Sequence Diagrams
-- Gantt Charts
-- Class Diagrams
-- State Diagrams
-- User Journey Maps
-- Git Graphs
+**Mermaid**: Flowcharts, sequence diagrams, Gantt charts, class diagrams, state diagrams, user journey maps, git graphs
 
-#### PlantUML
-- Class Diagrams
-- Use Case Diagrams
-- Sequence Diagrams
-- Activity Diagrams
-- Component Diagrams
-- State Diagrams
-- Object Diagrams
+**PlantUML**: Class diagrams, use case diagrams, sequence diagrams, activity diagrams, component diagrams, state diagrams
 
-## 📊 Math Support
+## Configuration
 
-Write mathematical expressions using LaTeX syntax:
+### Site Settings
 
-```markdown
-Inline math: $E = mc^2$
-
-Block math:
-$$
-\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
-$$
-```
-
-## 🎯 Configuration
-
-### Site Configuration
-
-Edit `_config.yml` to customize:
+Edit `_config.yml`:
 
 ```yaml
-title: Blog Name
+title: Your Blog Name
 tagline: Your Tagline
-description: Your blog description
+description: Blog description
 url: https://yourdomain.com
 author: Your Name
 email: your@email.com
@@ -197,9 +150,7 @@ twitter:
   username: yourusername
 ```
 
-### Features Toggle
-
-Enable/disable features in `_config.yml`:
+### Feature Toggles
 
 ```yaml
 features:
@@ -209,86 +160,71 @@ features:
   math: true
   mermaid: true
   plantuml: true
-  chart: true
 ```
 
-## 🚀 Deployment
+## Math Support
+
+Write mathematical expressions using LaTeX:
+
+```markdown
+Inline: $E = mc^2$
+
+Block:
+$$
+\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
+$$
+```
+
+## Deployment
 
 ### GitHub Pages
 
 1. Push to your GitHub repository
 2. Enable GitHub Pages in repository settings
-3. Select source branch (usually `main`)
-4. Your site will be available at `https://username.github.io`
-
-### Manual Deployment
-
-```bash
-# Build the site
-bundle exec jekyll build
-
-# Deploy the _site directory to your hosting provider
-```
+3. Select source branch (main)
+4. Site available at `https://username.github.io`
 
 ### Netlify
 
-1. Connect your GitHub repository to Netlify
-2. Set build command: `bundle exec jekyll build`
-3. Set publish directory: `_site`
-4. Deploy automatically on push
+1. Connect GitHub repository to Netlify
+2. Build command: `bundle exec jekyll build`
+3. Publish directory: `_site`
+4. Auto-deploy on push
 
-## 📱 PWA Features
+### Manual Build
 
-The blog includes Progressive Web App features:
+```bash
+bundle exec jekyll build
+# Deploy _site directory to hosting provider
+```
 
-- **Offline Reading**: Cache posts for offline access
-- **Install Prompt**: Add to home screen on mobile
-- **Service Worker**: Background sync and caching
-- **App Manifest**: Native app-like experience
+## Customization
 
-## 🔧 Customization
+### Custom Styles
 
-### Custom CSS
-
-Add custom styles in `assets/css/custom.css`:
+Add custom CSS in `assets/css/custom.css`:
 
 ```css
-/* Custom styles */
 .custom-class {
   color: #your-color;
 }
 ```
 
-### Custom JavaScript
+### Custom Scripts
 
-Add custom scripts in `assets/js/custom.js`:
+Add JavaScript in `assets/js/custom.js`:
 
 ```javascript
-// Custom JavaScript
 document.addEventListener('DOMContentLoaded', function() {
-  // Your custom code
+  // Your code here
 });
 ```
 
-### Custom Layouts
-
-Create custom layouts in `_layouts/`:
-
-```html
----
-layout: default
----
-
-<div class="custom-layout">
-  {{ content }}
-</div>
-```
-
-## 📈 Analytics & Monitoring
+## Analytics
 
 ### Google Analytics
 
-Add your Google Analytics ID in `_config.yml`:
+Add to `_config.yml`:
 
 ```yaml
 google_analytics:
@@ -297,109 +233,91 @@ google_analytics:
 
 ### Search Console
 
-Add your Google Search Console verification:
-
 ```yaml
-google_site_verification: your_verification_code
+google_site_verification: verification_code
 ```
 
-## 🤝 Contributing
+## Diagram Integration
+
+This blog uses **Kroki** (https://kroki.io) for diagram rendering:
+
+- No local dependencies required
+- Reliable cloud-based processing
+- Supports 20+ diagram types
+- Responsive SVG output
+- No encoding issues
+
+### Usage Examples
+
+```liquid
+{% plantuml %}
+@startuml
+User -> System: Request
+System -> Database: Query
+Database -> System: Result
+System -> User: Response
+@enduml
+{% endplantuml %}
+```
+
+```liquid
+{% mermaid %}
+graph LR
+    A[Input] --> B[Process]
+    B --> C[Output]
+{% endmermaid %}
+```
+
+## Troubleshooting
+
+### Build Issues
+
+```bash
+bundle install --force
+bundle exec jekyll clean
+bundle exec jekyll build
+```
+
+### Diagram Problems
+
+- Check syntax in diagram code
+- Verify internet connection for PlantUML
+- Check browser console for errors
+
+### Performance Issues
+
+- Optimize images
+- Enable caching
+- Use CDN for assets
+
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch
-3. Make your changes
+3. Make changes
 4. Test thoroughly
-5. Submit a pull request
+5. Submit pull request
 
-## 📚 Resources
+## License
 
-- [Jekyll Documentation](https://jekyllrb.com/docs/)
-- [Mermaid Documentation](https://mermaid-js.github.io/mermaid/)
-- [PlantUML Documentation](https://plantuml.com/)
-- [Markdown Guide](https://www.markdownguide.org/)
+MIT License - see [LICENSE](LICENSE) file for details.
 
-## 🐛 Troubleshooting
+## Support
 
-### Common Issues
+- Email: samadeepsengupta@gmail.com
+- Twitter: @samadeepviews
+- LinkedIn: linkedin.com/in/samadeep
+- GitHub Issues: github.com/samadeep/samadeep.github.io/issues
 
-1. **Build Failures**
-   ```bash
-   bundle install --force
-   bundle exec jekyll clean
-   bundle exec jekyll build
-   ```
-
-2. **Diagram Not Rendering**
-   - Check syntax in diagram code
-   - Verify internet connection (for PlantUML)
-   - Check browser console for errors
-
-3. **Slow Loading**
-   - Optimize images
-   - Enable caching
-   - Use CDN for assets
-
-## 📧 Support
-
-Need help? 
-
-- 📧 Email: [samadeepsengupta@gmail.com](mailto:samadeepsengupta@gmail.com)
-- 🐦 Twitter: [@samadeepviews](https://twitter.com/samadeepviews)
-- 💼 LinkedIn: [samadeep](https://linkedin.com/in/samadeep)
-- 🐙 GitHub: [Issues](https://github.com/samadeep/samadeep.github.io/issues)
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [Jekyll](https://jekyllrb.com/) - Static site generator
 - [Chirpy Theme](https://github.com/cotes2020/jekyll-theme-chirpy) - Base theme
 - [Mermaid](https://mermaid-js.github.io/) - Diagram generation
 - [PlantUML](https://plantuml.com/) - UML diagrams
-- [MathJax](https://www.mathjax.org/) - Math rendering
-
-## Diagrams Support
-
-This blog uses **Kroki** (https://kroki.io) for embedding various diagram types with reliable cloud-based rendering - no local dependencies or encoding issues.
-
-### PlantUML Diagrams
-```liquid
-{% raw %}
-{% plantuml %}
-@startuml
-Alice -> Bob: Hello
-Bob -> Alice: Hi there
-@enduml
-{% endplantuml %}
-{% endraw %}
-```
-
-### Mermaid Diagrams
-```liquid
-{% raw %}
-{% mermaid %}
-graph TD
-    A[Start] --> B[Process]
-    B --> C[End]
-{% endmermaid %}
-{% endraw %}
-```
-
-### Other Supported Types
-- `{% graphviz %}` - DOT graphs and network diagrams
-- `{% svgbob %}` - ASCII art converted to SVG
-
-**Benefits of Kroki:**
-- ✅ No local installations required
-- ✅ Reliable encoding (no "deflate data" errors)
-- ✅ Fast cloud-based rendering
-- ✅ Supports 20+ diagram types
-- ✅ Responsive SVG output
-
-See [Kroki.io](https://kroki.io) for the complete list of supported diagram formats.
+- [Kroki](https://kroki.io) - Diagram rendering service
+- [MathJax](https://www.mathjax.org/) - Mathematical notation
 
 ---
 
-Built with ❤️ by [Samadeep Sengupta](https://github.com/samadeep)
+Built by [Samadeep Sengupta](https://github.com/samadeep)
