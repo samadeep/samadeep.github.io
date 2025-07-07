@@ -28,62 +28,7 @@
   }
 
   /* ---- Tablet: collapsible narrow sidebar ---- */
-  @media (max-width: 992px) {
-    #sidebar {
-      width: var(--sidebar-tablet-width);
-    }
-  }
 
-  /* ---- Mobile: transform into top-bar ---- */
-  @media (max-width: 576px) {
-    /* move sidebar to top (order) and stretch full width */
-    #sidebar {
-      order: -1; /* flex hack – render before main */
-      width: 100%;
-      max-width: 100%;
-      flex-direction: row;
-      align-items: center;
-      padding: 0 .75rem;
-    }
-
-    /* stack avatar + titles inline */
-    #sidebar .profile-wrapper {
-      display: flex;
-      align-items: center;
-      padding: .75rem 0;
-    }
-    #sidebar .profile-wrapper h1 {
-      font-size: 1rem;
-      margin: 0 0 0 .5rem;
-    }
-    #sidebar .site-subtitle {
-      display: none; /* hide to save space */
-    }
-
-    /* make nav horizontal and align items left */
-    #sidebar nav {
-      flex: 1 1 auto;
-      padding-left: .75rem;
-    }
-    #sidebar nav .nav {
-      flex-direction: row;
-      flex-wrap: wrap;
-      gap: .5rem;
-      justify-content: flex-start; /* align list items to the left */
-    }
-    #sidebar nav .nav-link {
-      padding: .25rem .5rem;
-      font-size: .875rem;
-    }
-
-    /* search bar fills full width under profile on narrow screens */
-    #sidebar .sidebar-search {
-      width: 100%;
-      padding: 0;
-      margin-bottom: .5rem;
-    }
-
-  }
 
   li.nav-item{
       padding-left: 0 !important;

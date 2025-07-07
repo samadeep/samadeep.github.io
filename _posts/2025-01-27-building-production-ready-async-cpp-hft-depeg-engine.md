@@ -131,186 +131,260 @@ The following PlantUML diagram illustrates the detailed class structure and rela
 {% plantuml %}  
 @startuml AsyncFrameworkArchitecture
 !theme plain
+top to bottom direction
 skinparam packageStyle rectangle
 skinparam linetype ortho
+skinparam class {
+    BackgroundColor<<Core>> LightBlue
+    BackgroundColor<<Data>> LightGreen
+    BackgroundColor<<ML>> LightYellow
+    BackgroundColor<<Alert>> LightCoral
+    BackgroundColor<<System>> LightGray
+    BorderColor Black
+    ArrowColor Black
+}
 
-package "Core Async Framework" {
-    
-    class LockFreeQueue<T> {    
-        - struct Node
-        - atomic<Node*> head_
-        - atomic<Node*> tail_
-        + void push(T item)
-        + bool try_pop(T& result)
-        + bool empty() const
+'==============================================================================
+' LAYER 1: CORE ASYNC FRAMEWORK (Foundation)
+'==============================================================================
+package "🔧 Core Async Framework" as CoreLayer <<Core>> {
+    together {
+        class LockFreeQueue<T> <<Core>> {
+            - struct Node
+            - atomic<Node*> head_
+            - atomic<Node*> tail_
+            --
+            + void push(T item)
+            + bool try_pop(T& result)
+            + bool empty() const
+        }
+        
+        enum TaskPriority <<Core>> {
+            CRITICAL = 0
+            HIGH = 1
+            MEDIUM = 2
+            LOW = 3
+        }
     }
     
-    class EventBus {
+    class EventBus <<Core>> {
         - unordered_map<EventType, vector<EventHandler>> handlers_
         - mutex handlers_mutex_
         - LockFreeQueue<shared_ptr<Event>> event_queue_
         - vector<thread> processing_threads_
+        --
         + void publish(shared_ptr<Event> event)
         + void subscribe(EventType type, EventHandler handler)
         - void dispatch_event(shared_ptr<Event> event)
     }
     
-    class AsyncWorkerPool {
-        - array<queue<function<void()>>, 4> priority_queues_
-        - vector<thread> workers_
-        - mutex queue_mutex_
-        - condition_variable condition_
-        - atomic<bool> stop_flag_
-        + future<T> submit_with_priority(TaskPriority priority, F&& f, Args&&... args)
-        - void worker_thread()
-        - function<void()> get_next_task()
-    }
-    
-    enum TaskPriority {
-        CRITICAL = 0
-        HIGH = 1
-        MEDIUM = 2
-        LOW = 3
-    }
-    
-    class AsyncCircuitBreaker {
-        - enum State { CLOSED, OPEN, HALF_OPEN }
-        - atomic<State> state_
-        - atomic<size_t> failure_count_
-        - atomic<chrono::steady_clock::time_point> last_failure_time_
-        + future<invoke_result_t<F>> execute(F&& func)
-        - void record_success()
-        - void record_failure()
+    together {
+        class AsyncWorkerPool <<Core>> {
+            - array<queue<function<void()>>, 4> priority_queues_
+            - vector<thread> workers_
+            - mutex queue_mutex_
+            - condition_variable condition_
+            - atomic<bool> stop_flag_
+            --
+            + future<T> submit_with_priority(TaskPriority priority, F&& f, Args&&... args)
+            - void worker_thread()
+            - function<void()> get_next_task()
+        }
+        
+        class AsyncCircuitBreaker <<Core>> {
+            - enum State { CLOSED, OPEN, HALF_OPEN }
+            - atomic<State> state_
+            - atomic<size_t> failure_count_
+            - atomic<chrono::steady_clock::time_point> last_failure_time_
+            --
+            + future<invoke_result_t<F>> execute(F&& func)
+            - void record_success()
+            - void record_failure()
+        }
     }
 }
 
-package "Data Processing Layer" {
-    
-    class AsyncDataAggregator {
+'==============================================================================
+' LAYER 2: DATA PROCESSING LAYER (Collection & Aggregation)
+'==============================================================================
+package "📊 Data Processing Layer" as DataLayer <<Data>> {
+    class AsyncDataAggregator <<Data>> {
         - unique_ptr<AsyncWorkerPool> collection_workers_
         - unique_ptr<AsyncWorkerPool> processing_workers_
         - unordered_map<StablecoinType, vector<MarketData>> latest_market_data_
+        --
         + future<void> collect_market_data_async(StablecoinType coin)
         + void process_market_data(const MarketData& data)
         + bool validate_market_data(const MarketData& data)
     }
     
-    class AsyncExchangeDataSource {
-        - Config config_
-        - shared_ptr<AsyncWorkerPool> worker_pool_
-        - unique_ptr<WebSocketClient> ws_client_
-        - unique_ptr<HTTPClient> http_client_
-        + future<vector<MarketData>> fetch_market_data(StablecoinType coin)
-        + void start_market_stream(StablecoinType coin, function<void(MarketData)> callback)
-    }
-    
-    class AsyncBlockchainDataSource {
-        - Config config_
-        - shared_ptr<AsyncWorkerPool> worker_pool_
-        - unique_ptr<RPCClient> rpc_client_
-        + future<vector<OnChainData>> fetch_onchain_data(StablecoinType coin)
-        + void start_blockchain_stream(StablecoinType coin, function<void(OnChainData)> callback)
+    together {
+        class AsyncExchangeDataSource <<Data>> {
+            - Config config_
+            - shared_ptr<AsyncWorkerPool> worker_pool_
+            - unique_ptr<WebSocketClient> ws_client_
+            - unique_ptr<HTTPClient> http_client_
+            --
+            + future<vector<MarketData>> fetch_market_data(StablecoinType coin)
+            + void start_market_stream(StablecoinType coin, function<void(MarketData)> callback)
+        }
+        
+        class AsyncBlockchainDataSource <<Data>> {
+            - Config config_
+            - shared_ptr<AsyncWorkerPool> worker_pool_
+            - unique_ptr<RPCClient> rpc_client_
+            --
+            + future<vector<OnChainData>> fetch_onchain_data(StablecoinType coin)
+            + void start_blockchain_stream(StablecoinType coin, function<void(OnChainData)> callback)
+        }
     }
 }
 
-package "ML Processing Layer" {
-    
-    class AsyncPredictionEngine {
+'==============================================================================
+' LAYER 3: ML PROCESSING LAYER (Intelligence & Prediction)
+'==============================================================================
+package "🤖 ML Processing Layer" as MLLayer <<ML>> {
+    class AsyncPredictionEngine <<ML>> {
         - unique_ptr<AsyncWorkerPool> prediction_workers_
         - vector<unique_ptr<AsyncMLModel>> models_
         - unique_ptr<AsyncFeatureExtractor> feature_extractor_
         - unique_ptr<AsyncRiskScorer> risk_scorer_
+        --
         + future<DepegAlert> process_market_data(const MarketData& data)
         + future<double> predict_risk_score(const vector<double>& features)
     }
     
-    class AsyncFeatureExtractor {
+    class AsyncFeatureExtractor <<ML>> {
         - shared_ptr<AsyncWorkerPool> worker_pool_
+        --
         + future<vector<double>> extract_market_features(const vector<MarketData>& market_history, const MarketData& current_data)
         + future<vector<double>> calculate_technical_indicators(const vector<MarketData>& data)
         - double calculate_price_volatility(const vector<MarketData>& data)
         - double calculate_volume_profile(const vector<MarketData>& data)
     }
     
-    class AsyncRandomForestModel {
-        - Config config_
-        - shared_ptr<AsyncWorkerPool> training_workers_
-        - unique_ptr<RandomForestClassifier> classifier_
-        + future<double> predict_risk_score(const vector<double>& features)
-        + future<bool> train(const vector<vector<double>>& training_data, const vector<double>& labels)
-    }
-    
-    class AsyncNeuralNetworkModel {
-        - Config config_
-        - shared_ptr<AsyncWorkerPool> inference_workers_
-        - unique_ptr<NeuralNetwork> network_
-        + future<double> predict_risk_score(const vector<double>& features)
-        + future<bool> train(const vector<vector<double>>& training_data, const vector<double>& labels)
+    together {
+        class AsyncRandomForestModel <<ML>> {
+            - Config config_
+            - shared_ptr<AsyncWorkerPool> training_workers_
+            - unique_ptr<RandomForestClassifier> classifier_
+            --
+            + future<double> predict_risk_score(const vector<double>& features)
+            + future<bool> train(const vector<vector<double>>& training_data, const vector<double>& labels)
+        }
+        
+        class AsyncNeuralNetworkModel <<ML>> {
+            - Config config_
+            - shared_ptr<AsyncWorkerPool> inference_workers_
+            - unique_ptr<NeuralNetwork> network_
+            --
+            + future<double> predict_risk_score(const vector<double>& features)
+            + future<bool> train(const vector<vector<double>>& training_data, const vector<double>& labels)
+        }
     }
 }
 
-package "Alert System Layer" {
-    
-    class AsyncAlertManager {
+'==============================================================================
+' LAYER 4: ALERT SYSTEM LAYER (Notification & Delivery)
+'==============================================================================
+package "🔔 Alert System Layer" as AlertLayer <<Alert>> {
+    class AsyncAlertManager <<Alert>> {
         - unique_ptr<AsyncWorkerPool> alert_workers_
         - unique_ptr<AsyncWorkerPool> delivery_workers_
         - vector<unique_ptr<AsyncNotificationDelivery>> delivery_channels_
         - unique_ptr<AsyncAlertProcessor> alert_processor_
+        --
         + future<void> process_depeg_alert(const DepegAlert& alert)
         + void subscribe_to_alerts(const AsyncAlertSubscription& subscription)
     }
     
-    class AsyncEmailDelivery {
-        - Config config_
-        - shared_ptr<AsyncWorkerPool> worker_pool_
-        - unique_ptr<SMTPClient> smtp_client_
-        + future<bool> send_notification(const string& recipient, const string& subject, const string& message)
-    }
-    
-    class AsyncSlackDelivery {
-        - Config config_
-        - shared_ptr<AsyncWorkerPool> worker_pool_
-        - unique_ptr<SlackClient> slack_client_
-        + future<bool> send_notification(const string& channel, const string& message)
-    }
-}
-
-package "System Health Layer" {
-    
-    class AsyncSystemHealthMonitor {
-        - HealthMetrics metrics_
-        - thread monitoring_thread_
-        - shared_ptr<EventBus> event_bus_
-        + void start_monitoring()
-        - void update_component_health()
-        - void update_system_metrics()
-        - void publish_health_events()
-    }
-    
-    class AsyncPerformanceProfiler {
-        - shared_ptr<AsyncWorkerPool> worker_pool_
-        - LockFreeQueue<ProfileData> profile_queue_
-        + void record_latency(const string& operation, chrono::microseconds duration)
-        + future<unordered_map<string, double>> analyze_latencies()
-        + future<vector<string>> identify_bottlenecks()
+    together {
+        class AsyncEmailDelivery <<Alert>> {
+            - Config config_
+            - shared_ptr<AsyncWorkerPool> worker_pool_
+            - unique_ptr<SMTPClient> smtp_client_
+            --
+            + future<bool> send_notification(const string& recipient, const string& subject, const string& message)
+        }
+        
+        class AsyncSlackDelivery <<Alert>> {
+            - Config config_
+            - shared_ptr<AsyncWorkerPool> worker_pool_
+            - unique_ptr<SlackClient> slack_client_
+            --
+            + future<bool> send_notification(const string& channel, const string& message)
+        }
     }
 }
 
-' Relationships
-EventBus --> LockFreeQueue : uses
-AsyncWorkerPool --> TaskPriority : uses
-AsyncDataAggregator --> AsyncWorkerPool : uses
-AsyncDataAggregator --> AsyncExchangeDataSource : uses
-AsyncDataAggregator --> AsyncBlockchainDataSource : uses
-AsyncPredictionEngine --> AsyncWorkerPool : uses
-AsyncPredictionEngine --> AsyncFeatureExtractor : uses
-AsyncPredictionEngine --> AsyncRandomForestModel : uses
-AsyncPredictionEngine --> AsyncNeuralNetworkModel : uses
-AsyncAlertManager --> AsyncWorkerPool : uses
-AsyncAlertManager --> AsyncEmailDelivery : uses
-AsyncAlertManager --> AsyncSlackDelivery : uses
-AsyncSystemHealthMonitor --> EventBus : uses
-AsyncPerformanceProfiler --> LockFreeQueue : uses
+'==============================================================================
+' LAYER 5: SYSTEM HEALTH LAYER (Monitoring & Profiling)
+'==============================================================================
+package "🏥 System Health Layer" as SystemLayer <<System>> {
+    together {
+        class AsyncSystemHealthMonitor <<System>> {
+            - HealthMetrics metrics_
+            - thread monitoring_thread_
+            - shared_ptr<EventBus> event_bus_
+            --
+            + void start_monitoring()
+            - void update_component_health()
+            - void update_system_metrics()
+            - void publish_health_events()
+        }
+        
+        class AsyncPerformanceProfiler <<System>> {
+            - shared_ptr<AsyncWorkerPool> worker_pool_
+            - LockFreeQueue<ProfileData> profile_queue_
+            --
+            + void record_latency(const string& operation, chrono::microseconds duration)
+            + future<unordered_map<string, double>> analyze_latencies()
+            + future<vector<string>> identify_bottlenecks()
+        }
+    }
+}
+
+'==============================================================================
+' VERTICAL RELATIONSHIPS (Top-Down Data Flow)
+'==============================================================================
+
+' Core Framework Internal Dependencies
+EventBus ||--|| LockFreeQueue : uses
+AsyncWorkerPool ||--|| TaskPriority : uses
+
+' Data Layer Dependencies (Layer 2 uses Layer 1)
+AsyncDataAggregator ||--|| AsyncWorkerPool : uses
+AsyncDataAggregator ||--|| AsyncExchangeDataSource : aggregates
+AsyncDataAggregator ||--|| AsyncBlockchainDataSource : aggregates
+AsyncExchangeDataSource ||--|| AsyncWorkerPool : uses
+AsyncBlockchainDataSource ||--|| AsyncWorkerPool : uses
+
+' ML Layer Dependencies (Layer 3 uses Layer 1 & 2)
+AsyncPredictionEngine ||--|| AsyncWorkerPool : uses
+AsyncPredictionEngine ||--|| AsyncFeatureExtractor : uses
+AsyncPredictionEngine ||--|| AsyncRandomForestModel : uses
+AsyncPredictionEngine ||--|| AsyncNeuralNetworkModel : uses
+AsyncFeatureExtractor ||--|| AsyncWorkerPool : uses
+AsyncRandomForestModel ||--|| AsyncWorkerPool : uses
+AsyncNeuralNetworkModel ||--|| AsyncWorkerPool : uses
+
+' Alert Layer Dependencies (Layer 4 uses Layer 1)
+AsyncAlertManager ||--|| AsyncWorkerPool : uses
+AsyncAlertManager ||--|| AsyncEmailDelivery : uses
+AsyncAlertManager ||--|| AsyncSlackDelivery : uses
+AsyncEmailDelivery ||--|| AsyncWorkerPool : uses
+AsyncSlackDelivery ||--|| AsyncWorkerPool : uses
+
+' System Health Dependencies (Layer 5 uses Layer 1)
+AsyncSystemHealthMonitor ||--|| EventBus : uses
+AsyncPerformanceProfiler ||--|| AsyncWorkerPool : uses
+AsyncPerformanceProfiler ||--|| LockFreeQueue : uses
+
+' Cross-Layer Event Flow
+AsyncDataAggregator ||--|| EventBus : publishes MARKET_DATA_UPDATE
+AsyncPredictionEngine ||--|| EventBus : publishes RISK_THRESHOLD_BREACH
+AsyncAlertManager ||--|| EventBus : subscribes to alerts
+AsyncSystemHealthMonitor ||--|| EventBus : publishes SYSTEM_HEALTH_CHECK
 
 @enduml
 {% endplantuml %}
@@ -394,95 +468,155 @@ This diagram shows the high-level component interactions and async communication
 {% plantuml %}
 @startuml ComponentInteractionDiagram
 !theme plain
+top to bottom direction
 skinparam componentStyle rectangle
 skinparam linetype ortho
-
-package "External Systems" {
-    [Exchange APIs\nBinance, Coinbase, etc.] as ExchangeAPIs
-    [Blockchain RPCs\nEthereum, Tron, etc.] as BlockchainRPCs
-    [Email SMTP\nServers] as EmailSMTP
-    [Slack API] as SlackAPI
-    [Webhook\nEndpoints] as WebhookEndpoints
+skinparam component {
+    BackgroundColor<<External>> LightPink
+    BackgroundColor<<Core>> LightBlue
+    BackgroundColor<<Data>> LightGreen
+    BackgroundColor<<ML>> LightYellow
+    BackgroundColor<<Alert>> LightCoral
+    BackgroundColor<<Health>> LightGray
+    BorderColor Black
 }
 
-package "Async Depeg Engine Core" {
-    
-    package "Core Framework" {
-        [Event Bus\nAsync Message Passing] as EventBus
-        [Master Worker Pool\n8 Priority Threads] as MasterWorkerPool
-        [Async I/O Context\nNon-blocking Operations] as AsyncIOContext
-        [Task Scheduler\nPriority Queues] as TaskScheduler
+'==============================================================================
+' LAYER 0: EXTERNAL SYSTEMS (Outside Dependencies)
+'==============================================================================
+package "🌐 External Systems" as ExternalLayer <<External>> {
+    together {
+        [Exchange APIs\nBinance • Coinbase • Kraken\nKucoin • Bybit] as ExchangeAPIs <<External>>
+        [Blockchain RPCs\nEthereum • Tron • BSC\nPolygon • Avalanche] as BlockchainRPCs <<External>>
     }
     
-    package "Data Layer" {
-        [Async Data Aggregator\nMarket Data Collection] as AsyncDataAggregator
-        [Exchange Data Sources\nWebSocket + REST] as ExchangeDataSources
-        [Blockchain Data Sources\nRPC + APIs] as BlockchainDataSources
-        [Lock-Free Queues\nHigh-Frequency Data] as LockFreeQueues
-    }
-    
-    package "ML Processing" {
-        [Async Prediction Engine\nRisk Assessment] as AsyncPredictionEngine
-        [ML Models\nRandomForest + Neural Net] as MLModels
-        [Feature Extractor\nTechnical Indicators] as FeatureExtractor
-        [Risk Scorer\nMulti-Factor Analysis] as RiskScorer
-    }
-    
-    package "Alert System" {
-        [Async Alert Manager\nNotification Processing] as AsyncAlertManager
-        [Notification Pipelines\nEmail + Slack + Webhook] as NotificationPipelines
-        [Template Engine\nAlert Messages] as TemplateEngine
-        [Subscription Manager\nUser Preferences] as SubscriptionManager
-    }
-    
-    package "System Health" {
-        [Health Monitor\nComponent Status] as HealthMonitor
-        [Performance Profiler\nLatency Tracking] as PerformanceProfiler
-        [Circuit Breakers\nFault Tolerance] as CircuitBreakers
-        [System Metrics\nResource Usage] as SystemMetrics
+    package "Notification Infrastructure" as NotificationInfra <<External>> {
+        [Email SMTP\nServers] as EmailSMTP <<External>>
+        [Slack API\nWebhooks] as SlackAPI <<External>>
+        [Webhook\nEndpoints] as WebhookEndpoints <<External>>
     }
 }
 
-' External connections
-ExchangeAPIs --> ExchangeDataSources : "Market Data\nWebSocket/REST"
-BlockchainRPCs --> BlockchainDataSources : "On-chain Data\nRPC Calls"
-NotificationPipelines --> EmailSMTP : "SMTP\nDelivery"
-NotificationPipelines --> SlackAPI : "Slack Bot\nMessages"
-NotificationPipelines --> WebhookEndpoints : "HTTP\nWebhooks"
+'==============================================================================
+' LAYER 1: CORE FRAMEWORK (Foundation & Orchestration)
+'==============================================================================
+package "🔧 Core Framework" as CoreFramework <<Core>> {
+    [Event Bus\nAsync Message Passing\n100K+ events/sec] as EventBus <<Core>>
+    
+    together {
+        [Master Worker Pool\n8 Priority Threads\nCritical/High/Medium/Low] as MasterWorkerPool <<Core>>
+        [Task Scheduler\nPriority Queues\nWork Stealing] as TaskScheduler <<Core>>
+    }
+    
+    [Async I/O Context\nNon-blocking Operations\nEpoll/IOCP] as AsyncIOContext <<Core>>
+    
+    [Lock-Free Queues\nHigh-Frequency Data\nZero-Copy Operations] as LockFreeQueues <<Core>>
+}
 
-' Core framework connections
-EventBus --> MasterWorkerPool : "Task\nDistribution"
-MasterWorkerPool --> AsyncIOContext : "I/O\nOperations"
-TaskScheduler --> MasterWorkerPool : "Priority\nScheduling"
+'==============================================================================
+' LAYER 2: DATA PROCESSING (Collection & Aggregation)
+'==============================================================================
+package "📊 Data Processing Layer" as DataProcessing <<Data>> {
+    [Async Data Aggregator\nMarket Data Collection\nReal-time Normalization] as AsyncDataAggregator <<Data>>
+    
+    together {
+        [Exchange Data Sources\nWebSocket + REST\nReal-time Price Feeds] as ExchangeDataSources <<Data>>
+        [Blockchain Data Sources\nRPC + APIs\nOn-chain Analytics] as BlockchainDataSources <<Data>>
+    }
+}
 
-' Data layer connections
-AsyncDataAggregator --> ExchangeDataSources : "Data\nCollection"
-AsyncDataAggregator --> BlockchainDataSources : "Data\nCollection"
-AsyncDataAggregator --> LockFreeQueues : "High-Freq\nData Storage"
-AsyncDataAggregator --> EventBus : "MARKET_DATA_UPDATE\nEvents"
+'==============================================================================
+' LAYER 3: ML PROCESSING (Intelligence & Prediction)
+'==============================================================================
+package "🤖 ML Processing Layer" as MLProcessing <<ML>> {
+    [Async Prediction Engine\nRisk Assessment\nMulti-Model Ensemble] as AsyncPredictionEngine <<ML>>
+    
+    together {
+        [Feature Extractor\nTechnical Indicators\nVolatility Analysis] as FeatureExtractor <<ML>>
+        [Risk Scorer\nMulti-Factor Analysis\nConfidence Intervals] as RiskScorer <<ML>>
+    }
+    
+    [ML Models\nRandomForest + Neural Net\nOnline Learning] as MLModels <<ML>>
+}
 
-' ML processing connections
-EventBus --> AsyncPredictionEngine : "Event\nNotifications"
-AsyncPredictionEngine --> FeatureExtractor : "Feature\nExtraction"
-AsyncPredictionEngine --> MLModels : "Risk\nPrediction"
-AsyncPredictionEngine --> RiskScorer : "Risk\nAssessment"
-AsyncPredictionEngine --> EventBus : "RISK_THRESHOLD_BREACH\nEvents"
+'==============================================================================
+' LAYER 4: ALERT SYSTEM (Notification & Delivery)
+'==============================================================================
+package "🔔 Alert System Layer" as AlertSystem <<Alert>> {
+    [Async Alert Manager\nNotification Processing\nPriority Routing] as AsyncAlertManager <<Alert>>
+    
+    together {
+        [Template Engine\nAlert Messages\nCustomizable Formats] as TemplateEngine <<Alert>>
+        [Subscription Manager\nUser Preferences\nChannel Routing] as SubscriptionManager <<Alert>>
+    }
+    
+    [Notification Pipelines\nEmail + Slack + Webhook\nReliable Delivery] as NotificationPipelines <<Alert>>
+}
 
-' Alert system connections
-EventBus --> AsyncAlertManager : "Alert\nTriggers"
-AsyncAlertManager --> NotificationPipelines : "Notification\nDelivery"
-AsyncAlertManager --> TemplateEngine : "Message\nFormatting"
-AsyncAlertManager --> SubscriptionManager : "User\nPreferences"
+'==============================================================================
+' LAYER 5: SYSTEM HEALTH (Monitoring & Profiling)
+'==============================================================================
+package "🏥 System Health Layer" as SystemHealth <<Health>> {
+    [Health Monitor\nComponent Status\nReal-time Monitoring] as HealthMonitor <<Health>>
+    
+    together {
+        [Performance Profiler\nLatency Tracking\nBottleneck Detection] as PerformanceProfiler <<Health>>
+        [Circuit Breakers\nFault Tolerance\nAuto-Recovery] as CircuitBreakers <<Health>>
+    }
+    
+    [System Metrics\nResource Usage\nThroughput Stats] as SystemMetrics <<Health>>
+}
 
-' System health connections
-HealthMonitor --> SystemMetrics : "Resource\nMonitoring"
-PerformanceProfiler --> SystemMetrics : "Performance\nMetrics"
-CircuitBreakers --> EventBus : "Fault\nTolerance"
-SystemMetrics --> EventBus : "SYSTEM_HEALTH_CHECK\nEvents"
+'==============================================================================
+' VERTICAL DATA FLOW (Top-Down Architecture)
+'==============================================================================
 
-' Internal async communication
-LockFreeQueues --> EventBus : "Lock-Free\nMessage Passing"
-CircuitBreakers --> AsyncIOContext : "Failure\nProtection"
+' External to Data Layer
+ExchangeAPIs ==> ExchangeDataSources : "Market Data\nWebSocket/REST\n100K msgs/sec"
+BlockchainRPCs ==> BlockchainDataSources : "On-chain Data\nRPC Calls\nBlock Events"
+
+' Data Layer to Core Framework
+AsyncDataAggregator ==> EventBus : "MARKET_DATA_UPDATE\nEvents"
+AsyncDataAggregator ==> LockFreeQueues : "High-Freq Data\nZero-Copy Storage"
+ExchangeDataSources ==> AsyncDataAggregator : "Raw Market Data\nPrice/Volume"
+BlockchainDataSources ==> AsyncDataAggregator : "Blockchain Data\nTransactions"
+
+' Core Framework Internal Flow
+EventBus ==> MasterWorkerPool : "Task Distribution\nEvent Processing"
+TaskScheduler ==> MasterWorkerPool : "Priority Scheduling\nWork Stealing"
+MasterWorkerPool ==> AsyncIOContext : "I/O Operations\nAsync Execution"
+LockFreeQueues ==> EventBus : "Lock-Free\nMessage Passing"
+
+' Core to ML Processing
+EventBus ==> AsyncPredictionEngine : "Event Notifications\nMarket Updates"
+AsyncPredictionEngine ==> FeatureExtractor : "Feature Extraction\nTechnical Analysis"
+AsyncPredictionEngine ==> MLModels : "Risk Prediction\nModel Inference"
+AsyncPredictionEngine ==> RiskScorer : "Risk Assessment\nScore Calculation"
+FeatureExtractor ==> MLModels : "Feature Vectors\nNormalized Data"
+RiskScorer ==> EventBus : "RISK_THRESHOLD_BREACH\nEvents"
+
+' ML to Alert System
+EventBus ==> AsyncAlertManager : "Alert Triggers\nRisk Events"
+AsyncAlertManager ==> TemplateEngine : "Message Formatting\nCustom Templates"
+AsyncAlertManager ==> SubscriptionManager : "User Preferences\nChannel Selection"
+AsyncAlertManager ==> NotificationPipelines : "Notification Delivery\nMulti-Channel"
+
+' Alert System to External
+NotificationPipelines ==> EmailSMTP : "SMTP Delivery\nEmail Alerts"
+NotificationPipelines ==> SlackAPI : "Slack Bot Messages\nChannel Notifications"
+NotificationPipelines ==> WebhookEndpoints : "HTTP Webhooks\nAPI Callbacks"
+
+' System Health Monitoring (Cross-Layer)
+HealthMonitor ==> SystemMetrics : "Resource Monitoring\nCPU/Memory/Network"
+PerformanceProfiler ==> SystemMetrics : "Performance Metrics\nLatency/Throughput"
+SystemMetrics ==> EventBus : "SYSTEM_HEALTH_CHECK\nEvents"
+
+' Fault Tolerance (Cross-Layer Protection)
+CircuitBreakers ==> EventBus : "Fault Tolerance\nFailure Detection"
+CircuitBreakers ==> AsyncIOContext : "Failure Protection\nCircuit State"
+
+' Performance Monitoring
+PerformanceProfiler ==> LockFreeQueues : "Profile Data\nLatency Tracking"
 
 @enduml
 {% endplantuml %}
