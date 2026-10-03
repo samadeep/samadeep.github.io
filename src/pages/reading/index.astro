@@ -1,0 +1,117 @@
+---
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import { getReading } from '../../lib/reading';
+import { SITE, fmtDate } from '../../lib/site';
+
+const items = getReading();
+const count = (xs: string[]) => [...xs.reduce((m, x) => m.set(x, (m.get(x) ?? 0) + 1), new Map<string, number>())].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+const sources = count(items.map((i) => i.source));
+const tags = count(items.flatMap((i) => i.tags));
+const addUrl = `${SITE.repo}/issues/new?template=reading.yml`;
+const unread = items.filter((i) => i.status === 'to-read').length;
+---
+<Base title="Reading" description="Posts, papers and threads worth reading, saved as I find them." >
+  <div class="wrap">
+    <header class="page-head">
+      <h1>Reading</h1>
+      <p>Posts, papers and threads worth your time, saved as I find them. {items.length > 0 && <>{items.length} saved, {unread} still to read.</>}</p>
+    </header>
+
+    <div class="rl-tools">
+      <label class="sr-only" for="rl-q">Search the reading list</label>
+      <input id="rl-q" class="rl-q" type="search" placeholder="Search titles, authors, notes" autocomplete="off" />
+      <a class="btn" href={addUrl} rel="noopener"><Icon name="plus" />Add a link</a>
+    </div>
+
+    <div class="chips" role="group" aria-label="Status">
+      <button class="chip" data-k="status" data-v="" aria-pressed="true">All</button>
+      <button class="chip" data-k="status" data-v="to-read" aria-pressed="false">To read</button>
+      <button class="chip" data-k="status" data-v="read" aria-pressed="false">Read</button>
+    </div>
+    {sources.length > 1 && (
+      <div class="chips" role="group" aria-label="Source">
+        {sources.map(([s, n]) => <button class="chip" data-k="src" data-v={s} aria-pressed="false">{s}<span class="n">{n}</span></button>)}
+      </div>
+    )}
+    {tags.length > 0 && (
+      <div class="chips" role="group" aria-label="Tags">
+        {tags.map(([t, n]) => <button class="chip" data-k="tag" data-v={t} aria-pressed="false">#{t}<span class="n">{n}</span></button>)}
+      </div>
+    )}
+
+    <ul class="rl" id="rl" data-pagefind-body>
+      {items.map((r) => (
+        <li data-status={r.status} data-src={r.source} data-tags={r.tags.join(' ')}
+            data-text={[r.title, r.author, r.note, r.source, ...r.tags].filter(Boolean).join(' ').toLowerCase()}>
+          <span class="ic"><Icon name={r.icon} label={r.source} /></span>
+          <div>
+            <a class="t" href={r.url} rel="noopener">{r.title}</a>
+            <div class="by">
+              {r.author && <span>{r.author}</span>}
+              <span>{r.source}</span>
+              {r.added && <time datetime={fmtDate(r.added)}>{fmtDate(r.added)}</time>}
+              {r.status === 'read' && <span class="done">Read</span>}
+            </div>
+            {r.note && <p class="note">{r.note}</p>}
+            {r.tags.length > 0 && <div class="tg">{r.tags.map((t) => <button type="button" data-k="tag" data-v={t}>#{t}</button>)}</div>}
+          </div>
+        </li>
+      ))}
+    </ul>
+
+    <div class="empty" id="rl-empty" hidden={items.length > 0}>
+      {items.length === 0
+        ? <><p>Nothing saved yet. Add an X post, Medium article or paper and it shows up here within a couple of minutes.</p><a class="btn" href={addUrl}><Icon name="plus" />Add the first link</a></>
+        : <p>No saved links match. <button class="chip" type="button" id="rl-clear">Clear filters</button></p>}
+    </div>
+
+    <hr />
+    <p class="meta">
+      <a href="/reading.xml"><Icon name="rss" /> Follow this list (Atom)</a>
+      <a id="rl-bm" href="#" title="Drag to your bookmarks bar, then click it on any page to save that page here">Save-to-reading bookmarklet</a>
+    </p>
+  </div>
+
+  <style>
+    .meta :global(svg) { width: 14px; height: 14px; vertical-align: -2px; }
+    .meta a { color: var(--ink-2); }
+  </style>
+
+  <script define:vars={{ addUrl }}>
+    const list = document.getElementById('rl');
+    const rows = [...list.children];
+    const q = document.getElementById('rl-q');
+    const empty = document.getElementById('rl-empty');
+    const st = { q: '', status: '', src: '', tag: '' };
+
+    function paint() {
+      document.querySelectorAll('.chips .chip').forEach((c) => c.setAttribute('aria-pressed', String(st[c.dataset.k] === c.dataset.v)));
+      const words = st.q.toLowerCase().split(/\s+/).filter(Boolean);
+      let shown = 0;
+      for (const li of rows) {
+        const ok = (!st.status || li.dataset.status === st.status) && (!st.src || li.dataset.src === st.src) &&
+          (!st.tag || li.dataset.tags.split(' ').includes(st.tag)) && words.every((w) => li.dataset.text.includes(w));
+        li.hidden = !ok; if (ok) shown++;
+      }
+      if (rows.length) empty.hidden = shown > 0;
+      const p = new URLSearchParams(Object.entries(st).filter(([, v]) => v));
+      history.replaceState(null, '', p.size ? `?${p}` : location.pathname);
+    }
+
+    new URLSearchParams(location.search).forEach((v, k) => { if (k in st) st[k] = v; });
+    q.value = st.q;
+    q.addEventListener('input', () => { st.q = q.value; paint(); });
+    document.addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-k]');
+      if (!b) return;
+      const { k, v } = b.dataset;
+      st[k] = k === 'status' ? v : st[k] === v ? '' : v;
+      paint();
+    });
+    document.getElementById('rl-clear')?.addEventListener('click', () => { Object.keys(st).forEach((k) => (st[k] = '')); q.value = ''; paint(); });
+    document.getElementById('rl-bm').href =
+      `javascript:(()=>{open('${addUrl}&url='+encodeURIComponent(location.href)+'&title='+encodeURIComponent('Read: '+document.title))})()`;
+    paint();
+  </script>
+</Base>

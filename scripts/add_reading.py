@@ -13,7 +13,7 @@ from pathlib import Path
 
 import yaml
 
-DATA = Path(__file__).resolve().parent.parent / "_data" / "reading.yml"
+DATA = Path(__file__).resolve().parent.parent / "src" / "data" / "reading.yml"
 UA = "Mozilla/5.0 (compatible; reading-list-bot; +https://samadeep.github.io/reading/)"
 TRACKING = re.compile(r"^(utm_|fbclid|gclid|ref_src|ref_url|s$|t$|source$|sk$)")
 

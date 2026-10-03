@@ -1,0 +1,19 @@
+name: Check
+on:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - run: sudo apt-get install -y --no-install-recommends graphviz
+      - run: npm ci
+      - run: npx astro check
+      - run: npm run build
+      - name: Fail if a diagram was rendered in CI but not committed
+        run: git status --porcelain public/diagrams | tee /dev/stderr | (! grep .)
