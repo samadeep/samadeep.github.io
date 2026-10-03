@@ -2,6 +2,7 @@
 title: 'Understanding Schedulers and Worker Schedulers: A Deep Dive into Asynchronous Task Management'
 description: Explore the world of schedulers and worker schedulers in modern distributed systems. Learn about different scheduling algorithms, implementation patterns, and best practices for building scalable asynchronous task processing systems.
 date: '2024-01-15'
+topic: systems
 tags: [system-design, backend-architecture, schedulers, workers, async, distributed-systems, architecture, performance, scalability]
 ---
 

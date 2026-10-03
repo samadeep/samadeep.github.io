@@ -1,0 +1,79 @@
+---
+// One card grammar for posts and saved reads (Medium-style anatomy):
+//   context line   [mark] In <topic> | From <source>   by <author>   <date>
+//   title + subtitle                                   [thumbnail]
+//   footer         read-time span, problem badges, tags
+import Icon from './Icon.astro';
+
+type Props = {
+  href: string;
+  external?: boolean;
+  mark: { hue: number; letter: string } | { icon: string };
+  context: string;
+  by?: string;
+  date?: Date;
+  title: string;
+  subtitle?: string;
+  thumb?: string;
+  thumbAlt?: string;
+  hue?: number;            // tint for the generated tile when there is no thumbnail
+  minutes?: number;
+  scale?: number;          // shared max for the read-time span
+  badges?: string[];
+  tags?: string[];
+  tagMode?: 'link' | 'filter';
+  done?: boolean;
+  morph?: string;          // view-transition-name for the title (post cards only)
+  attrs?: Record<string, string>;
+};
+const { href, external, mark, context, by, date, title, subtitle, thumb, thumbAlt = '', hue = 250, minutes, scale = 30,
+  badges = [], tags = [], tagMode = 'link', done, morph, attrs = {} } = Astro.props as Props;
+
+const fmt = (d: Date) => d.toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+// deterministic bar lengths for the generated tile, so each post's tile is its own
+const seed = [...title].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+const bars = [0, 1, 2].map((i) => 34 + ((seed >> (i * 5)) % 56));
+---
+<li class="card" style={`--hue:${'hue' in mark ? mark.hue : hue}`} {...attrs}>
+  <p class="ctx">
+    {'letter' in mark
+      ? <span class="mark tile" aria-hidden="true">{mark.letter}</span>
+      : <span class="mark"><Icon name={mark.icon} /></span>}
+    <span class="ctx-main">{context}</span>
+    {by && <span class="by">by {by}</span>}
+    {date && <time datetime={date.toISOString().slice(0, 10)}>{fmt(date)}</time>}
+  </p>
+
+  <div class="body">
+    <h3 class="title" style={morph ? `view-transition-name:${morph}` : undefined}>
+      <a href={href} rel={external ? 'noopener' : undefined}>{title}</a>
+    </h3>
+    {subtitle && <p class="sub">{subtitle}</p>}
+  </div>
+
+  <div class="thumb" aria-hidden={thumb ? undefined : 'true'}>
+    {thumb
+      ? <img src={thumb} alt={thumbAlt} loading="lazy" decoding="async" width="480" height="320" />
+      : <svg viewBox="0 0 120 80" role="presentation">{bars.map((w, i) => <rect x="14" y={18 + i * 17} width={w} height="9" rx="4.5" />)}</svg>}
+  </div>
+
+  {(minutes || badges.length || tags.length || done) && (
+    <div class="foot">
+      {minutes && (
+        <span class="span" aria-label={`${minutes} minute read`}>
+          <span class="bar-track"><span class="bar" style={`width:${Math.min(100, (minutes / scale) * 100)}%`}></span></span>
+          <span class="ms">{minutes} min</span>
+        </span>
+      )}
+      {done && <span class="done"><Icon name="check" /> Read</span>}
+      {badges.map((b) => <span class="badge">{b}</span>)}
+      {tags.length > 0 && (
+        <span class="tg">
+          {tags.slice(0, 3).map((t) => tagMode === 'filter'
+            ? <button type="button" data-k="tag" data-v={t}>#{t}</button>
+            : <a href={`/tags/${t}/`}>#{t}</a>)}
+        </span>
+      )}
+    </div>
+  )}
+</li>

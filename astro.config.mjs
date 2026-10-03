@@ -15,6 +15,7 @@ export default defineConfig({
   redirects: {
     '/categories/': '/posts/',
     '/archives/': '/posts/',
+    '/topics/': '/posts/',
   },
   markdown: {
     remarkPlugins: [remarkPlantuml, remarkReadingTime],

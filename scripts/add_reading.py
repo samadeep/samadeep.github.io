@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Append a link to _data/reading.yml, filling title/author from the page.
+"""Append a link to src/data/reading.yml, filling title, author, subtitle,
+publication, publish date and a self-hosted thumbnail from the page.
 
   python3 scripts/add_reading.py <url> [--tags a,b] [--note "..."] [--status read]
   python3 scripts/add_reading.py --issue-body-env ISSUE_BODY   # used by the GitHub Action
@@ -11,7 +12,11 @@ still added with a title derived from the URL, so adding never blocks on it.
 import argparse, datetime, html, json, os, re, sys, urllib.parse, urllib.request
 from pathlib import Path
 
+import hashlib, io
+
 import yaml
+
+THUMBS = Path(__file__).resolve().parent.parent / "public" / "reading" / "thumbs"
 
 DATA = Path(__file__).resolve().parent.parent / "src" / "data" / "reading.yml"
 UA = "Mozilla/5.0 (compatible; reading-list-bot; +https://samadeep.github.io/reading/)"
@@ -52,10 +57,10 @@ def from_x(url):
         body = re.search(r"<p[^>]*>(.*?)</p>", o.get("html", ""), re.S)
         text = html.unescape(re.sub(r"<[^>]+>", " ", body.group(1))) if body else ""
         text = re.sub(r"\s*(https?://)?t\.co/\S+", "", text)
-        return shorten(text) or f"Post by @{handle}", f"{o.get('author_name', handle)} (@{handle})"
+        return {"title": shorten(text) or None, "author": f"{o.get('author_name', handle)} (@{handle})", "site": "X"}
     except Exception as e:  # deleted post, rate limit, network
         print(f"oEmbed failed ({e}); using handle", file=sys.stderr)
-        return f"Post by @{handle}", f"@{handle}"
+        return {"title": None, "author": f"@{handle}", "site": "X"}
 
 
 def from_page(url):
@@ -73,7 +78,39 @@ def from_page(url):
     author = meta(doc, "author", "article:author", "twitter:creator")
     if author and author.startswith("http"):
         author = None
-    return title, author  # title is None when the page gave nothing usable
+    sub = meta(doc, "og:description", "twitter:description", "description")
+    published = meta(doc, "article:published_time", "og:article:published_time", "datePublished")
+    image = meta(doc, "og:image", "twitter:image", "twitter:image:src")
+    return {  # title is None when the page gave nothing usable
+        "title": title, "author": author,
+        "subtitle": shorten(sub, 160) if sub and sub != title else None,
+        "site": meta(doc, "og:site_name"),
+        "published": published[:10] if published and re.match(r"\d{4}-\d\d-\d\d", published) else None,
+        "image": urllib.parse.urljoin(url, image) if image else None,
+    }
+
+
+def save_thumb(image_url, key):
+    """Download, centre-crop to 3:2, 480x320 WebP. Returns a site path, or None."""
+    try:
+        from PIL import Image
+        req = urllib.request.Request(image_url, headers={"User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=15) as r:
+            raw = r.read(8_000_000)
+        im = Image.open(io.BytesIO(raw)).convert("RGB")
+        w, h = im.size
+        if w < 120 or h < 80:
+            return None  # tracking pixels and favicons
+        tw, th = (w, round(w * 2 / 3)) if w / h < 1.5 else (round(h * 1.5), h)
+        left, top = (w - tw) // 2, (h - th) // 2
+        im = im.crop((left, top, left + tw, top + th)).resize((480, 320), Image.LANCZOS)
+        THUMBS.mkdir(parents=True, exist_ok=True)
+        name = hashlib.sha1(key.encode()).hexdigest()[:12] + ".webp"
+        im.save(THUMBS / name, "WEBP", quality=78, method=6)
+        return f"/reading/thumbs/{name}"
+    except Exception as e:
+        print(f"thumbnail skipped ({e})", file=sys.stderr)
+        return None
 
 
 def title_from_url(url):
@@ -123,13 +160,15 @@ def add_many(records):
                 by_url[url]["status"] = "read"; changed += 1
             continue
         is_x = urllib.parse.urlsplit(url).netloc == "x.com"
-        title, author = from_x(url) if is_x else from_page(url)
-        if not title or title.startswith("Post by @"):
-            # fetched nothing real: prefer the caller's name (e.g. the Smriti row), then the URL slug
-            title = r.get("title") or title or title_from_url(url)
+        m = from_x(url) if is_x else from_page(url)
+        # fetched nothing real: prefer the caller's name (e.g. the Smriti row), then the URL slug / handle
+        title = m["title"] or r.get("title") or (f"Post by {m['author']}" if is_x else title_from_url(url))
         entry = {"url": url, "title": title}
-        if author:
-            entry["author"] = author
+        for k in ("author", "subtitle", "site", "published"):
+            if m.get(k):
+                entry[k] = m[k]
+        if m.get("image") and (thumb := save_thumb(m["image"], url)):
+            entry["image"] = thumb
         if tags := norm_tags(r.get("tags")):
             entry["tags"] = tags
         if r.get("note"):

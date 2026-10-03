@@ -1,8 +1,9 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Icon from '../../components/Icon.astro';
-import { getReading } from '../../lib/reading';
-import { SITE, fmtDate } from '../../lib/site';
+import FeedItem from '../../components/FeedItem.astro';
+import { getReading, readingCard } from '../../lib/reading';
+import { SITE } from '../../lib/site';
 
 const items = getReading();
 const count = (xs: string[]) => [...xs.reduce((m, x) => m.set(x, (m.get(x) ?? 0) + 1), new Map<string, number>())].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
@@ -40,23 +41,12 @@ const unread = items.filter((i) => i.status === 'to-read').length;
       </div>
     )}
 
-    <ul class="rl" id="rl" data-pagefind-body>
+    <ul class="feed" id="rl" data-pagefind-body>
       {items.map((r) => (
-        <li data-status={r.status} data-src={r.source} data-tags={r.tags.join(' ')}
-            data-text={[r.title, r.author, r.note, r.source, ...r.tags].filter(Boolean).join(' ').toLowerCase()}>
-          <span class="ic"><Icon name={r.icon} label={r.source} /></span>
-          <div>
-            <a class="t" href={r.url} rel="noopener">{r.title}</a>
-            <div class="by">
-              {r.author && <span>{r.author}</span>}
-              <span>{r.source}</span>
-              {r.added && <time datetime={fmtDate(r.added)}>{fmtDate(r.added)}</time>}
-              {r.status === 'read' && <span class="done">Read</span>}
-            </div>
-            {r.note && <p class="note">{r.note}</p>}
-            {r.tags.length > 0 && <div class="tg">{r.tags.map((t) => <button type="button" data-k="tag" data-v={t}>#{t}</button>)}</div>}
-          </div>
-        </li>
+        <FeedItem {...readingCard(r)} tagMode="filter" attrs={{
+          'data-status': r.status, 'data-src': r.source, 'data-tags': r.tags.join(' '),
+          'data-text': [r.title, r.author, r.note, r.subtitle, r.site, r.source, ...r.tags].filter(Boolean).join(' ').toLowerCase(),
+        }} />
       ))}
     </ul>
 
@@ -66,8 +56,7 @@ const unread = items.filter((i) => i.status === 'to-read').length;
         : <p>No saved links match. <button class="chip" type="button" id="rl-clear">Clear filters</button></p>}
     </div>
 
-    <hr />
-    <p class="meta">
+    <p class="meta" style="margin-top:2rem">
       <a href="/reading.xml"><Icon name="rss" /> Follow this list (Atom)</a>
       <a id="rl-bm" href="#" title="Drag to your bookmarks bar, then click it on any page to save that page here">Save-to-reading bookmarklet</a>
     </p>

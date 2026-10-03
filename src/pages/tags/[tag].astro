@@ -1,17 +1,18 @@
 ---
 import Base from '../../layouts/Base.astro';
-import Trace from '../../components/Trace.astro';
-import { getPosts, toRow, tagCounts } from '../../lib/posts';
+import FeedItem from '../../components/FeedItem.astro';
+import { getPosts, tagCounts, readScale, postCard } from '../../lib/posts';
 
 export async function getStaticPaths() {
   const posts = await getPosts();
-  return tagCounts(posts).map(([tag]) => ({ params: { tag }, props: { tag, posts: posts.filter((p) => p.data.tags.includes(tag)) } }));
+  const scale = readScale(posts);
+  return tagCounts(posts).map(([tag]) => ({ params: { tag }, props: { tag, scale, posts: posts.filter((p) => p.data.tags.includes(tag)) } }));
 }
-const { tag, posts } = Astro.props;
+const { tag, posts, scale } = Astro.props;
 ---
 <Base title={`Tagged ${tag}`} description={`Posts tagged ${tag}.`}>
   <div class="wrap">
     <header class="page-head"><h1>{tag}</h1><p>{posts.length} {posts.length === 1 ? 'post' : 'posts'}. <a href="/tags/">All tags</a></p></header>
-    <Trace rows={posts.map((p) => toRow(p))} />
+    <ul class="feed">{posts.map((p) => <FeedItem {...postCard(p, scale)} />)}</ul>
   </div>
 </Base>

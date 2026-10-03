@@ -2,20 +2,24 @@
 import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import { getPosts } from '../../lib/posts';
+import { topicOf } from '../../lib/topics';
 import { SITE, fmtDate } from '../../lib/site';
 
 export async function getStaticPaths() {
   const posts = await getPosts();
-  return posts.map((post, i) => ({
-    params: { slug: post.id },
-    props: { post, newer: posts[i - 1], older: posts[i + 1] },
-  }));
+  // prev/next stay inside the post's topic, so a reader keeps reading what they came for
+  return posts.map((post) => {
+    const same = posts.filter((p) => p.data.topic === post.data.topic);
+    const i = same.indexOf(post);
+    return { params: { slug: post.id }, props: { post, newer: same[i - 1], older: same[i + 1] } };
+  });
 }
 
 const { post, newer, older } = Astro.props;
 const { Content, headings } = await render(post);
 const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
-const { title, description, date, updated, tags } = post.data;
+const { title, description, date, updated, tags, problems } = post.data;
+const topic = topicOf(post.data.topic);
 const source = `${SITE.repo}/blob/main/src/content/posts/${post.filePath?.split('/').pop()}`;
 const jsonLd = {
   '@context': 'https://schema.org', '@type': 'BlogPosting', headline: title, description,
@@ -30,14 +34,25 @@ const jsonLd = {
     <div class="post-layout">
       <article data-pagefind-body>
         <header class="post-head">
-          <h1>{title}</h1>
+          <h1 style={`view-transition-name:post-${post.id}`}>{title}</h1>
           <p class="lede">{description}</p>
           <div class="meta">
+            <a class="topic-link" href={`/topics/${topic.slug}/`} data-pagefind-filter="topic">{topic.name}</a>
             <time datetime={fmtDate(date)} data-pagefind-meta="date">{fmtDate(date)}</time>
             <span class="mins">{post.minutes} min read</span>
             <ul class="tags" data-pagefind-ignore>{tags.slice(0, 6).map((t) => <li><a href={`/tags/${t}/`}>{t}</a></li>)}</ul>
           </div>
         </header>
+
+        {problems.length > 0 && (
+          <ul class="problems" aria-label="Problems in this post" data-pagefind-ignore>
+            {problems.map((pr) => (
+              <li><a href={pr.url} rel="noopener">
+                <span class="pf">{pr.platform} {pr.id}</span><span class="pt">{pr.title}</span>{pr.difficulty && <span class="pd">{pr.difficulty}</span>}
+              </a></li>
+            ))}
+          </ul>
+        )}
 
         {toc.length > 2 && (
           <details class="toc-inline" data-pagefind-ignore>
@@ -52,8 +67,8 @@ const jsonLd = {
 
         {(newer || older) && (
           <nav class="post-foot" aria-label="More posts" data-pagefind-ignore>
-            {older && <a href={older.href}><small>Older</small>{older.data.title}</a>}
-            {newer && <a class="next" href={newer.href}><small>Newer</small>{newer.data.title}</a>}
+            {older && <a href={older.href}><small>Older in {topic.name}</small>{older.data.title}</a>}
+            {newer && <a class="next" href={newer.href}><small>Newer in {topic.name}</small>{newer.data.title}</a>}
           </nav>
         )}
       </article>
