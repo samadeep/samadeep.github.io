@@ -1,0 +1,30 @@
+name: Add to reading list
+description: Drop a link. The bot fills title and author, adds it to /reading/, and closes this.
+title: "Read: "
+labels: [reading]
+body:
+  - type: input
+    id: url
+    attributes:
+      label: Link
+      description: X post, Medium article, paper, video, anything.
+      placeholder: https://x.com/someone/status/123...
+    validations:
+      required: true
+  - type: input
+    id: tags
+    attributes:
+      label: Tags
+      description: Comma separated, optional.
+      placeholder: llm, distributed-systems
+  - type: input
+    id: note
+    attributes:
+      label: Why it is worth it
+      description: One line, optional. Shows under the title.
+  - type: dropdown
+    id: status
+    attributes:
+      label: Status
+      options: [to-read, read]
+      default: 0

@@ -1,0 +1,87 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { getPosts } from '../../lib/posts';
+import { SITE, fmtDate } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post, i) => ({
+    params: { slug: post.id },
+    props: { post, newer: posts[i - 1], older: posts[i + 1] },
+  }));
+}
+
+const { post, newer, older } = Astro.props;
+const { Content, headings } = await render(post);
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+const { title, description, date, updated, tags } = post.data;
+const source = `${SITE.repo}/blob/main/src/content/posts/${post.filePath?.split('/').pop()}`;
+const jsonLd = {
+  '@context': 'https://schema.org', '@type': 'BlogPosting', headline: title, description,
+  datePublished: date.toISOString(), dateModified: (updated ?? date).toISOString(),
+  author: { '@type': 'Person', name: SITE.name, url: SITE.url },
+  image: new URL(`/og/${post.id}.png`, SITE.url).href, keywords: tags.join(', '),
+};
+---
+<Base title={title} description={description} type="article" published={date} image={`/og/${post.id}.png`}>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <div class="wrap wide">
+    <div class="post-layout">
+      <article data-pagefind-body>
+        <header class="post-head">
+          <h1>{title}</h1>
+          <p class="lede">{description}</p>
+          <div class="meta">
+            <time datetime={fmtDate(date)} data-pagefind-meta="date">{fmtDate(date)}</time>
+            <span class="mins">{post.minutes} min read</span>
+            <ul class="tags" data-pagefind-ignore>{tags.slice(0, 6).map((t) => <li><a href={`/tags/${t}/`}>{t}</a></li>)}</ul>
+          </div>
+        </header>
+
+        {toc.length > 2 && (
+          <details class="toc-inline" data-pagefind-ignore>
+            <summary>Contents</summary>
+            <ol>{toc.map((h) => <li class={`d${h.depth}`}><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
+          </details>
+        )}
+
+        <div class="prose"><Content /></div>
+
+        <p class="edit" data-pagefind-ignore>Spotted a mistake? <a href={source}>Suggest an edit on GitHub</a>.</p>
+
+        {(newer || older) && (
+          <nav class="post-foot" aria-label="More posts" data-pagefind-ignore>
+            {older && <a href={older.href}><small>Older</small>{older.data.title}</a>}
+            {newer && <a class="next" href={newer.href}><small>Newer</small>{newer.data.title}</a>}
+          </nav>
+        )}
+      </article>
+
+      {toc.length > 2 && (
+        <aside class="toc-rail" data-pagefind-ignore>
+          <nav class="toc" aria-label="On this page">
+            <h2>On this page</h2>
+            <ol>{toc.map((h) => <li class={`d${h.depth}`}><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
+          </nav>
+        </aside>
+      )}
+    </div>
+  </div>
+
+  <script>
+    // highlight the section currently in view
+    const links = new Map([...document.querySelectorAll<HTMLAnchorElement>('.toc a')].map((a) => [decodeURIComponent(a.hash.slice(1)), a]));
+    if (links.size) {
+      let current: HTMLAnchorElement | undefined;
+      const io = new IntersectionObserver((entries) => {
+        for (const e of entries) if (e.isIntersecting) {
+          current?.classList.remove('active');
+          current = links.get(e.target.id);
+          current?.classList.add('active');
+        }
+      }, { rootMargin: '0px 0px -75% 0px' });
+      links.forEach((_, id) => { const h = document.getElementById(id); if (h) io.observe(h); });
+    }
+  </script>
+</Base>

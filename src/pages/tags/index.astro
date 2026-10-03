@@ -1,0 +1,11 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getPosts, tagCounts } from '../../lib/posts';
+const tags = tagCounts(await getPosts());
+---
+<Base title="Tags" description="Posts by topic.">
+  <div class="wrap">
+    <header class="page-head"><h1>Tags</h1><p>{tags.length} topics across all posts.</p></header>
+    <ul class="tag-cloud">{tags.map(([t, n]) => <li><a href={`/tags/${t}/`}>{t}<span class="n">{n}</span></a></li>)}</ul>
+  </div>
+</Base>

@@ -1,0 +1,39 @@
+---
+import Base from '../layouts/Base.astro';
+import Trace from '../components/Trace.astro';
+import Icon from '../components/Icon.astro';
+import { getPosts, toRow } from '../lib/posts';
+import { getReading } from '../lib/reading';
+import { fmtDate } from '../lib/site';
+
+const posts = await getPosts();
+const reading = getReading().slice(0, 5);
+---
+<Base>
+  <div class="wrap">
+    <section class="intro">
+      <h1>Samadeep Sengupta</h1>
+      <p>I build search, messaging and agent infrastructure at a trading firm in Hyderabad. This is where I write about systems, latency and algorithms, and keep a list of what I am reading.</p>
+    </section>
+
+    <div class="section-head"><h2>Writing</h2><a href="/posts/">All posts</a></div>
+    <Trace rows={posts.slice(0, 6).map((p) => toRow(p))} animate />
+
+    <div class="section-head"><h2>Recently read</h2><a href="/reading/">Reading list</a></div>
+    {reading.length === 0
+      ? <p class="empty">Links I save from X, Medium and papers show up here.</p>
+      : (
+        <ul class="rl">
+          {reading.map((r) => (
+            <li>
+              <span class="ic"><Icon name={r.icon} label={r.source} /></span>
+              <div>
+                <a class="t" href={r.url} rel="noopener">{r.title}</a>
+                <div class="by">{r.author && <span>{r.author}</span>}<span>{r.source}</span>{r.added && <time datetime={fmtDate(r.added)}>{fmtDate(r.added)}</time>}</div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+  </div>
+</Base>

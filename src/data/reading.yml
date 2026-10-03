@@ -1,0 +1,19 @@
+# Reading list: rendered at /reading/ and /reading.xml
+#
+# Three ways to add an entry:
+#   1. Phone / browser: open an issue with the "Add to reading list" form
+#      (or use the bookmarklet on /reading/). A GitHub Action fills in the
+#      title and author, appends here, and redeploys. Nothing else to do.
+#   2. Terminal: python3 scripts/add_reading.py <url> --tags llm,infra --note "why"
+#   3. By hand: copy the block below. Only `url` is required.
+#
+# - url: https://example.com/post        # required
+#   title: Post title                     # auto-filled if missing
+#   author: Someone                       # optional
+#   source: Medium                        # optional, auto-detected from url
+#   tags: [distributed-systems, rag]      # optional, drives the filter chips
+#   note: One line on why it is worth it  # optional, shown under the title
+#   status: to-read                       # to-read | read   (default to-read)
+#   added: 2026-10-03                     # yyyy-mm-dd, newest shows first
+
+[]

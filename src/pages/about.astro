@@ -1,0 +1,82 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../lib/site';
+
+// Career as a trace: start/end as [year, month]; null end = now.
+type Span = { org: string; role: string; from: [number, number]; to: [number, number] | null; note: string };
+const spans: Span[] = [
+  { org: 'D. E. Shaw India', role: 'Member Technical, applied AI', from: [2025, 6], to: null,
+    note: 'Full-stack and infrastructure work end to end: retrieval and search, messaging infrastructure, and the plumbing that lets AI agents work safely with people in the loop.' },
+  { org: 'D. E. Shaw India', role: 'Systems intern', from: [2025, 1], to: [2025, 6],
+    note: 'Internal tools and services in Java, Spring Boot and React. Converted to full time.' },
+  { org: 'Google', role: 'Software engineering intern, Cloud Storage backend', from: [2024, 5], to: [2024, 8],
+    note: 'Log analysis and automated probe creation in C++ and Python. Open-sourced a log analyser for gcsfuse.' },
+  { org: 'Searce', role: 'Data engineering analyst', from: [2023, 5], to: [2023, 7],
+    note: 'Moved an e-commerce data pipeline onto GCP (BigQuery, Airflow, Dataproc), cutting processing time by about 40%.' },
+];
+const now = new Date();
+const t = ([y, m]: [number, number]) => y + (m - 1) / 12;
+const t0 = 2023, t1 = now.getFullYear() + (now.getMonth() + 1) / 12;
+const pct = (x: number) => ((x - t0) / (t1 - t0)) * 100;
+const years = Array.from({ length: Math.floor(t1) - t0 + 1 }, (_, i) => t0 + i);
+const fmt = ([y, m]: [number, number]) => new Date(y, m - 1).toLocaleString('en', { month: 'short', year: 'numeric' });
+---
+<Base title="About" description="Samadeep Sengupta: software engineer in Hyderabad working on search, messaging and agent infrastructure.">
+  <div class="wrap">
+    <header class="page-head">
+      <h1>About</h1>
+      <p>I'm Samadeep, a software engineer in Hyderabad. I like systems you can reason about: where the latency goes, what happens when a node disappears, and how to make the slow path rare.</p>
+    </header>
+
+    <div class="prose">
+      <p>At work I build infrastructure that a lot of other people depend on without thinking about it: enterprise search and retrieval, event-driven messaging, and the scaffolding that lets AI agents call tools, run code in a sandbox and hand decisions back to a human. I usually own a feature from the API down to the deployment and the docs.</p>
+      <p>Outside work I write here about schedulers, low-latency C++ and algorithms, compete on Codeforces now and then, and make music.</p>
+    </div>
+
+    <h2 class="sub">Work</h2>
+    <figure class="career" aria-label="Career timeline">
+      <div class="years" aria-hidden="true">{years.map((y) => <span style={`left:${pct(y)}%`}>{y}</span>)}</div>
+      <ol>
+        {spans.map((s) => (
+          <li>
+            <div class="lane" aria-hidden="true"><span class:list={['bar', { live: !s.to }]} style={`left:${pct(t(s.from))}%;width:${Math.max(1.5, pct(s.to ? t(s.to) : t1) - pct(t(s.from)))}%`}></span></div>
+            <h3>{s.role} <span class="org">at {s.org}</span></h3>
+            <p class="when">{fmt(s.from)} to {s.to ? fmt(s.to) : 'now'}</p>
+            <p>{s.note}</p>
+          </li>
+        ))}
+      </ol>
+    </figure>
+
+    <h2 class="sub">Before that</h2>
+    <div class="prose">
+      <p>B.Tech in Computer Science from NIT Hamirpur (2021 to 2025), graduating second in my year with a 9.6 CGPA. Projects from then that still hold up:</p>
+      <ul>
+        <li><a href="https://github.com/samadeep/federated_learning_BERT">Federated BERT for phishing detection</a>: spam classification trained across clients without sharing their mail.</li>
+        <li><a href="https://github.com/samadeep/controller-rnn-based-architecture-search">Neural architecture search with a controller RNN</a>: letting a model propose the network.</li>
+      </ul>
+      <p>Competitive programming: Codeforces Expert (max 1737), LeetCode Knight (max 1939), CodeChef max 1839, and 132nd at the ACM ICPC 2024 regionals.</p>
+    </div>
+
+    <h2 class="sub">Get in touch</h2>
+    <div class="prose">
+      <p>Email <a href="mailto:samadeepwork@gmail.com">samadeepwork@gmail.com</a>, or find me on {Object.entries(SITE.links).map(([k, v], i, a) => <>{i > 0 && (i === a.length - 1 ? ' and ' : ', ')}<a href={v} rel="me">{k}</a></>)}.</p>
+    </div>
+  </div>
+
+  <style>
+    .sub { font-size: var(--t-md); margin: 3.5rem 0 1rem; }
+    .career { margin: 0; font-family: var(--sans); }
+    .years { position: relative; height: 1.4rem; border-bottom: 1px solid var(--rule); font: 400 0.75rem var(--mono); color: var(--ink-3); }
+    .years span { position: absolute; transform: translateX(-1px); padding-left: 4px; border-left: 1px solid var(--rule); height: 1.4rem; }
+    .career ol { list-style: none; padding: 0; margin: 0; }
+    .career li { padding: 1rem 0 1.25rem; border-bottom: 1px solid var(--rule); }
+    .lane { position: relative; height: 8px; background: var(--paper-2); border-radius: 4px; margin-bottom: 0.9rem; }
+    .lane .bar { position: absolute; top: 0; height: 8px; border-radius: 4px; background: var(--trace); }
+    .lane .bar.live { background: linear-gradient(90deg, var(--trace) 85%, var(--trace-soft)); }
+    .career h3 { font-size: 1.05rem; margin: 0; font-weight: 600; }
+    .career .org { font-weight: 400; color: var(--ink-2); }
+    .career .when { font: 400 0.8rem var(--mono); color: var(--ink-3); margin: 0.2rem 0 0.4rem; }
+    .career p:last-child { margin: 0; font: 400 0.98rem/1.6 var(--serif); color: var(--ink-2); }
+  </style>
+</Base>
