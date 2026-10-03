@@ -8,23 +8,23 @@ import { SITE } from '../../lib/site';
 const require = createRequire(import.meta.url);
 const font = (pkg: string, file: string) => readFileSync(require.resolve(`${pkg}/files/${file}`));
 const fonts = [
-  { name: 'Schibsted', data: font('@fontsource/schibsted-grotesk', 'schibsted-grotesk-latin-700-normal.woff'), weight: 700 as const, style: 'normal' as const },
-  { name: 'Schibsted', data: font('@fontsource/schibsted-grotesk', 'schibsted-grotesk-latin-600-normal.woff'), weight: 600 as const, style: 'normal' as const },
-  { name: 'Literata', data: font('@fontsource/literata', 'literata-latin-400-normal.woff'), weight: 400 as const, style: 'normal' as const },
+  // Aptos Mono can't be embedded (licence), so cards use the site's fallback mono
+  { name: 'Mono', data: font('@fontsource/jetbrains-mono', 'jetbrains-mono-latin-700-normal.woff'), weight: 700 as const, style: 'normal' as const },
+  { name: 'Mono', data: font('@fontsource/jetbrains-mono', 'jetbrains-mono-latin-400-normal.woff'), weight: 400 as const, style: 'normal' as const },
 ];
 
 const C = { paper: '#F5F6F2', ink: '#1A1F24', ink2: '#4A535C', trace: '#4B3BCF', track: '#E4E6E0' };
 const h = (type: string, style: Record<string, unknown>, children?: unknown) => ({ type, props: { style, children } });
 
 function card(title: string, sub: string, foot: string, bars: number[]) {
-  return h('div', { width: 1200, height: 630, display: 'flex', flexDirection: 'column', background: C.paper, padding: '72px 80px', fontFamily: 'Schibsted' }, [
+  return h('div', { width: 1200, height: 630, display: 'flex', flexDirection: 'column', background: C.paper, padding: '72px 80px', fontFamily: 'Mono' }, [
     h('div', { display: 'flex', flexDirection: 'column', gap: 12 }, bars.map((w) =>
       h('div', { display: 'flex', width: 360, height: 10, background: C.track, borderRadius: 5 }, [h('div', { width: `${w}%`, height: 10, background: C.trace, borderRadius: 5 })]))),
     h('div', { display: 'flex', flexDirection: 'column', marginTop: 'auto' }, [
-      h('div', { fontSize: title.length > 70 ? 54 : 64, fontWeight: 700, color: C.ink, lineHeight: 1.1, letterSpacing: -1.5 }, title),
-      h('div', { fontFamily: 'Literata', fontSize: 28, color: C.ink2, marginTop: 24, lineHeight: 1.4 }, sub),
+      h('div', { fontSize: title.length > 70 ? 46 : 56, fontWeight: 700, color: C.ink, lineHeight: 1.15 }, title),
+      h('div', { fontSize: 24, color: C.ink2, marginTop: 24, lineHeight: 1.4 }, sub),
     ]),
-    h('div', { display: 'flex', justifyContent: 'space-between', marginTop: 48, fontSize: 24, fontWeight: 600, color: C.ink2 }, [
+    h('div', { display: 'flex', justifyContent: 'space-between', marginTop: 48, fontSize: 24, fontWeight: 400, color: C.ink2 }, [
       h('div', {}, SITE.name), h('div', { color: C.trace }, foot),
     ]),
   ]);

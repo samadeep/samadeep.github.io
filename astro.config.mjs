@@ -27,9 +27,9 @@ export default defineConfig({
       useDarkModeMediaQuery: false,
       styleOverrides: {
         borderRadius: '6px',
-        codeFontFamily: "'JetBrains Mono Variable', ui-monospace, monospace",
+        codeFontFamily: "'Aptos Mono', 'JetBrains Mono Variable', ui-monospace, 'SF Mono', Menlo, Consolas, monospace",
         codeFontSize: '0.84rem',
-        uiFontFamily: "'Schibsted Grotesk Variable', system-ui, sans-serif",
+        uiFontFamily: "'Aptos Mono', 'JetBrains Mono Variable', ui-monospace, 'SF Mono', Menlo, Consolas, monospace",
       },
       defaultProps: { wrap: false },
     }),
