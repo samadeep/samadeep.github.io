@@ -1,13 +1,13 @@
 ---
 import Base from '../layouts/Base.astro';
-import Trace from '../components/Trace.astro';
-import Icon from '../components/Icon.astro';
-import { getPosts, toRow } from '../lib/posts';
-import { getReading } from '../lib/reading';
-import { fmtDate } from '../lib/site';
+import FeedItem from '../components/FeedItem.astro';
+import { getPosts, topicGroups, postCard, readScale } from '../lib/posts';
+import { getReading, readingCard } from '../lib/reading';
 
 const posts = await getPosts();
 const reading = getReading().slice(0, 5);
+const groups = topicGroups(posts);
+const scale = readScale(posts);
 ---
 <Base>
   <div class="wrap">
@@ -16,24 +16,16 @@ const reading = getReading().slice(0, 5);
       <p>I build search, messaging and agent infrastructure at a trading firm in Hyderabad. This is where I write about systems, latency and algorithms, and keep a list of what I am reading.</p>
     </section>
 
-    <div class="section-head"><h2>Writing</h2><a href="/posts/">All posts</a></div>
-    <Trace rows={posts.slice(0, 6).map((p) => toRow(p))} animate />
+    <ul class="topic-jump" aria-label="Topics">
+      {groups.map((g) => <li><a href={`/topics/${g.slug}/`}>{g.name}<span class="n">{g.posts.length}</span></a></li>)}
+    </ul>
+
+    <div class="section-head"><h2>Latest writing</h2><a href="/posts/">All posts by topic</a></div>
+    <ul class="feed">{posts.slice(0, 6).map((p) => <FeedItem {...postCard(p, scale)} />)}</ul>
 
     <div class="section-head"><h2>Recently read</h2><a href="/reading/">Reading list</a></div>
     {reading.length === 0
       ? <p class="empty">Links I save from X, Medium and papers show up here.</p>
-      : (
-        <ul class="rl">
-          {reading.map((r) => (
-            <li>
-              <span class="ic"><Icon name={r.icon} label={r.source} /></span>
-              <div>
-                <a class="t" href={r.url} rel="noopener">{r.title}</a>
-                <div class="by">{r.author && <span>{r.author}</span>}<span>{r.source}</span>{r.added && <time datetime={fmtDate(r.added)}>{fmtDate(r.added)}</time>}</div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+      : <ul class="feed">{reading.map((r) => <FeedItem {...readingCard(r)} />)}</ul>}
   </div>
 </Base>

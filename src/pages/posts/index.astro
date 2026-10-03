@@ -1,25 +1,38 @@
 ---
 import Base from '../../layouts/Base.astro';
-import Trace from '../../components/Trace.astro';
-import { getPosts, toRow, tagCounts } from '../../lib/posts';
+import FeedItem from '../../components/FeedItem.astro';
+import { getPosts, tagCounts, topicGroups, readScale, postCard } from '../../lib/posts';
 
 const posts = await getPosts();
-const years = [...new Set(posts.map((p) => p.data.date.getUTCFullYear()))];
-const scale = Math.ceil(Math.max(10, ...posts.map((p) => p.minutes)) / 10) * 10;
-const tags = tagCounts(posts).slice(0, 14);
+const groups = topicGroups(posts);
+const scale = readScale(posts);
+const tags = tagCounts(posts);
 ---
-<Base title="Writing" description="Every post, newest first.">
+<Base title="Writing" description="Posts grouped by topic: algorithms and competitive programming, systems, low latency, AI.">
   <div class="wrap">
     <header class="page-head">
       <h1>Writing</h1>
-      <p>{posts.length} posts on systems, latency and algorithms. Bars show reading time.</p>
+      <p>Pick a topic. The bar on each post is its reading time.</p>
     </header>
-    <ul class="tag-cloud">{tags.map(([t, n]) => <li><a href={`/tags/${t}/`}>{t}<span class="n">{n}</span></a></li>)}<li><a href="/tags/">All tags</a></li></ul>
-    {years.map((y) => (
-      <>
-        <h2 class="year">{y}</h2>
-        <Trace rows={posts.filter((p) => p.data.date.getUTCFullYear() === y).map((p) => toRow(p))} axis={false} scale={scale} />
-      </>
+
+    <ul class="topic-jump">
+      {groups.map((g) => <li><a href={`#${g.slug}`}>{g.name}<span class="n">{g.posts.length}</span></a></li>)}
+    </ul>
+
+    {groups.map((g) => (
+      <section class="topic" id={g.slug} aria-labelledby={`h-${g.slug}`}>
+        <div class="topic-head">
+          <h2 id={`h-${g.slug}`}>{g.name}</h2>
+          <a href={`/topics/${g.slug}/`}>Topic page</a>
+        </div>
+        <p>{g.blurb}</p>
+        <ul class="feed">{g.posts.map((p) => <FeedItem {...postCard(p, scale)} />)}</ul>
+      </section>
     ))}
+
+    <section class="topic">
+      <div class="topic-head"><h2>By tag</h2><a href="/tags/">All tags</a></div>
+      <ul class="tag-cloud">{tags.slice(0, 24).map(([t, n]) => <li><a href={`/tags/${t}/`}>{t}<span class="n">{n}</span></a></li>)}</ul>
+    </section>
   </div>
 </Base>

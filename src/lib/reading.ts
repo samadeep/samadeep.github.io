@@ -4,6 +4,7 @@ import source from '../data/reading.yml?raw';
 export type ReadingItem = {
   url: string; title: string; author?: string; source: string; icon: string;
   tags: string[]; note?: string; status: 'to-read' | 'read'; added?: Date;
+  subtitle?: string; site?: string; published?: Date; image?: string;
 };
 
 const SOURCES: [RegExp, string, string][] = [
@@ -33,6 +34,17 @@ export function getReading(): ReadingItem[] {
       tags: r.tags ?? [],
       status: r.status === 'read' ? 'read' : 'to-read',
       added: r.added ? new Date(r.added) : undefined,
+      published: r.published ? new Date(r.published) : undefined,
     }))
     .sort((a, b) => (b.added?.getTime() ?? 0) - (a.added?.getTime() ?? 0));
+}
+
+/** FeedItem props for a saved read. Card hue follows the source so a feed of mixed sources stays scannable. */
+const SOURCE_HUE: Record<string, number> = { X: 250, Medium: 150, Paper: 30, Video: 15, GitHub: 270, LinkedIn: 230, Substack: 45, HN: 40 };
+export function readingCard(r: ReadingItem) {
+  return {
+    href: r.url, external: true, mark: { icon: r.icon }, hue: SOURCE_HUE[r.source] ?? 200,
+    context: r.site && r.site !== r.source ? `${r.site}` : `From ${r.source}`, by: r.author, date: r.published ?? r.added,
+    title: r.title, subtitle: r.note ?? r.subtitle, thumb: r.image, done: r.status === 'read', tags: r.tags,
+  };
 }

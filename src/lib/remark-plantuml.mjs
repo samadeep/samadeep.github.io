@@ -52,12 +52,20 @@ function size(svg) {
   return w && h ? { w: Math.round(+w[1]), h: Math.round(+h[1]) } : { w: 800, h: 500 };
 }
 
+export const diagramHash = (src) => createHash('sha1').update(VERSION + src).digest('hex').slice(0, 12);
+
+/** Site path of the first ```plantuml diagram in a markdown body, if any. */
+export function firstDiagram(body = '') {
+  const m = body.match(/^```plantuml[^\n]*\n([\s\S]*?)\n```/m);
+  return m ? `/diagrams/${diagramHash(m[1])}.svg` : undefined;
+}
+
 export function remarkPlantuml() {
   return (tree) => {
     mkdirSync(OUT, { recursive: true });
     visit(tree, 'code', (node, index, parent) => {
       if (node.lang !== 'plantuml' || !parent) return;
-      const hash = createHash('sha1').update(VERSION + node.value).digest('hex').slice(0, 12);
+      const hash = diagramHash(node.value);
       const svg = render(node.value, join(OUT, `${hash}.svg`));
       const { w, h } = size(svg);
       const alt = (node.meta && node.meta.replace(/^title=/, '').replace(/^"|"$/g, '')) ||
