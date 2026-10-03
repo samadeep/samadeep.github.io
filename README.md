@@ -27,7 +27,41 @@ Diagrams: write a ` ```plantuml ` fence. It is rendered to light and dark SVGs a
 
 ## Reading list
 
-`src/data/reading.yml` drives `/reading/` and `/reading.xml`. To add a link:
+`src/data/reading.yml` drives `/reading/` and `/reading.xml`. Every route below ends in the same
+`scripts/add_reading.py`, which fetches the title and author, skips duplicates, commits and redeploys.
 
-- open an issue with the **Add to reading list** form (or use the bookmarklet on `/reading/`); an Action fills in title and author, commits, and redeploys
-- or run `python3 scripts/add_reading.py <url> --tags llm,infra --note "why"`
+```
+iPhone share sheet ──► POST /repos/.../dispatches {event_type: add-reading}
+issue form / bookmarklet ──► issue labelled "reading" (owner only)          ──► reading-add.yml ──► deploy
+Smriti (Notion), nightly 02:47 IST ──► rows: Type read|watch, Source set,
+                                       not Dropped, not Area=work, not from Slack
+```
+
+### iPhone share sheet (one tap from X, Medium, Safari, anything)
+
+1. Create a fine-grained token at github.com/settings/personal-access-tokens: repository access
+   **only** `samadeep.github.io`, permission **Contents: Read and write**.
+2. In Shortcuts, make a new shortcut, open its settings and turn on **Show in Share Sheet**
+   (input types: URLs, Safari web pages, Text). Then add these actions:
+   - **Get URLs from** Shortcut Input
+   - **Get Item from List**: First Item
+   - **Ask for Input** (Text), prompt `Tags (optional)`
+   - **Get Contents of URL**: `https://api.github.com/repos/samadeep/samadeep.github.io/dispatches`
+     - Method `POST`
+     - Headers: `Authorization` = `Bearer <token>`, `Accept` = `application/vnd.github+json`
+     - Request Body JSON: `event_type` = `add-reading`, `client_payload` (Dictionary):
+       `url` = Item from List, `tags` = Provided Input
+   - **Show Notification**: `Saved to reading list`
+3. Name it **Save to reading**. GitHub answers `204` with an empty body on success.
+
+### Smriti sync
+
+1. Create an internal integration at notion.so/my-integrations (read content only) and copy its secret.
+2. In Notion open the Smriti database, then **... > Connections** and add the integration.
+3. In this repo, **Settings > Secrets and variables > Actions**, add `NOTION_TOKEN`.
+4. Run it once by hand from **Actions > Reading list: add > Run workflow**.
+
+### Other ways
+
+- the **Add to reading list** issue form, or the bookmarklet on `/reading/`
+- `python3 scripts/add_reading.py <url> --tags llm,infra --note "why"`

@@ -1,12 +1,17 @@
-name: "Reading list: add from issue"
+name: "Reading list: add"
 on:
   issues:
-    types: [opened]
+    types: [opened]          # "Add to reading list" issue form, bookmarklet
+  repository_dispatch:
+    types: [add-reading]     # iPhone share-sheet shortcut
+  schedule:
+    - cron: "17 21 * * *"    # Smriti sync, 02:47 IST
+  workflow_dispatch:         # run the Smriti sync by hand
 
 permissions:
   contents: write
   issues: write
-  actions: write   # to dispatch the Pages deploy (pushes made with GITHUB_TOKEN do not trigger workflows)
+  actions: write   # to dispatch the deploy (pushes made with GITHUB_TOKEN do not trigger workflows)
 
 concurrency:
   group: reading-add
@@ -14,22 +19,42 @@ concurrency:
 
 jobs:
   add:
-    # only labeled issues opened by the repo owner, so strangers cannot write to the site
-    if: contains(github.event.issue.labels.*.name, 'reading') && github.event.issue.user.login == github.repository_owner
+    # issues: only labeled ones opened by the repo owner, so strangers cannot write to the site.
+    # repository_dispatch: only callable with a token that has write access to this repo.
+    if: >-
+      github.event_name != 'issues' ||
+      (contains(github.event.issue.labels.*.name, 'reading') && github.event.issue.user.login == github.repository_owner)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - run: pip install pyyaml
-      - name: Append entry
-        id: add
+
+      - name: Add from issue
+        if: github.event_name == 'issues'
+        id: issue
         env:
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
           out=$(python3 scripts/add_reading.py --issue-body-env ISSUE_BODY)
           echo "$out"
           { echo 'result<<EOF'; echo "$out"; echo EOF; } >> "$GITHUB_OUTPUT"
+
+      - name: Add from share sheet
+        if: github.event_name == 'repository_dispatch'
+        env:
+          PAYLOAD: ${{ toJSON(github.event.client_payload) }}
+        run: python3 scripts/add_reading.py --json-env PAYLOAD
+
+      - name: Sync from Smriti
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        run: |
+          if [ -z "$NOTION_TOKEN" ]; then echo "::warning::NOTION_TOKEN secret not set, skipping Smriti sync"; exit 0; fi
+          python3 scripts/sync_smriti.py
+
       - name: Commit and redeploy
         env:
           GH_TOKEN: ${{ github.token }}
@@ -37,16 +62,19 @@ jobs:
           if git diff --quiet; then echo "no change"; exit 0; fi
           git config user.name "reading-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/data/reading.yml && git commit -m "reading: add #${{ github.event.issue.number }}"
+          git add src/data/reading.yml
+          git commit -m "reading: add via ${{ github.event_name }}"
           git push
           gh workflow run deploy.yml --ref "${{ github.event.repository.default_branch }}"
+
       - name: Close issue
+        if: github.event_name == 'issues'
         env:
           GH_TOKEN: ${{ github.token }}
-          RESULT: ${{ steps.add.outputs.result }}
+          RESULT: ${{ steps.issue.outputs.result }}
         run: |
           gh issue close ${{ github.event.issue.number }} -R ${{ github.repository }} \
-            --comment "Added to https://samadeep.github.io/reading/ (live in ~2 min)
+            --comment "Added to https://samadeep.github.io/reading/ (live in about 2 min)
           \`\`\`
           $RESULT
           \`\`\`"

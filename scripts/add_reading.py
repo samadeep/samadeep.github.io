@@ -68,15 +68,19 @@ def from_page(url):
     if not title:
         m = re.search(r"<title[^>]*>(.*?)</title>", doc, re.S | re.I)
         title = html.unescape(m.group(1)).strip() if m else None
-    if not title:  # medium.com/@x/some-post-title-3f2a9 -> "Some post title"
-        slug = urllib.parse.urlsplit(url).path.rstrip("/").split("/")[-1]
-        slug = re.sub(r"-[0-9a-f]{8,12}$", "", slug)
-        title = slug.replace("-", " ").replace("_", " ").strip().capitalize() or url
-    title = re.sub(r"\s*[|–—-]\s*(Medium|by .+ \| Medium)$", "", title)
+    if title:
+        title = shorten(re.sub(r"\s*[|–—-]\s*(Medium|by .+ \| Medium)$", "", title), 140)
     author = meta(doc, "author", "article:author", "twitter:creator")
     if author and author.startswith("http"):
         author = None
-    return shorten(title, 140), author
+    return title, author  # title is None when the page gave nothing usable
+
+
+def title_from_url(url):
+    """medium.com/@x/some-post-title-3f2a9 -> 'Some post title'"""
+    slug = urllib.parse.urlsplit(url).path.rstrip("/").split("/")[-1]
+    slug = re.sub(r"-[0-9a-f]{8,12}$", "", slug)
+    return slug.replace("-", " ").replace("_", " ").strip().capitalize() or url
 
 
 def parse_issue(body):
@@ -93,46 +97,78 @@ def parse_issue(body):
     return pick("link", "url"), pick("tags"), pick("why it is worth it", "note"), pick("status") or "to-read"
 
 
+def norm_tags(tags):
+    if isinstance(tags, str):
+        tags = re.split(r"[,\s]+", tags)
+    return [t.strip().lower().lstrip("#").replace(" ", "-") for t in tags or [] if t and t.strip()]
+
+
+def add_many(records):
+    """Append records ({url, tags?, note?, status?, title?, added?}) in one write.
+    Existing URLs are skipped, except that a later 'read' status marks them read."""
+    raw = DATA.read_text() if DATA.exists() else ""
+    header = "".join(l for l in raw.splitlines(True) if l.startswith("#") or not l.strip()).rstrip() + "\n\n"
+    items = yaml.safe_load(raw) or []
+    by_url = {clean_url(i["url"]): i for i in items}
+    added, changed = [], 0
+    for r in records:
+        m = re.search(r"https?://\S+", r.get("url") or "")
+        if not m:
+            print(f"skip, no link: {r!r}", file=sys.stderr)
+            continue
+        url = clean_url(m.group(0).rstrip(").,>"))
+        status = "read" if r.get("status") == "read" else "to-read"
+        if url in by_url:
+            if status == "read" and by_url[url].get("status") != "read":
+                by_url[url]["status"] = "read"; changed += 1
+            continue
+        is_x = urllib.parse.urlsplit(url).netloc == "x.com"
+        title, author = from_x(url) if is_x else from_page(url)
+        if not title or title.startswith("Post by @"):
+            # fetched nothing real: prefer the caller's name (e.g. the Smriti row), then the URL slug
+            title = r.get("title") or title or title_from_url(url)
+        entry = {"url": url, "title": title}
+        if author:
+            entry["author"] = author
+        if tags := norm_tags(r.get("tags")):
+            entry["tags"] = tags
+        if r.get("note"):
+            entry["note"] = r["note"]
+        entry["status"] = status
+        added_on = r.get("added")
+        entry["added"] = datetime.date.fromisoformat(added_on) if isinstance(added_on, str) else added_on or datetime.date.today()
+        items.append(entry); by_url[url] = entry; added.append(entry)
+    if added or changed:
+        body = yaml.safe_dump(items, sort_keys=False, allow_unicode=True, width=1000, default_flow_style=None)
+        DATA.write_text(header + body.replace("\n- url:", "\n\n- url:"))
+    for e in added:
+        print(json.dumps({k: str(v) for k, v in e.items()}))
+    print(f"added {len(added)}, marked read {changed}", file=sys.stderr)
+    return added
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("url", nargs="?")
     ap.add_argument("--tags", default="")
     ap.add_argument("--note", default="")
     ap.add_argument("--status", default="to-read", choices=["to-read", "read"])
-    ap.add_argument("--issue-body-env")
+    ap.add_argument("--issue-body-env", help="env var holding a GitHub issue-form body")
+    ap.add_argument("--json-env", help="env var holding one JSON record, e.g. a repository_dispatch payload")
+    ap.add_argument("--json-file", help="file holding a JSON list of records")
     a = ap.parse_args()
 
     if a.issue_body_env:
-        a.url, a.tags, a.note, a.status = parse_issue(os.environ.get(a.issue_body_env, ""))
-    m = re.search(r"https?://\S+", a.url or "")
-    if not m:
+        url, tags, note, status = parse_issue(os.environ.get(a.issue_body_env, ""))
+        records = [{"url": url, "tags": tags, "note": note, "status": status}]
+    elif a.json_env:
+        records = [json.loads(os.environ.get(a.json_env) or "{}")]
+    elif a.json_file:
+        records = json.loads(Path(a.json_file).read_text())
+    else:
+        records = [{"url": a.url, "tags": a.tags, "note": a.note, "status": a.status}]
+    if not add_many(records) and len(records) == 1 and not any(re.search(r"https?://", r.get("url") or "") for r in records):
         sys.exit("no http(s) link found")
-    url = clean_url(m.group(0).rstrip(").,>"))
-
-    raw = DATA.read_text() if DATA.exists() else ""
-    header = "".join(l for l in raw.splitlines(True) if l.startswith("#") or not l.strip()).rstrip() + "\n\n"
-    items = yaml.safe_load(raw) or []
-    if any(clean_url(i["url"]) == url for i in items):
-        print(f"already saved: {url}")
-        return
-
-    is_x = urllib.parse.urlsplit(url).netloc in ("x.com",)
-    title, author = from_x(url) if is_x else from_page(url)
-    entry = {"url": url, "title": title}
-    if author:
-        entry["author"] = author
-    tags = [t.strip().lower().lstrip("#").replace(" ", "-") for t in re.split(r"[,\s]+", a.tags) if t.strip()]
-    if tags:
-        entry["tags"] = tags
-    if a.note:
-        entry["note"] = a.note
-    entry["status"] = a.status
-    entry["added"] = datetime.date.today()
-
-    items.append(entry)
-    body = yaml.safe_dump(items, sort_keys=False, allow_unicode=True, width=1000, default_flow_style=None)
-    DATA.write_text(header + body.replace("\n- url:", "\n\n- url:"))
-    print(json.dumps({k: str(v) for k, v in entry.items()}))
 
 
 if __name__ == "__main__":
