@@ -1,0 +1,52 @@
+name: "Reading list: add from issue"
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+  actions: write   # to dispatch the Pages deploy (pushes made with GITHUB_TOKEN do not trigger workflows)
+
+concurrency:
+  group: reading-add
+  cancel-in-progress: false
+
+jobs:
+  add:
+    # only labeled issues opened by the repo owner, so strangers cannot write to the site
+    if: contains(github.event.issue.labels.*.name, 'reading') && github.event.issue.user.login == github.repository_owner
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install pyyaml
+      - name: Append entry
+        id: add
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          out=$(python3 scripts/add_reading.py --issue-body-env ISSUE_BODY)
+          echo "$out"
+          { echo 'result<<EOF'; echo "$out"; echo EOF; } >> "$GITHUB_OUTPUT"
+      - name: Commit and redeploy
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet; then echo "no change"; exit 0; fi
+          git config user.name "reading-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "reading: add #${{ github.event.issue.number }}"
+          git push
+          gh workflow run pages-deploy.yml --ref "${{ github.event.repository.default_branch }}"
+      - name: Close issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT: ${{ steps.add.outputs.result }}
+        run: |
+          gh issue close ${{ github.event.issue.number }} -R ${{ github.repository }} \
+            --comment "Added to https://samadeep.github.io/reading/ (live in ~2 min)
+          \`\`\`
+          $RESULT
+          \`\`\`"

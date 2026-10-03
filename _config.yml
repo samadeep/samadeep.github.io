@@ -222,6 +222,7 @@ exclude:
   - package*.json
   - node_modules
   - vendor
+  - scripts
 
 jekyll-archives:
   enabled: [categories, tags]

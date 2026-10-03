@@ -1,0 +1,148 @@
+{%- comment -%}
+  Reading list renderer. Data: _data/reading.yml.
+  Every item is server-rendered (crawlable, works without JS);
+  the script below only filters what is already on the page.
+{%- endcomment -%}
+{%- assign items = site.data.reading | sort: 'added' | reverse -%}
+{%- assign repo = site.github.username | append: '/' | append: site.github.username | append: '.github.io' -%}
+{%- assign add_url = 'https://github.com/' | append: repo | append: '/issues/new?template=reading.yml' -%}
+
+<div class="rl" id="rl">
+  <div class="rl-bar">
+    <input id="rl-q" class="rl-q" type="search" placeholder="Search {{ items.size }} saved reads" aria-label="Search reading list">
+    <a class="rl-add" href="{{ add_url }}" target="_blank" rel="noopener"><i class="fas fa-plus"></i> Add</a>
+  </div>
+
+  <div class="rl-chips" id="rl-status" role="group" aria-label="Status">
+    <button class="rl-chip on" data-status="">All</button>
+    <button class="rl-chip" data-status="to-read">To read</button>
+    <button class="rl-chip" data-status="read">Read</button>
+  </div>
+
+  {%- assign sources = '' -%}
+  {%- assign tags = '' -%}
+  {%- for it in items -%}
+    {%- include reading-source.html url=it.url source=it.source -%}
+    {%- assign sources = sources | append: rl_src | append: '|' -%}
+    {%- for t in it.tags -%}{%- assign tags = tags | append: t | append: '|' -%}{%- endfor -%}
+  {%- endfor -%}
+  {%- assign sources = sources | split: '|' | uniq | sort -%}
+  {%- assign tags = tags | split: '|' | uniq | sort -%}
+
+  {%- if sources.size > 1 -%}
+  <div class="rl-chips" id="rl-src" role="group" aria-label="Source">
+    {%- for s in sources -%}{%- if s == "" -%}{%- continue -%}{%- endif -%}<button class="rl-chip" data-src="{{ s }}">{{ s }}</button>{%- endfor -%}
+  </div>
+  {%- endif -%}
+
+  {%- if tags.size > 0 -%}
+  <div class="rl-chips rl-tags" id="rl-tag" role="group" aria-label="Tags">
+    {%- for t in tags -%}{%- if t == "" -%}{%- continue -%}{%- endif -%}<button class="rl-chip" data-tag="{{ t }}">#{{ t }}</button>{%- endfor -%}
+  </div>
+  {%- endif -%}
+
+  <ol class="rl-list" id="rl-list">
+  {%- for it in items -%}
+    {%- include reading-source.html url=it.url source=it.source -%}
+    {%- assign st = it.status | default: 'to-read' -%}
+    {%- assign title = it.title | default: it.url -%}
+    {%- capture rl_text -%}{{ title }} {{ it.author }} {{ it.note }} {{ rl_src }} {{ it.tags | join: ' ' }}{%- endcapture -%}
+    <li class="rl-item" data-status="{{ st }}" data-src="{{ rl_src }}" data-tags="{{ it.tags | join: ' ' }}"
+        data-text="{{ rl_text | downcase | escape }}">
+      <i class="rl-ico {{ rl_icon }}" title="{{ rl_src }}"></i>
+      <div class="rl-body">
+        <a class="rl-title" href="{{ it.url }}" target="_blank" rel="noopener">{{ title | escape }}</a>
+        <div class="rl-meta">
+          {%- if it.author %}<span>{{ it.author | escape }}</span><span class="rl-dot">·</span>{% endif -%}
+          <span>{{ rl_src }}</span>
+          {%- if it.added %}<span class="rl-dot">·</span><time datetime="{{ it.added | date: '%Y-%m-%d' }}">{{ it.added | date: '%d %b %Y' }}</time>{% endif -%}
+          {%- if st == 'read' %}<span class="rl-read"><i class="fas fa-check"></i> read</span>{% endif -%}
+        </div>
+        {%- if it.note %}<p class="rl-note">{{ it.note | escape }}</p>{% endif -%}
+        {%- if it.tags.size > 0 -%}
+        <div class="rl-itags">{%- for t in it.tags -%}<a href="?tag={{ t | url_encode }}" data-tag="{{ t }}">#{{ t }}</a>{%- endfor -%}</div>
+        {%- endif -%}
+      </div>
+    </li>
+  {%- endfor -%}
+  </ol>
+
+  <p class="rl-empty" id="rl-empty" {% if items.size > 0 %}hidden{% endif %}>
+    {%- if items.size > 0 -%}Nothing matches. Clear a filter?{%- else -%}Nothing saved yet. Hit <b>Add</b> to drop in the first link.{%- endif -%}
+  </p>
+
+  <p class="rl-foot">
+    <a href="{{ '/reading.xml' | relative_url }}"><i class="fas fa-rss"></i> Feed</a>
+    <span class="rl-dot">·</span>
+    <a id="rl-bm" href="#" title="Drag to your bookmarks bar, click on any page to save it here"><i class="fas fa-bookmark"></i> Save-to-reading bookmarklet</a>
+  </p>
+</div>
+
+<style>
+.rl{--rl-line:var(--main-border-color,rgba(127,127,127,.25));--rl-mute:var(--text-muted-color,#888);--rl-accent:var(--link-color,#0056b2)}
+.rl-bar{display:flex;gap:.5rem;margin-bottom:.75rem}
+.rl-q{flex:1;min-width:0;padding:.5rem .75rem;border:1px solid var(--rl-line);border-radius:.5rem;background:transparent;color:inherit}
+.rl-add{display:inline-flex;align-items:center;gap:.35rem;padding:.5rem .9rem;border-radius:.5rem;border:1px solid var(--rl-accent);color:var(--rl-accent)!important;text-decoration:none!important;white-space:nowrap;border-bottom-width:1px!important}
+.rl-chips{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.5rem}
+.rl-chip{font-size:.8rem;padding:.2rem .65rem;border:1px solid var(--rl-line);border-radius:999px;background:transparent;color:var(--rl-mute);cursor:pointer}
+.rl-chip.on{border-color:var(--rl-accent);color:var(--rl-accent);font-weight:600}
+.rl-list{list-style:none;padding:0;margin:1rem 0 0}
+.rl-item{display:flex;gap:.8rem;padding:.9rem 0;border-top:1px solid var(--rl-line)}
+.rl-item[hidden]{display:none}
+.rl-ico{width:1.1rem;text-align:center;margin-top:.3rem;color:var(--rl-mute)}
+.rl-body{min-width:0;flex:1}
+.rl-title{font-weight:600;overflow-wrap:anywhere}
+.rl-meta{font-size:.8rem;color:var(--rl-mute);display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.15rem}
+.rl-read{margin-left:.4rem;color:var(--rl-accent)}
+.rl-note{margin:.35rem 0 0;font-size:.92rem}
+.rl-itags{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.35rem;font-size:.8rem}
+.rl-itags a{color:var(--rl-mute)!important;border:0!important}
+.rl-empty{color:var(--rl-mute);padding:1.5rem 0}
+.rl-foot{font-size:.8rem;color:var(--rl-mute);margin-top:1.5rem;border-top:1px solid var(--rl-line);padding-top:.75rem}
+</style>
+
+<script>
+(function () {
+  var root = document.getElementById('rl'); if (!root) return;
+  var items = [].slice.call(root.querySelectorAll('.rl-item'));
+  var q = document.getElementById('rl-q'), empty = document.getElementById('rl-empty');
+  var st = { q: '', status: '', src: '', tag: '' };
+
+  function chips(sel) { return [].slice.call(root.querySelectorAll(sel)); }
+  function paint() {
+    chips('#rl-status .rl-chip').forEach(function (c) { c.classList.toggle('on', c.dataset.status === st.status); });
+    chips('#rl-src .rl-chip').forEach(function (c) { c.classList.toggle('on', c.dataset.src === st.src); });
+    chips('#rl-tag .rl-chip').forEach(function (c) { c.classList.toggle('on', c.dataset.tag === st.tag); });
+    var shown = 0, words = st.q.toLowerCase().split(/\s+/).filter(Boolean);
+    items.forEach(function (li) {
+      var ok = (!st.status || li.dataset.status === st.status) &&
+               (!st.src || li.dataset.src === st.src) &&
+               (!st.tag || (' ' + li.dataset.tags + ' ').indexOf(' ' + st.tag + ' ') > -1) &&
+               words.every(function (w) { return li.dataset.text.indexOf(w) > -1; });
+      li.hidden = !ok; if (ok) shown++;
+    });
+    if (items.length) empty.hidden = shown > 0;
+    var p = new URLSearchParams();
+    ['q', 'status', 'src', 'tag'].forEach(function (k) { if (st[k]) p.set(k, st[k]); });
+    history.replaceState(null, '', p.toString() ? '?' + p : location.pathname);
+  }
+
+  var init = new URLSearchParams(location.search);
+  ['q', 'status', 'src', 'tag'].forEach(function (k) { st[k] = init.get(k) || ''; });
+  q.value = st.q;
+  q.addEventListener('input', function () { st.q = q.value; paint(); });
+  root.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-status],[data-src],[data-tag]');
+    if (!b || b.classList.contains('rl-item')) return;
+    e.preventDefault();
+    if ('status' in b.dataset) st.status = b.dataset.status;
+    else if ('src' in b.dataset) st.src = st.src === b.dataset.src ? '' : b.dataset.src;
+    else st.tag = st.tag === b.dataset.tag ? '' : b.dataset.tag;
+    paint();
+  });
+
+  var bm = "javascript:(function(){window.open('{{ add_url }}&url='+encodeURIComponent(location.href)+'&title='+encodeURIComponent('Read: '+document.title))})()";
+  document.getElementById('rl-bm').setAttribute('href', bm);
+  paint();
+})();
+</script>

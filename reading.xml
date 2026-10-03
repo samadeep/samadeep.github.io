@@ -1,0 +1,24 @@
+---
+layout: null
+permalink: /reading.xml
+---
+<?xml version="1.0" encoding="utf-8"?>
+{%- assign items = site.data.reading | sort: 'added' | reverse -%}
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>{{ site.social.name | xml_escape }}: reading list</title>
+  <link href="{{ '/reading/' | absolute_url }}"/>
+  <link rel="self" href="{{ '/reading.xml' | absolute_url }}"/>
+  <id>{{ '/reading/' | absolute_url }}</id>
+  <updated>{{ site.time | date_to_xmlschema }}</updated>
+  <author><name>{{ site.social.name | xml_escape }}</name></author>
+  {%- for it in items limit: 50 %}
+  <entry>
+    <title>{{ it.title | default: it.url | xml_escape }}</title>
+    <link href="{{ it.url | xml_escape }}"/>
+    <id>{{ it.url | xml_escape }}</id>
+    <updated>{{ it.added | default: site.time | date_to_xmlschema }}</updated>
+    {%- for t in it.tags %}<category term="{{ t | xml_escape }}"/>{% endfor %}
+    <summary>{% if it.author %}{{ it.author | xml_escape }}. {% endif %}{{ it.note | xml_escape }}</summary>
+  </entry>
+  {%- endfor %}
+</feed>
