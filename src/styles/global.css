@@ -79,7 +79,7 @@ hr { border: 0; border-top: 1px solid var(--rule); margin: 3rem 0; }
 .site-head { border-bottom: 1px solid var(--rule); }
 .site-head .wrap { display: flex; align-items: center; gap: 0.5rem 1rem; min-height: 64px; flex-wrap: wrap; padding-block: 0.75rem; }
 .brand { font: 650 1.05rem/1 var(--sans); color: var(--ink); text-decoration: none; display: flex; gap: 0.6rem; align-items: center; margin-right: auto; }
-.brand svg { width: 22px; }
+.brand svg { width: 30px; margin-left: -4px; }
 .nav { display: flex; gap: 0.25rem; font: 500 0.95rem/1 var(--sans); align-items: center; }
 .nav a { color: var(--ink-2); text-decoration: none; padding: 0.5rem 0.6rem; border-radius: 6px; }
 .nav a:hover { color: var(--ink); background: var(--paper-2); }
