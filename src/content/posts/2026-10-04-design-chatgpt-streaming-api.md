@@ -27,9 +27,7 @@ content-encoding: gzip; first token after 5107 ms, 200 tokens in 1 chunks, last 
 
 A ChatGPT-style API is two systems joined by a stream: a **connection layer** that has to hold millions of slow, long-lived responses, and a **GPU layer** where the place a request lands decides most of its latency. This post designs both, and breaks each one in a lab first. Everything quoted is from those runs; the [lab](/labs/llm-streaming/lab.sh) reproduces them on any Linux box with Node, Python and nginx.
 
-**Two parts of the lab run right here in your browser:** a streaming demo in Finding 2 and the GPU routing simulator in Finding 4. For the full lab with 10,000 real connections and a real nginx, open a ready-made Linux machine with everything installed (free with a GitHub account):
-
-<p><a class="lab-open" href="https://codespaces.new/samadeep/samadeep.github.io?quickstart=1" rel="noopener">Open the full lab in GitHub Codespaces</a></p>
+**Two parts of the lab run right here in your browser**, nothing to install: a streaming demo in Finding 2 and the GPU routing simulator in Finding 4.
 
 ## The basics in two minutes
 
