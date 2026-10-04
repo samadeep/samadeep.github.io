@@ -68,6 +68,8 @@ hello from 10.0.1.5
 
 The entry holds what the client sent (`dst=203.0.113.10:80`) and what the reply must look like (`src=10.0.1.5:8080`). **That second pair *is* the port forward.** `432000` is the countdown: 5 days.
 
+> **Insight:** A firewall rule is checked per connection, not per packet. So most firewall bugs aren't about a wrong rule; they're about which packets never get checked at all.
+
 ## Pick the pattern first
 
 | Pattern | Open to the internet | Use for |
@@ -77,6 +79,8 @@ The entry holds what the client sent (`dst=203.0.113.10:80`) and what the reply 
 | **Outbound tunnel** | nothing inbound | no public IP, "can't open ports" |
 
 **If the audience is still "our people", don't make the app public at all.** An access proxy gives you SSO without a port forward. The five breaks below are what you meet when you do forward a port.
+
+> **Insight:** Exposing an app isn't a port setting, it's a change in what the app trusts. If identity doesn't move to the proxy, opening a port only moves the attack surface.
 
 ## 1. The port forward that never forwards
 
@@ -103,6 +107,8 @@ hello from 10.0.1.5                                   # rule fixed to match 10.0
 ```
 
 **3 packets translated, 0 let through.** The climbing DNAT counter looks like progress; the FORWARD counter tells the truth.
+
+> **Insight:** Debug from the counter of the rule that *should* have matched. Counters on the rules before it always look healthy.
 
 ## 2. The fix opened a side door
 
@@ -152,6 +158,8 @@ D  A + drop 10.0.0.0/8 arriving on the WAN       open              dropped
 
 **Use B and D together:** allow only forwarded flows, and drop private destinations at the edge. "Internal IPs aren't routable" isn't true for your upstream network, and scans of only the public IP will never see this.
 
+> **Insight:** A rule written against a destination can't know how a packet got there. Only conntrack remembers the front door, so match on how the flow started (`--ctstate DNAT`), not where it's going.
+
 ## 3. Replies take a different way home
 
 ```d2 title="The reply skips the firewall that holds the entry, so it's never translated back"
@@ -176,6 +184,8 @@ c-alt In  10.0.1.5.8080 > 198.51.100.23.33322:   Flags [S.]   <- other interface
 ```
 
 **Fix:** symmetric routing, or have the proxy open its own connection to the app (SNAT) and pass the client IP in `X-Forwarded-For`.
+
+> **Insight:** NAT is stateful, so it's also *located*: the reply has to come back through the box that holds the entry, or there's nothing to translate it.
 
 ## 4. Quiet connections die, and nobody is told
 
@@ -204,6 +214,8 @@ client received: pushed after 8s idle                         # with a 2 s TCP k
 
 WebSockets, long polls, database pools and Kafka consumers stall exactly like this behind cloud load balancers and NAT gateways. **The reset comes from a box that never ran the app, which is why the app's logs are empty.** Fix: heartbeats shorter than the shortest idle timeout on the path (Linux's default TCP keepalive is 2 hours).
 
+> **Insight:** Every stateful box on the path has its own idle timeout, and a connection lives only as long as the shortest one. Tune keepalives to the path, not to the two endpoints.
+
 ## 5. Small pages load, large ones hang
 
 ```d2 title="Drop the RELATED 'too big' ICMP and the large response never gets through"
@@ -228,6 +240,8 @@ ESTABLISHED,RELATED:   /big   200 200000 bytes
 ```
 
 **`200 0 bytes` is what an MTU problem looks like from outside:** the server said yes and the body vanished. Health checks fetch small pages, so they pass. Fix: accept `ESTABLISHED,RELATED`, and don't "block ICMP for security".
+
+> **Insight:** When failures scale with response size, suspect MTU first. Dropping "unneeded" ICMP cuts the feedback loop TCP depends on.
 
 ## The ruleset that survives all five
 

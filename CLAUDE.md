@@ -16,6 +16,7 @@ These instructions are **self-evolving**: see "How this file evolves" at the end
 ## How posts should read (current style)
 
 - **Short and engaging.** Lead with the answer, then one hook (a real moment or a surprising result), then numbered sections: *the break -> a diagram -> ▶ a runnable command -> its output -> the fix in one line.* Aim for ~1,500 to 1,800 words; cut anything a skimmer wouldn't miss.
+- **Every section earns one insight.** End each main section with `> **Insight:** ...` (rendered as a lightbulb callout): one or two sentences a reader could repeat to a colleague. An insight is a mechanism ("rules run once per connection"), a reframing ("serving is cache placement disguised as load balancing") or a transferable rule ("debug from the counter of the rule that should have matched"). It is never a summary of the section, a definition, or a claim about his feelings. If a section has no insight, cut or merge the section.
 - **Readers run things, they don't read about labs.** Every shell command goes in a ```bash block (it gets a ▶ Run button); small calculations go in ```python blocks. Don't narrate "the lab" or write "lab notes"; show the command and its real output. Evidence is called out briefly, limits and sources go in a closing `<details>` block.
 - **Search-ready:** title at most 60 characters phrased as the query, description at most 160, short answer in the first paragraph.
 - Topics: `algorithms`, `systems`, `low-latency`, `ai`. Process detail lives in the `write-blog-post` skill.
@@ -45,7 +46,7 @@ These instructions are **self-evolving**: see "How this file evolves" at the end
 - Search: Pagefind with a custom UI (`Search.astro`), index built by `scripts/search-index.mjs` (reading items as records).
 - Reading list automation: `.github/workflows/reading-add.yml` (owner-only issues, iPhone dispatch, nightly Smriti sync).
 - Analytics: Cloudflare Web Analytics; comments and reactions: giscus (`src/lib/site.ts`).
-- Header brand reads "Samadeep's blog" and types itself once per visit (sessionStorage; off for reduced motion). Theme toggle reveals the new theme as a growing circle (View Transitions). Posts show a scroll-driven reading progress bar; the header is sticky and translucent.
+- Header brand reads "Samadeep's blog" and types itself on every home page load and on the first page of a visit elsewhere (off when the OS asks for reduced motion). Theme toggle reveals the new theme as a growing circle (View Transitions). Posts show a scroll-driven reading progress bar; the header is sticky and translucent.
 - **Layout on wide screens (>= 1280px):** site width 1320px; posts put the contents rail on the left, keep prose at ~76ch, and let diagrams, labs, code frames and tables spread into the right-hand space. Don't widen the text column itself.
 - Home (`src/pages/index.astro`): terminal-prompt hero (his name as the h1), three site principles, live stats (posts, runnable commands, diagrams, last update) and a "Start here" pair chosen from posts with `vm` front matter. Keep principles factual about the site, never claims in his voice.
 
@@ -75,3 +76,4 @@ This file is the project's memory. Keep it current as part of the work, not afte
 - 2026-10-04: system design content must beat the usual component-dump diagram: full interview arc, numbered icon cards, life of a request, failure modes, and calling out common mistakes.
 - 2026-10-04: the home page should feel thoughtful on open: prompt-style hero, principles, stats, "Start here".
 - 2026-10-04: use more width on desktop without hurting reading: wide figures and code, not wider text. Header says "Samadeep's blog", typed in.
+- 2026-10-04: posts must deliver insights, not just facts: one `Insight` callout per main section. The typing animation must be visible on the home page every time.
