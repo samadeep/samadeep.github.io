@@ -41,7 +41,7 @@ const unread = items.filter((i) => i.status === 'to-read').length;
       </div>
     )}
 
-    <ul class="feed" id="rl" data-pagefind-body>
+    <ul class="feed" id="rl">
       {items.map((r) => (
         <FeedItem {...readingCard(r)} tagMode="filter" attrs={{
           'data-status': r.status, 'data-src': r.source, 'data-tags': r.tags.join(' '),

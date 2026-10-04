@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import Icon from '../components/Icon.astro';
+import Search from '../components/Search.astro';
 import { SITE, ANALYTICS } from '../lib/site';
 
 type Props = { title?: string; description?: string; image?: string; type?: 'website' | 'article'; published?: Date; noindex?: boolean };
@@ -88,9 +89,7 @@ const nav = [
     </div>
   </footer>
 
-  <dialog class="search" id="search" aria-label="Search the site">
-    <div class="inner"><div id="search-ui"></div></div>
-  </dialog>
+  <Search />
 
   <style is:global>
     [data-theme='light'] .when-dark, [data-theme='dark'] .when-light { display: none; }
@@ -104,37 +103,6 @@ const nav = [
       try { localStorage.setItem('theme', next); } catch {}
     });
 
-    // Pagefind UI, loaded only the first time search is opened
-    const dlg = document.getElementById('search') as HTMLDialogElement;
-    let loaded = false;
-    async function openSearch() {
-      if (!loaded) {
-        loaded = true;
-        const css = document.createElement('link');
-        css.rel = 'stylesheet'; css.href = '/pagefind/pagefind-ui.css';
-        document.head.append(css);
-        try {
-          await new Promise((ok, fail) => {
-            const s = document.createElement('script');
-            s.src = '/pagefind/pagefind-ui.js'; s.onload = ok; s.onerror = fail;
-            document.head.append(s);
-          });
-          // @ts-ignore
-          new window.PagefindUI({ element: '#search-ui', showSubResults: true, showImages: false, resetStyles: false });
-        } catch {
-          document.getElementById('search-ui')!.textContent = 'Search is built with the production site. Run npm run build, then npm run preview.';
-        }
-      }
-      dlg.showModal();
-      requestAnimationFrame(() => dlg.querySelector('input')?.focus());
-    }
-    document.querySelectorAll('[data-open-search]').forEach((b) => b.addEventListener('click', openSearch));
-    addEventListener('keydown', (e) => {
-      if ((e.key === 'k' && (e.metaKey || e.ctrlKey)) || (e.key === '/' && !(e.target as HTMLElement).closest('input,textarea,[contenteditable]'))) {
-        e.preventDefault(); dlg.open ? dlg.close() : openSearch();
-      }
-    });
-    dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
   </script>
 </body>
 </html>

@@ -34,14 +34,14 @@ const jsonLd = {
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   <div class="wrap wide">
     <div class="post-layout">
-      <article data-pagefind-body>
+      <article data-pagefind-body data-pagefind-filter="kind:Writing">
         <header class="post-head">
           <h1 style={`view-transition-name:post-${post.id}`}>{title}</h1>
           <p class="lede">{description}</p>
           <div class="meta">
-            <a class="topic-link" href={`/topics/${topic.slug}/`} data-pagefind-filter="topic">{topic.name}</a>
+            <a class="topic-link" href={`/topics/${topic.slug}/`} data-pagefind-filter="topic" data-pagefind-meta="topic">{topic.name}</a>
             <time datetime={fmtDate(date)} data-pagefind-meta="date">{fmtDate(date)}</time>
-            <span class="mins">{post.minutes} min read</span>
+            <span class="mins" data-pagefind-meta="minutes">{post.minutes} min read</span>
             <ul class="tags" data-pagefind-ignore>{tags.slice(0, 6).map((t) => <li><a href={`/tags/${t}/`}>{t}</a></li>)}</ul>
           </div>
         </header>
