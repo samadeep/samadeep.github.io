@@ -14,37 +14,22 @@ The one rule this whole post hangs on: **on the intranet, the network is the aut
 
 ```plantuml title="Before and after: where the trust boundary sits"
 @startuml
-!theme plain
-skinparam shadowing false
-skinparam roundcorner 8
-skinparam defaultTextAlignment center
-skinparam ArrowColor #031211
-skinparam rectangleBorderColor #031211
-skinparam rectangleBackgroundColor #F3F0E5
-skinparam nodeBorderColor #031211
-skinparam nodeBackgroundColor #F3F0E5
-skinparam packageBorderColor #00636C
-skinparam packageBackgroundColor #EAF4F2
-skinparam NoteBackgroundColor #D5ECEA
-skinparam NoteBorderColor #00636C
-
-package "After: internet" {
-  rectangle "Anyone\n198.51.100.23" as U
-  rectangle "Edge\nDNS, TLS,\nrate limits, WAF" as E
-  rectangle "Reverse proxy (DMZ)\nSSO / OIDC check" as P
-  node "App\n10.0.1.5:8080\nunchanged port" as A2
-  U --> E : 203.0.113.10:443
-  E --> P
-  P --> A2 : identity in headers\nX-Forwarded-For
-}
-
 package "Before: intranet" {
   rectangle "Employee laptop\n10.20.0.0/16" as L1
   node "App\n10.0.1.5:8080\nplain HTTP" as A1
   L1 --> A1 : trusted because\nit got here
 }
+package "After: internet" {
+  rectangle "Anyone\n198.51.100.23" as U
+  rectangle "Edge\nDNS, TLS, rate limits" as E
+  rectangle "Reverse proxy (DMZ)\nSSO / OIDC check" as P
+  node "App\n10.0.1.5:8080\nunchanged" as A2
+  U --> E : 203.0.113.10:443
+  E --> P
+  P --> A2 : user identity\n+ X-Forwarded-For
+}
 L1 -[hidden]right-> U
-note bottom of P : trust moves here:\nwho you are, not where you are
+note bottom of P : trust moves here:\nwho you are,\nnot where you are
 @enduml
 ```
 
@@ -59,6 +44,34 @@ There are three ways to put an internal app in front of outside users. They diff
 | **Outbound tunnel** to an edge provider | nothing inbound; the app dials out | almost none | no public IP, CGNAT, or "we can't open ports" |
 
 A rule of thumb: if the audience is still "our people", don't make the app public. Put an access proxy in front, keep the app internal, and you avoid most of what follows. The rest of this post covers the DMZ case, because that's where the networking matters.
+
+```plantuml title="What the edge decides for each request"
+@startuml
+left to right direction
+package "Internet" {
+  rectangle "GET /reports\nno session" as R1
+  rectangle "GET /reports\nvalid SSO cookie" as R2
+  rectangle "TCP :8080\nstraight to the app" as R3
+  rectangle "X-Forwarded-For:\n10.0.0.1 (spoofed)" as R4
+}
+package "Edge + DMZ" {
+  rectangle "Firewall\nDNAT 443 only" as FW
+  rectangle "Reverse proxy\nTLS, SSO" as PX
+}
+rectangle "Redirect to SSO" <<ask>> as O1
+rectangle "Allow: forward\nto 10.0.1.5:8080" <<allow>> as O2
+rectangle "Deny: no rule,\ndropped" <<deny>> as O3
+rectangle "Deny: header\noverwritten" <<deny>> as O4
+R1 --> FW
+R2 --> FW
+R4 --> FW
+R3 --> O3
+FW --> PX : 443
+PX --> O1 : no session
+PX --> O2 : signed in
+PX --> O4 : spoofed
+@enduml
+```
 
 ## How port forwarding (DNAT) reaches the app
 
