@@ -16,6 +16,8 @@ const posts = defineCollection({
     date: z.coerce.date(),
     updated: z.coerce.date().optional(),
     topic: z.enum(topicSlugs),
+    // the one surprising number, shown huge on the share card (X, LinkedIn, Slack unfurls)
+    hook: z.object({ stat: z.string(), caption: z.string() }).optional(),
     cover: z.string().optional(), // /path or URL; default is the post's first diagram, then a topic tile
     tags: z.array(z.string()).default([]),
     // judge problems a write-up covers; rendered as cards under the title

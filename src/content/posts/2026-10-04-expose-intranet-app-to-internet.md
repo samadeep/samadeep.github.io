@@ -1,12 +1,17 @@
 ---
-title: 'How to Expose an Intranet Application to the Internet Safely'
-description: 'Moving an internal app from intranet to internet: the safe pattern, and five silent ways a port forward breaks. Every command runs in your browser.'
+title: 'Your iptables FORWARD rule for the public IP never matches'
+description: 'Exposing an intranet app to the internet: DNAT runs before FORWARD, the fix opens a side door, replies go astray. Every command runs in your browser.'
+hook:
+  stat: '3 → 0'
+  caption: 'packets DNAT translated → packets FORWARD let through'
 date: '2026-10-04'
 topic: systems
 vm:
   setup: 'cd /root && cp site/labs/intranet-to-internet/lab.sh . && (ip netns list | grep -q lab-fw || ./lab.sh up)'
 tags: [intranet, networking, security, reverse-proxy, nat, port-forwarding, firewall, conntrack]
 ---
+
+Port-forward an internal app and write the obvious rule, *allow traffic to the public IP*, and it never fires: **3 packets translated, 0 let through.** Linux rewrites the destination before the filter looks. That's the first of five silent ways exposing an intranet app goes wrong, and every one runs below on a real Linux machine in your browser.
 
 **Short answer:** don't publish the app. Put an identity-aware proxy in front, forward only 443, allow only traffic that came through that forward, and replace "trusted because it's on our network" with SSO. Then test from *outside*.
 

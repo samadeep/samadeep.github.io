@@ -1,6 +1,9 @@
 ---
-title: 'How to Design a ChatGPT-Style Streaming API'
-description: 'System design for token streaming at scale: SSE vs WebSockets, resumable streams, KV-cache-aware GPU routing. Every command runs in your browser.'
+title: 'Why your LLM token stream arrives all at once'
+description: 'How to design a ChatGPT-style streaming API: SSE, resumable streams, the proxy hop that buffers, KV-cache-aware GPU routing. Every command runs in your browser.'
+hook:
+  stat: '85 ms → 5.1 s'
+  caption: 'first token generated → first token the user saw'
 date: '2026-10-04'
 topic: ai
 vm:
@@ -8,7 +11,9 @@ vm:
 tags: [system-design, llm-serving, sse, websockets, kv-cache, load-balancing, gpu]
 ---
 
-**Short answer:** stream tokens over **SSE on HTTP/2**. Let the answer outlive the connection (a stream ID plus replay on reconnect). Batch tokens into ~50 ms writes, and make sure no proxy buffers or compresses the stream. On the GPU side, **send each turn to the GPU that already holds the conversation's cache, unless it's busy.** When the fleet is full, say no early.
+A fake model produced its first token in **85 ms**. Behind nginx with gzip on, the user saw nothing for **5.1 seconds**, then all 200 tokens at once. Nothing was slow. One hop was holding the stream.
+
+**Short answer** (how to design a ChatGPT-style streaming API): stream tokens over **SSE on HTTP/2**. Let the answer outlive the connection (a stream ID plus replay on reconnect). Batch tokens into ~50 ms writes, and make sure no proxy buffers or compresses the stream. On the GPU side, **send each turn to the GPU that already holds the conversation's cache, unless it's busy.** When the fleet is full, say no early.
 
 That's the interview answer. The rest of the post is why each clause is there: a demo of the bug that motivates it, the requirements and numbers, the design, five deep dives with evidence, and the mistakes most diagrams make. Every command has a **▶ Run** button that runs it on a real Linux machine inside your browser.
 
