@@ -10,6 +10,8 @@ tags: [intranet, networking, security, reverse-proxy, nat, port-forwarding, fire
 
 ## Introduction
 
+Most of what I build lives behind a corporate firewall. So when the question "can we just make this reachable from outside?" comes up, it sounds like a networking ticket: open a port, add a forward, done. It isn't, and I wanted to understand exactly why before I ever have to answer it for real.
+
 Inside the office, an intranet app gets half its security for free: every request comes from a known network, behind a firewall, often from a managed laptop. The moment it goes public, that free half disappears, and so do a set of network assumptions nobody wrote down.
 
 To find out exactly what breaks, I rebuilt the path in a lab: a client on the "internet", a stateful Linux firewall doing DNAT, and the app behind it. Then I broke it on purpose in the four ways that show up most often in practice. **Every output in this post is copied from those runs**, and the [lab script](/labs/intranet-to-internet/lab.sh) reproduces all of it on any Linux machine.
@@ -167,6 +169,8 @@ hello from 10.0.1.5
 
 The counters tell the whole story: **3 packets** hit the DNAT rule (the SYN and two retries), and **0** hit the FORWARD rule. By the time a packet reaches FORWARD, PREROUTING has already rewritten its destination to `10.0.1.5:8080`, so a rule written for `203.0.113.10:80` can never match.
 
+> **Lab note:** the DNAT counter climbing is the trap. My first instinct was "the rule is half working". It isn't: the counter that tells the truth is the FORWARD one, and it never moved.
+
 **Guards that missed it:** the DNAT rule's counter going up looks like progress. And the default-deny policy drops silently, so the client sees a timeout rather than a refusal.
 
 ## Finding 2: replies that take a different way home
@@ -234,6 +238,8 @@ client received: pushed after 8s idle
 
 The packet capture shows what actually happened. On the DMZ side, the app sent its message at 8 seconds and kept retransmitting it. On the client side, nothing arrived. When the client finally sent its own FIN at 11 seconds, there was no entry to un-DNAT it, so the packet was addressed to the firewall's own IP, and **the firewall's kernel answered with a RST**. The side that was waiting never heard anything, and when the error finally came, it came from a machine that doesn't run the app.
 
+> **Lab note:** I went in expecting silence and got a reset, which sent me back to the packet capture. The reset came from the firewall, a box that never ran the app. If you ever debug a "connection reset" by reading the app's logs, this is why they're empty.
+
 **Guards that missed it:** TCP keepalive exists, but the Linux default fires after 2 hours, far longer than any middlebox waits. And there's no RST at the moment of loss, so nothing logs an error.
 
 **Fix:** application heartbeats (WebSocket pings, SSE comments, Kafka's heartbeat settings) or TCP keepalive, shorter than the shortest idle timeout on the path. In the lab, a 2-second keepalive was enough to keep the entry alive.
@@ -275,6 +281,8 @@ $ ip route get 198.51.100.23        # on the app, afterwards
 ```
 
 The detail worth noticing is `200 0 bytes`: the status line and headers arrived, because they fit in a small packet, and then the body never came. The hop sent back the "fragmentation needed" ICMP message, conntrack classified it as RELATED to the flow, and a rule accepting only ESTABLISHED dropped it. Once RELATED was allowed, the app learned the smaller path MTU (`mtu 1200`) and the 200 KB page loaded.
+
+> **Lab note:** `200 0 bytes` is my favourite line in this post. The server said yes, the status line made it through, and then the body vanished. It's the most honest picture of an MTU problem I've seen.
 
 **Guards that missed it:** health checks fetch small pages. Office testing never crosses a small-MTU link. And "block ICMP for security" sounds responsible.
 
@@ -318,6 +326,10 @@ Keep the old path alive until stage 4, so rolling back is a DNS change rather th
 2. **A stateful firewall decides once per flow.** Port-forward rules, reply routing and idle timeouts all follow from that one fact.
 3. **The failures are silent.** Timeouts, stalls and half-loaded pages, rarely a clean error. Watch `conntrack -E` and the rule counters instead of guessing.
 4. **Test from where your users are.** Every bug here passed an office test.
+
+## That's the lab
+
+Four failures, one mechanism, and not one of them showed up as a clean error. If you've been bitten by a fifth way this breaks, tell me: I'll add it to the lab and credit you.
 
 ## References
 
