@@ -27,6 +27,13 @@ jobs:
       - run: sudo apt-get install -y --no-install-recommends graphviz
       - run: npm ci
       - run: npm run build
+      # the in-browser lab VM, built by vm.yml (absent until its first run on main)
+      - name: Add lab VM
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: |
+          if gh release download vm-latest -p vm.tar.gz -R ${{ github.repository }} 2>/dev/null; then
+            tar -xzf vm.tar.gz -C dist && du -sh dist/vm
+          else echo "::notice::no vm-latest release yet"; fi
       - uses: actions/upload-pages-artifact@v3
         with: { path: dist }
 

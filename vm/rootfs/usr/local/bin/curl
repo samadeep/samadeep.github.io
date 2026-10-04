@@ -1,0 +1,13 @@
+#!/bin/sh
+# This machine runs in your browser with no network. Lab files from samadeep.github.io are
+# served from a copy baked into the image (/root/site); anything else goes to the real curl.
+for a in "$@"; do
+  case "$a" in
+    https://samadeep.github.io/*)
+      path=${a#https://samadeep.github.io/}; src=/root/site/$path
+      [ -f "$src" ] || { echo "curl: (6) offline: $a is not in this lab image" >&2; exit 6; }
+      for o in "$@"; do if [ "$o" = "-O" ]; then cp "$src" "./${path##*/}"; exit 0; fi; done
+      cat "$src"; exit 0 ;;
+  esac
+done
+exec /usr/bin/curl "$@"
