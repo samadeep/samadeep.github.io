@@ -3,6 +3,8 @@ title: 'How to Design a ChatGPT-Style Streaming API'
 description: 'System design for token streaming at scale: SSE vs WebSockets, resumable streams, KV-cache-aware GPU routing, with a runnable lab and real numbers.'
 date: '2026-10-04'
 topic: ai
+vm:
+  setup: 'cd /root/site/labs/llm-streaming'
 tags: [system-design, llm-serving, sse, websockets, kv-cache, load-balancing, gpu]
 ---
 
@@ -15,6 +17,7 @@ That's the interview answer. The rest of this post is why each of those clauses 
 I built a fake LLM that streams 200 tokens at 40 tokens/s, and put nginx in front of it. Same chat, three routes:
 
 ```text
+# from: ./lab.sh proxy
 == direct
 first token after 85 ms, 200 tokens in 201 chunks, last at 5106 ms
 == nginx defaults (proxy_buffering on)
@@ -176,6 +179,7 @@ The SSE spec has the fix built in: send a comment line (`:`) ["every 15 seconds 
 Phones switch networks, laptops sleep, and a tab reloads. If generation is tied to the HTTP request, every drop throws away GPU work and the user gets half an answer. So the lab server generates per **stream ID**, keeps the tokens, and tags each SSE event with `id:`. The browser's `EventSource` sends the last one back as `Last-Event-ID` when it reconnects:
 
 ```text
+# from: ./lab.sh resume
 dropped after 20 tokens (last id 19) at 564 ms
 reconnected with Last-Event-ID: 19; first replayed id 20, got 180 more
 total 200 tokens, unique 200, gaps or duplicates: 0
@@ -235,6 +239,7 @@ I wrote a [small simulator](/labs/llm-streaming/route_sim.py) of a GPU fleet to 
 TTFT here is queue time plus prefill:
 
 ```text
+# from: ./lab.sh route
 policy                    KV hit  TTFT p50  TTFT p99  busiest GPU  idlest GPU
 round-robin                 56%     215ms    9789ms         36%        34%
 least-loaded                56%     194ms    6799ms         38%        37%

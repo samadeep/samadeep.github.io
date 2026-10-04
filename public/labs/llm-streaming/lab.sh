@@ -12,7 +12,11 @@ cd "$(dirname "$0")"
 ulimit -n 65536 2>/dev/null || true
 
 stop_server() { for p in $(ps -eo pid,args | awk '/node server.mjs/ && !/awk/ {print $1}'); do kill "$p"; done; sleep 1; }
-start_server() { stop_server; env "$@" node server.mjs >/tmp/llm-lab-server.log 2>&1 & sleep 1; head -1 /tmp/llm-lab-server.log; }
+start_server() {
+  stop_server; env "$@" node server.mjs >/tmp/llm-lab-server.log 2>&1 &
+  for _ in $(seq 100); do curl -s -o /dev/null http://127.0.0.1:8080/stats && break; sleep 0.2; done   # wait until it answers
+  head -1 /tmp/llm-lab-server.log
+}
 stop_nginx() { for f in /tmp/llm-lab-nginx.pid /tmp/llm-lab-nginx-gz.pid; do [ -f "$f" ] && kill "$(cat "$f")" 2>/dev/null; rm -f "$f"; done; true; }
 
 case "${1:-}" in

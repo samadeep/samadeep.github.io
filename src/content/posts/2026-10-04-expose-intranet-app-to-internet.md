@@ -3,6 +3,8 @@ title: 'How to Expose an Intranet Application to the Internet Safely'
 description: Moving an internal web app from intranet to internet. Exposure options, firewall and NAT setup, SSO, and five failures reproduced in a lab with real captures.
 date: '2026-10-04'
 topic: systems
+vm:
+  setup: 'cd /root && cp site/labs/intranet-to-internet/lab.sh . && (ip netns list | grep -q lab-fw || ./lab.sh up)'
 tags: [intranet, networking, security, reverse-proxy, nat, port-forwarding, firewall, conntrack]
 ---
 
@@ -167,6 +169,7 @@ iptables -A FORWARD -i f-wan -o f-dmz -d 10.0.1.5 -p tcp --dport 8080 \
 ## One connection, one entry
 
 ```text
+# from: sudo ./lab.sh entry
 $ curl -s http://203.0.113.10/          # while conntrack -E watches the firewall
 hello from 10.0.1.5
     [NEW] tcp 6 120 SYN_SENT    src=198.51.100.23 dst=203.0.113.10 dport=80 ... src=10.0.1.5 sport=8080 ...
@@ -283,6 +286,7 @@ F -> C : RST (from the firewall, not the app)
 ```
 
 ```text
+# from: sudo ./lab.sh idle
 [DESTROY] tcp 6 ESTABLISHED src=198.51.100.23 dst=203.0.113.10 dport=9000 ... [ASSURED]
 client received: nothing; when it finally sent, the connection was reset
 client received: pushed after 8s idle                         # with a 2 s TCP keepalive

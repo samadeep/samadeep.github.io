@@ -35,7 +35,7 @@ const jsonLd = {
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   <div class="wrap wide">
     <div class="post-layout">
-      <article data-pagefind-body data-pagefind-filter="kind:Writing">
+      <article data-pagefind-body data-pagefind-filter="kind:Writing" data-vm-setup={post.data.vm?.setup}>
         <header class="post-head">
           <h1 style={`view-transition-name:post-${post.id}`}>{title}</h1>
           <p class="lede">{description}</p>
@@ -93,6 +93,7 @@ const jsonLd = {
 
   <script>
     import '../../scripts/labs';
+    import '../../scripts/vm';
     // highlight the section currently in view
     const links = new Map([...document.querySelectorAll<HTMLAnchorElement>('.toc a')].map((a) => [decodeURIComponent(a.hash.slice(1)), a]));
     if (links.size) {
