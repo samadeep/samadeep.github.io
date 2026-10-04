@@ -14,9 +14,9 @@ This post started with an incident I kept coming back to: an internal service th
 
 I wanted to understand what actually changes when you make that move, so I rebuilt the path in a lab and broke it on purpose, five different ways. **Every output in this post is copied from those runs**, and the [lab script](/labs/intranet-to-internet/lab.sh) reproduces all of it on any Linux machine.
 
-## What I got wrong first
+## The mental model that's wrong
 
-I used to picture a firewall as a bouncer checking every packet against the rules. Packet arrives, rules run, allow or drop. Under that model, exposing an app is one rule: allow port 443 in. Done.
+It's natural to picture a firewall as a bouncer checking every packet against the rules. Packet arrives, rules run, allow or drop. Under that model, exposing an app is one rule: allow port 443 in. Done.
 
 **That's not how a stateful firewall works, and nearly every surprise below comes from the difference.** A stateful firewall checks the rules once, for the *first* packet of a connection. It writes the verdict, plus any address rewriting, into a table entry, and every later packet in either direction just matches that entry. The rules never see them.
 
@@ -66,7 +66,7 @@ An intranet app gets half its security for free: every request comes from a know
 | **Reverse proxy in a DMZ** + firewall DNAT | the proxy's public IP on port 443 | some: client IP, absolute URLs, cookies | partners, customers, real public traffic |
 | **Outbound tunnel** to an edge provider | nothing inbound; the app dials out | almost none | no public IP, carrier-grade NAT, "we can't open ports" |
 
-My opinion: **if the audience is still "our people", don't make the app public at all.** Put an access proxy in front and keep the app internal. It removes most of this post from your problem. For real public traffic you need the DMZ pattern, and Figure 2 shows what its edge has to decide for every request.
+Rule of thumb: **if the audience is still "our people", don't make the app public at all.** Put an access proxy in front and keep the app internal. It removes most of this post from your problem. For real public traffic you need the DMZ pattern, and Figure 2 shows what its edge has to decide for every request.
 
 ```plantuml title="Figure 2: what the edge decides for each request"
 @startuml
@@ -184,7 +184,7 @@ hello from 10.0.1.5
 
 **3 packets** hit the DNAT rule (the SYN and two retries), and **0** hit the FORWARD rule. By the time a packet reaches FORWARD, PREROUTING has already rewritten its destination to `10.0.1.5:8080`, so a rule written for `203.0.113.10:80` can never match.
 
-> **Lab note:** the DNAT counter climbing is the trap. My first instinct was "the rule is half working". It isn't: the counter that tells the truth is the FORWARD one, and it never moved.
+> **Lab note:** the DNAT counter climbing is the trap. It reads like "the rule is half working". It isn't: the counter that tells the truth is the FORWARD one, and it never moved.
 
 **Guards that missed it:** the DNAT counter going up looks like progress, and the default-deny policy drops silently, so the client sees a timeout rather than a refusal.
 
@@ -234,7 +234,7 @@ The lab compares three ways to close it, and all of them keep the front door wor
   10.0.1.5        port 8080  no answer (dropped)
 ```
 
-I'd use B and D together: allow only flows that came through the forward, and drop private-range destinations at the edge no matter what other rules say.
+B and D together are the strongest combination: allow only flows that came through the forward, and drop private-range destinations at the edge no matter what other rules say.
 
 **Guards that missed it:** "the internal IP isn't routable on the internet" is true for the public internet, but not for whoever shares your upstream network, your hosting provider's segment, or a misconfigured peer. And the port scan most people run targets the *public* IP, where everything looks fine. The lab's `scan` step checks both addresses, and it's the internal one that gives the game away.
 
@@ -303,7 +303,7 @@ client received: pushed after 8s idle
 
 The packet capture explains it. The app sent its message at 8 seconds and kept retransmitting it, and nothing reached the client. When the client finally sent its own FIN at 11 seconds, there was no entry to translate it, so the packet was addressed to the firewall's own IP, and **the firewall's kernel answered with a RST**.
 
-> **Lab note:** I went in expecting silence and got a reset, which sent me back to the packet capture. The reset came from the firewall, a box that never ran the app. If you ever debug a "connection reset" by reading the app's logs, this is why they're empty.
+> **Lab note:** the expected result was silence; the packet capture showed a reset instead. It came from the firewall, a box that never ran the app. If you ever debug a "connection reset" by reading the app's logs, this is why they're empty.
 
 **Guards that missed it:** TCP keepalive exists, but the Linux default fires after 2 hours, far longer than any middlebox waits. And there's no RST at the moment of loss, so nothing logs an error.
 
@@ -347,7 +347,7 @@ $ ip route get 198.51.100.23        # on the app, afterwards
 
 The status line and headers arrived, because they fit in a small packet, and then the body never came. The hop sent back the "fragmentation needed" message, conntrack classified it as RELATED to the flow, and a rule accepting only ESTABLISHED dropped it. Once RELATED was allowed, the app learned the smaller path MTU (`mtu 1200`) and the 200 KB page loaded.
 
-> **Lab note:** `200 0 bytes` is my favourite line in this post. The server said yes, the status line made it through, and then the body vanished. It's the most honest picture of an MTU problem I've seen.
+> **Lab note:** `200 0 bytes` is the line to remember. The server said yes, the status line made it through, and then the body vanished. That is what an MTU problem looks like from the outside.
 
 **Guards that missed it:** health checks fetch small pages, office testing never crosses a small-MTU link, and "block ICMP for security" sounds responsible.
 
@@ -405,7 +405,7 @@ Keep the old path alive until stage 4, so rolling back is a DNS change rather th
 
 ## That's the lab
 
-The incident I started with came down to a door that was open when everyone assumed it was closed. Five failures, one mechanism, and not one of them showed up as a clean error. If you've been bitten by a sixth way this breaks, tell me: I'll add it to the lab and credit you.
+The incident I started with came down to a door that was open when everyone assumed it was closed. Five failures, one mechanism, and not one of them showed up as a clean error. Been bitten by a sixth way this breaks? The reply link below goes straight to my inbox.
 
 ## References
 
