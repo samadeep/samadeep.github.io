@@ -486,3 +486,9 @@ svg.brand-ico { width: 1em; height: 1em; }
 .vm-bar button:hover { border-color: #00aebb; color: #00aebb; }
 .vm-screen { flex: 1; min-height: 0; padding: .4rem .2rem .2rem .7rem; }
 body.vm-open { padding-bottom: min(46vh, 420px); }
+
+/* ---------- D2 diagrams (src/lib/remark-d2.mjs): one render per theme ---------- */
+figure.d2 img { display: block; width: 100%; height: auto; margin: 0 auto; }
+figure.d2 .d2-dark { display: none; }
+[data-theme='dark'] figure.d2 .d2-light { display: none; }
+[data-theme='dark'] figure.d2 .d2-dark { display: block; }
