@@ -12,10 +12,10 @@ tags: [intranet, networking, security, reverse-proxy, nat, port-forwarding, fire
 
 This post started with an incident I kept coming back to: an internal service that had been exposed to the outside, and an external attack that came for it. The road there is usually ordinary. Someone needs outside access, a port gets opened, and a service built for "only our people" now answers everyone.
 
-A port forward is one line. The ways it goes wrong are silent. **Every command below has a ▶ Run button**: it runs on a real Linux machine inside your browser, with a client, a firewall and an app wired together.
+A port forward is one line. The ways it goes wrong are silent. Below: the one idea that explains every failure, the five failures in the order you'll hit them, and the ruleset that survives all five. **Every command below has a ▶ Run button**: it runs on a real Linux machine inside your browser, with a client, a firewall and an app wired together.
 
 ```d2 title="The whole path, and the five places it breaks"
-direction: down
+direction: right
 client: "Client\n198.51.100.23" {class: peer}
 fw: "Firewall\nDNAT + conntrack" {class: main}
 app: "App\n10.0.1.5:8080" {class: worker}
@@ -70,7 +70,7 @@ The entry holds what the client sent (`dst=203.0.113.10:80`) and what the reply 
 
 > **Insight:** A firewall rule is checked per connection, not per packet. So most firewall bugs aren't about a wrong rule; they're about which packets never get checked at all.
 
-## Pick the pattern first
+## Pick the pattern before the port
 
 | Pattern | Open to the internet | Use for |
 |---|---|---|
@@ -256,7 +256,7 @@ iptables -A FORWARD -i f-wan -o f-dmz -d 10.0.1.5 -p tcp --dport 8080 \
 iptables -t raw -A PREROUTING -i f-wan -d 10.0.0.0/8 -j DROP
 ```
 
-## Checklist before you flip it on
+## The firewall is half of it: change what the app trusts
 
 | Intranet assumption | Change |
 |---|---|
@@ -276,6 +276,10 @@ Roll out in steps (internal users through the proxy, then a few outside IPs, the
 3. **Allow the front door, not the destination** (`--ctstate DNAT`).
 4. **Failures are silent.** Watch rule counters and `conntrack -E`, not app logs.
 5. **Test from where attackers and users are.**
+
+## Try it
+
+Every command above runs on the Linux machine in your browser. To run it on any Linux box with root: `curl -O https://samadeep.github.io/labs/intranet-to-internet/lab.sh && chmod +x lab.sh && sudo ./lab.sh up`.
 
 The incident came down to a door that was open when everyone assumed it was closed. Been bitten by a sixth way this breaks? The reply link below goes straight to my inbox.
 

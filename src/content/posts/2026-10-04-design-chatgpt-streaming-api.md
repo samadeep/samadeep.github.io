@@ -10,7 +10,7 @@ tags: [system-design, llm-serving, sse, websockets, kv-cache, load-balancing, gp
 
 **Short answer:** stream tokens over **SSE on HTTP/2**. Let the answer outlive the connection (a stream ID plus replay on reconnect). Batch tokens into ~50 ms writes, and make sure no proxy buffers or compresses the stream. On the GPU side, **send each turn to the GPU that already holds the conversation's cache, unless it's busy.** When the fleet is full, say no early.
 
-That's the interview answer. Below is why each clause is there. Every command has a **▶ Run** button that runs it on a real Linux machine inside your browser.
+That's the interview answer. The rest of the post is why each clause is there: a demo of the bug that motivates it, the requirements and numbers, the design, five deep dives with evidence, and the mistakes most diagrams make. Every command has a **▶ Run** button that runs it on a real Linux machine inside your browser.
 
 ## Same answer, 5 seconds late
 
@@ -35,7 +35,7 @@ content-encoding: gzip; first token after 5107 ms, 200 tokens in 1 chunks, last 
 
 > **Insight:** Users feel time to first token, not total time. Anything that batches whole responses for efficiency silently turns one into the other.
 
-## Requirements
+## Requirements: a million chats, first token in a second
 
 Assumptions for this design (an interview would set its own):
 
@@ -46,7 +46,7 @@ Assumptions for this design (an interview would set its own):
 | stop generating; resume after a dropped connection | no lost or duplicated tokens on reconnect |
 | per-user quotas and rate limits | degrade by saying "busy", never by stalling |
 
-## API
+## API: the stream is a resource, not a connection
 
 ```text
 POST /v1/chats/{chat_id}/turns        {"message": "..."}      -> 202 {"stream_id": "s_81f2"}
@@ -245,7 +245,7 @@ cache + load cost           75%      75ms     294ms         31%        11%
 ```
 
 ```d2 title="Follow the cache until it's busy: the cheapest GPU has the least new work"
-direction: down
+direction: right
 q: "Turn 7 of chat c42" {class: peer}
 r: "Router\nnew work + queue" {class: main}
 g3: "GPU 3\nhas turns 1-6\n0.205 s" {class: allow}
@@ -265,7 +265,7 @@ Press `--users 8000` above: **every policy collapses to ~30 s.** Past capacity t
 
 > **Insight:** LLM serving is a cache-placement problem disguised as load balancing. The cheapest GPU is the one with the least *new* work, not the shortest queue.
 
-## Data model
+## Data model: four records, four lifetimes
 
 | Record | Key | Lives in | Lifetime |
 |---|---|---|---|
@@ -276,7 +276,7 @@ Press `--users 8000` above: **every policy collapses to ~30 s.** Past capacity t
 
 **Keep the stable part of every prompt first and byte-identical** (system prompt, tools, documents): KV blocks are keyed by prefix, and so are the [providers' prompt caches](https://platform.claude.com/docs/en/build-with-claude/prompt-caching).
 
-## Failure modes
+## Failure modes: each one already has an answer
 
 | What breaks | What the user sees | Design answer |
 |---|---|---|
@@ -301,6 +301,16 @@ Press `--users 8000` above: **every policy collapses to ~30 s.** Past capacity t
 4. **Give every stream an ID and replay**, plus a separate stop endpoint.
 5. **Route by cache, capped by load.** Hashing the first tokens makes hot spots.
 6. **Past capacity, reject early and split prefill from decode.**
+
+## Try it
+
+Every command above runs on the Linux machine in your browser. To run it on your own box (Node 18+, Python 3 and nginx needed):
+
+```zsh
+mkdir llm-lab && cd llm-lab
+for f in lab.sh load.mjs nginx-gzip.conf nginx.conf package-lock.json package.json probe-gzip.mjs probe.mjs route_sim.py server.mjs; do curl -sO https://samadeep.github.io/labs/llm-streaming/$f; done
+chmod +x lab.sh && ./lab.sh setup && ./lab.sh proxy
+```
 
 Found a hop that breaks the stream in a way not covered here? [Open an issue](https://github.com/samadeep/samadeep.github.io/issues) with the trace.
 

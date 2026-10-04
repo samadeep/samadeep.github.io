@@ -34,6 +34,9 @@ const jsonLd = {
 <Base title={title} description={description} type="article" published={date} image={`/og/${post.id}.png`}>
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   <div class="read-progress" aria-hidden="true"></div>
+  <a class="to-top" href="#top" aria-label="Back to top" hidden>
+    <svg viewBox="0 0 44 44" aria-hidden="true"><circle class="ring-bg" cx="22" cy="22" r="20"/><circle class="ring" cx="22" cy="22" r="20" pathLength="100"/><path d="M22 29V15m-6 6 6-6 6 6"/></svg>
+  </a>
   <div class="wrap wide">
     <div class="post-layout">
       <article data-pagefind-body data-pagefind-filter="kind:Writing" data-vm-setup={post.data.vm?.setup}>
@@ -107,6 +110,37 @@ const jsonLd = {
         }
       }, { rootMargin: '0px 0px -75% 0px' });
       links.forEach((_, id) => { const h = document.getElementById(id); if (h) io.observe(h); });
+    }
+
+    // every section heading gets a link icon; clicking it copies the section's URL
+    for (const h of document.querySelectorAll<HTMLElement>('.prose h2[id], .prose h3[id]')) {
+      const a = document.createElement('a');
+      a.className = 'h-anchor'; a.href = `#${h.id}`; a.setAttribute('aria-label', `Copy link to "${h.textContent}"`);
+      a.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>';
+      a.addEventListener('click', async (e) => {
+        e.preventDefault();
+        history.replaceState(null, '', a.hash);
+        h.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+        try { await navigator.clipboard.writeText(location.href); a.dataset.copied = ''; setTimeout(() => delete a.dataset.copied, 1400); } catch { /* clipboard blocked: the hash is still set */ }
+      });
+      h.prepend(a);
+    }
+
+    // back to top: appears after the first screen, its ring fills as you read
+    const top = document.querySelector<HTMLAnchorElement>('.to-top');
+    if (top) {
+      const ring = top.querySelector<SVGCircleElement>('.ring')!;
+      let raf = 0;
+      const update = () => {
+        raf = 0;
+        const max = document.documentElement.scrollHeight - innerHeight;
+        const f = max > 0 ? Math.min(1, scrollY / max) : 0;
+        ring.style.strokeDashoffset = String(100 - f * 100);
+        top.hidden = scrollY < innerHeight * 0.8;
+      };
+      addEventListener('scroll', () => { raf ||= requestAnimationFrame(update); }, { passive: true });
+      update();
+      top.addEventListener('click', (e) => { e.preventDefault(); scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); });
     }
   </script>
 </Base>
