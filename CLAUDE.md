@@ -58,6 +58,8 @@ These instructions are **self-evolving**: see "How this file evolves" at the end
 - Analytics: Cloudflare Web Analytics; comments and reactions: giscus (`src/lib/site.ts`).
 - Header brand reads "Samadeep's blog" and types itself on every home page load and on the first page of a visit elsewhere (off when the OS asks for reduced motion). Theme toggle reveals the new theme as a growing circle (View Transitions). Posts show a scroll-driven reading progress bar; the header is sticky and translucent.
 - **Layout on wide screens (>= 1280px):** site width 1320px; posts put the contents rail on the left, keep prose at ~76ch, and let diagrams, labs, code frames and tables spread into the right-hand space. Don't widen the text column itself.
+- Post header (Cloudflare-style): topic and up to three tags as labels above the title; a byline below the lede (name, readable date, minutes, "N commands run in your browser" when the post has a VM).
+- Writing page (`src/pages/posts/index.astro`): "Start here" cards (posts with `vm`, led by their hook number), filter chips for topic, "runs in your browser" and "under 10 min" (mirrored in the URL, e.g. `?topic=systems&run`), then one line per post grouped by year. No tag cloud on the page. Count runnable commands only for posts with a VM.
 - Posts: every h2/h3 gets a link icon on hover that copies the section URL; a back-to-top button appears after the first screen, with a ring that fills as you read.
 - Home (`src/pages/index.astro`): terminal-prompt hero (his name as the h1), three site principles, live stats (posts, runnable commands, diagrams, last update) and a "Start here" pair chosen from posts with `vm` front matter. Keep principles factual about the site, never claims in his voice.
 
@@ -93,3 +95,4 @@ This file is the project's memory. Keep it current as part of the work, not afte
 - 2026-10-05: D2's auto-layout never matched the Agent Teams figure's posture ("how the fonts and diagrams are arranged"); all diagrams moved to our own grid renderer (```fig) with equal-width rows, full-width bars and straight short arrows.
 - 2026-10-05: diagram text uses Aptos Mono (JetBrains Mono fallback), the site's font, not Nunito.
 - 2026-10-05: launches weren't picked up; posts must be written to spread: finding-first titles, a surprise in the first lines, big-number share cards, and a launch kit (video, X thread, HN title, LinkedIn post) per post.
+- 2026-10-05: labels go above the post title like Cloudflare's; the Writing page must not overwhelm: start-here picks, real filters, a compact list by year.
