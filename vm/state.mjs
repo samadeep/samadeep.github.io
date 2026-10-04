@@ -28,12 +28,15 @@ const waitFor = (marker, ms) => new Promise((ok, fail) => {
   }, 200);
 });
 const run = async (cmd, ms = 300_000) => {
-  const tag = `__END_${Math.random().toString(36).slice(2)}__`;
+  // the marker is assembled by printf, so the echoed command line can't match it
+  const id = Math.random().toString(36).slice(2, 8);
+  const tag = `__END_${id}`;
   buf = '';
-  emulator.serial0_send(`${cmd}; echo ${tag} rc=$?\n`);
+  emulator.serial0_send(`${cmd}; printf '%s_%s rc=%s\\n' __END ${id} $?\n`);
   await waitFor(tag + ' rc=', ms);
-  const out = buf.replace(/\x1b\[[0-9;]*[A-Za-z]/g, '');
-  console.log(`\n$ ${cmd}\n${out.slice(out.indexOf('\n') + 1, out.lastIndexOf(tag))}  [${tag.slice(0, 5)} ${out.match(/rc=(\d+)/)?.[0]}]`);
+  const out = buf.replace(/\x1b\[[0-9;]*[A-Za-z]/g, '').replace(/\r/g, '');
+  const body = out.slice(out.indexOf(' __END ' + id) + 1);
+  console.log(`\n$ ${cmd}\n${body.slice(body.indexOf('\n') + 1, body.lastIndexOf(tag))}[${out.match(new RegExp(tag + ' (rc=\\d+)'))?.[1]}]`);
   return out;
 };
 

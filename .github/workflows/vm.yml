@@ -36,8 +36,8 @@ jobs:
           cp vm/node_modules/v86/build/libv86.mjs vm/node_modules/v86/build/v86.wasm out/vm/
           cp /tmp/v86/bios/seabios.bin /tmp/v86/bios/vgabios.bin out/vm/
           echo "{\"built\":\"$(date -u +%FT%TZ)\",\"sha\":\"${GITHUB_SHA::7}\"}" > out/vm/version.json
-          ls -la out/vm; du -sh out/vm; du -sh out/vm/state.bin.zst
           tar -C out -czf vm.tar.gz vm
+          vm/ci-run.sh sizes sh -c 'du -sh out/vm out/vm/flat out/vm/state.bin.zst out/vm/v86.wasm vm.tar.gz; ls out/vm/flat | wc -l'
       - uses: actions/upload-artifact@v4
         with: { name: vm, path: vm.tar.gz, retention-days: 7 }
       - name: Publish and redeploy (main only)
