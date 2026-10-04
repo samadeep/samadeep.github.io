@@ -22,11 +22,11 @@ These instructions are **self-evolving**: see "How this file evolves" at the end
 - Topics: `algorithms`, `systems`, `low-latency`, `ai`. Process detail lives in the `write-blog-post` skill.
 - **System design posts** follow the interview arc, each part short: requirements (with numbers) -> API -> capacity (a runnable ```python block) -> the design diagram -> "life of a request" in numbered steps -> deep dives (each with evidence) -> data model -> failure modes table -> "what most diagrams get wrong" -> takeaways. Be correct where typical diagrams aren't (for example, KV cache lives in GPU memory, not Redis).
 
-## Diagrams: D2, refined and restrained
+## Diagrams: D2 in the Claude Code docs style
 
 - Write ```d2 title="<the point it makes>"``` fences. `src/lib/remark-d2.mjs` renders each twice at build (light + dark), caches them in `public/diagrams/d2-<hash>-<theme>.svg` (commit these), and the page shows the one matching the site's theme toggle.
-- **Look:** restraint, like well-made engineering-blog figures (anthropic.com/engineering is the bar): neutral boxes with only a faint role tint, thin warm-grey lines, regular-weight labels, generous space, colour only where it carries meaning (a verdict pill, a broken path). Figures sit on a soft canvas card. Don't add saturated fills, heavy borders or shadows.
-- **Say what a box is, not how it looks:** classes from `src/lib/d2/{light,dark}.d2`: `main` (entry point / the thing in charge), `worker`, `peer` (clients, actors), `shared` (shared state, dashed), `result` (dotted circle outcome), `allow`, `deny`, `ask`, `panel` (titled container). Edges: `{class: lost}` for dropped or broken paths, `{class: good}` for the fixed path.
+- **Look:** the "Subagents vs Agent Teams" figure in the Claude Code docs is the bar (his pick). Open-colour pastel role fills (pink #ffc9c9, peach #ffd8a8, lavender #d0bfff, blue #a5d8ff dotted), thin near-black outlines (#1e1e1e; dark mode #d3d3d3 on deep fills #5b2c2c / #4c2a01 / #483a71 / #154163), D2's default sans font, grey #e9ecef panels with large titles above them, black arrows with small labels, grey (`muted`) loop-back lines. Figures sit on a light card (#f8f9fa / #17191c). Not restrained neutrals, not mono labels.
+- **Say what a box is, not how it looks:** classes from `src/lib/d2/{light,dark}.d2`: `main` (entry point / the thing in charge), `worker`, `peer` (clients, actors), `shared` (shared state, dashed), `result` (dotted circle outcome), `allow`, `deny`, `ask`, `panel` (titled container). Edges: `{class: lost}` for dropped or broken paths, `{class: good}` for the fixed path, `{class: muted}` for grey return/loop lines ("Report", "Work").
 - Prefer **side-by-side panels** (`grid-columns: 2`, two `class: panel` containers) for "broken vs fixed" and "what you picture vs what happens", as in his Subagents / Agent Teams reference. Sequence flows use `shape: sequence_diagram`.
 - At most ~7 boxes, labels of a few words, real values (IPs, ports, ms), never foo/bar. Caption states the conclusion.
 - **Architecture diagrams** use numbered component cards: `class: [main; card]` plus `icon: lucide:<name>` (any Lucide icon, recoloured per theme) and a `b: "..." {class: body}` child with two short lines of responsibilities and real numbers. Group cards in `class: panel` rows (`grid-columns: N`) stacked with a root `grid-columns: 1`; put state stores in their own row; reorder cells (or add an invisible spacer) so edges don't cross cards. The legend lives in the card, not in prose.
@@ -57,7 +57,7 @@ These instructions are **self-evolving**: see "How this file evolves" at the end
 2. Screenshot light, dark and 390px phone with Playwright (`executablePath: '/opt/pw-browsers/chromium'`) and look at them.
 3. PR via `gh api repos/samadeep/samadeep.github.io/pulls`; list unverified claims and any first-person lines.
 4. After merge, check the live page (the agent workspace can't reach the site; use the browser pane).
-- Gotchas: never `pkill -f` (kills the agent shell); a process whose command line contains `node server.mjs` gets killed by the streaming lab's `stop_server`; Actions logs aren't downloadable from the workspace, so CI steps surface output as annotations (`vm/ci-run.sh`).
+- Gotchas: D2 `stroke-width` must be an integer; a D2 error is only logged, `npm run build` still exits 0, so grep the build log for `error` and count `public/diagrams/d2-*` files. Never `pkill -f` (kills the agent shell); a process whose command line contains `node server.mjs` gets killed by the streaming lab's `stop_server`; Actions logs aren't downloadable from the workspace, so CI steps surface output as annotations (`vm/ci-run.sh`).
 
 ## How this file evolves
 
@@ -78,4 +78,4 @@ This file is the project's memory. Keep it current as part of the work, not afte
 - 2026-10-04: the home page should feel thoughtful on open: prompt-style hero, principles, stats, "Start here".
 - 2026-10-04: use more width on desktop without hurting reading: wide figures and code, not wider text. Header says "Samadeep's blog", typed in.
 - 2026-10-04: posts must deliver insights, not just facts: one `Insight` callout per main section. The typing animation must be visible on the home page every time.
-- 2026-10-04: diagrams were "not as good and refined" as Anthropic's: moved to a restrained theme (neutral boxes, thin lines, colour only for meaning, canvas card). This replaces the saturated role colours.
+- 2026-10-04: the restrained neutral theme was rejected; diagrams now copy the Claude Code docs Subagents / Agent Teams figure (pastel fills, thin dark outlines, sans, titled grey panels).

@@ -556,6 +556,6 @@ html { scroll-padding-top: 5rem; }
 .prose blockquote:has(> p > strong:first-child) strong:first-child { color: var(--trace); letter-spacing: .02em; }
 
 /* ---------- refined figure frame for D2 diagrams ---------- */
-figure.diagram.d2 { background: #ecebe4; border: 0; border-radius: 16px; padding: 1.75rem 1.5rem 1rem; }
-[data-theme='dark'] figure.diagram.d2 { background: #0f1716; }
+figure.diagram.d2 { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 16px; padding: 1.5rem 1.25rem .9rem; }
+[data-theme='dark'] figure.diagram.d2 { background: #17191c; border-color: #202225; }
 figure.diagram.d2 figcaption { margin-top: 1rem; color: var(--ink-3); font-size: .8rem; }

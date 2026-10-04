@@ -1,27 +1,27 @@
 # Dark theme for ```d2 diagrams. Same class names in both themes: a diagram says what a box IS.
-# Style: restraint. Neutral boxes, thin warm-grey lines, colour only where it means something
-# (a verdict, a broken path), generous space. Modelled on well-made engineering-blog figures.
+# Style: the Claude Code docs "Subagents vs Agent Teams" figure. Open-colour pastel role fills,
+# thin near-black outlines, sans labels, titled grey panels, black arrows, grey loop-back lines.
 vars: {
-  lost: "#e07a6c"
-  good: "#7fbf6e"
-  d2-config: { theme-overrides: { B1: "#5f6b68"; B2: "#5f6b68"; N1: "#e8e4d3"; N2: "#a9a69a"; N3: "#9c998e" } }
+  d2-config: { theme-overrides: { B1: "#d3d3d3"; B2: "#d3d3d3"; N1: "#d3d3d3"; N2: "#d3d3d3"; N3: "#adb5bd" } }
 }
 classes: {
-  panel: { label.near: top-center; style: { fill: "#162120"; stroke: "#162120"; border-radius: 14; font-color: "#e8e4d3"; font-size: 16; bold: false; font: mono } }
-  box: { style: { fill: "#1b2625"; stroke: "#5f6b68"; border-radius: 7; font-color: "#d6d2c6"; stroke-width: 2; font-size: 14; bold: false; font: mono } }
-  main: { style: { fill: "#2a2321"; stroke: "#5f6b68"; border-radius: 7; font-color: "#d6d2c6"; stroke-width: 2; font-size: 14; bold: false; font: mono } }
-  worker: { style: { fill: "#29251a"; stroke: "#5f6b68"; border-radius: 7; font-color: "#d6d2c6"; stroke-width: 2; font-size: 14; bold: false; font: mono } }
-  peer: { style: { fill: "#231f31"; stroke: "#5f6b68"; border-radius: 7; font-color: "#d6d2c6"; stroke-width: 2; font-size: 14; bold: false; font: mono } }
-  shared: { style: { fill: "#1a2533"; stroke: "#5f6b68"; stroke-dash: 3; border-radius: 7; font-color: "#d6d2c6"; stroke-width: 2; font-size: 14; bold: false; font: mono } }
-  result: { shape: circle; style: { fill: transparent; stroke: "#5f6b68"; stroke-dash: 2; font-color: "#9c998e"; stroke-width: 2; font-size: 13; bold: false; font: mono } }
-  allow: { style: { fill: "#17231a"; stroke: "#7fbf6e"; border-radius: 18; font-color: "#a8d99a"; stroke-width: 2; font-size: 14; bold: false; font: mono } }
-  deny: { style: { fill: "#291a18"; stroke: "#e07a6c"; border-radius: 18; font-color: "#f0a99f"; stroke-width: 2; font-size: 14; bold: false; font: mono } }
-  ask: { style: { fill: "#162131"; stroke: "#7ea6dc"; border-radius: 18; font-color: "#b3cdf0"; stroke-width: 2; font-size: 14; bold: false; font: mono } }
-  lost: { style: { stroke: "#e07a6c"; font-color: "#f0a99f"; stroke-dash: 4; font: mono } }
-  good: { style: { stroke: "#7fbf6e"; font-color: "#a8d99a"; font: mono } }
-  card: { label.near: top-left; icon.near: top-right; width: 300; style: { font-size: 14; bold: true; font: mono } }
-  body: { shape: text; style: { font-size: 12; font: mono; font-color: "#9c998e" } }
-  note: { shape: text; style: { font-color: "#9c998e"; font-size: 13; italic: false; font: mono } }
+  panel: { label.near: outside-top-center; style: { fill: "#202225"; stroke: "#111111"; stroke-width: 2; border-radius: 16; font-color: "#d3d3d3"; font-size: 24; bold: false } }
+  box: { style: { fill: "#2c2f33"; stroke: "#d3d3d3"; stroke-width: 2; border-radius: 8; font-color: "#d3d3d3"; font-size: 15; bold: false } }
+  main: { style: { fill: "#5b2c2c"; stroke: "#d3d3d3"; stroke-width: 2; border-radius: 8; font-color: "#d3d3d3"; font-size: 15; bold: false } }
+  worker: { style: { fill: "#4c2a01"; stroke: "#d3d3d3"; stroke-width: 2; border-radius: 8; font-color: "#d3d3d3"; font-size: 15; bold: false } }
+  peer: { style: { fill: "#483a71"; stroke: "#d3d3d3"; stroke-width: 2; border-radius: 8; font-color: "#d3d3d3"; font-size: 15; bold: false } }
+  shared: { style: { fill: "#154163"; stroke: "#d3d3d3"; stroke-width: 2; stroke-dash: 2; border-radius: 8; font-color: "#d3d3d3"; font-size: 15; bold: false } }
+  result: { shape: circle; style: { fill: transparent; stroke: "#d3d3d3"; stroke-width: 2; stroke-dash: 2; font-color: "#d3d3d3"; font-size: 14; bold: false } }
+  allow: { style: { fill: "#1f4a2a"; stroke: "#d3d3d3"; stroke-width: 2; border-radius: 8; font-color: "#d3d3d3"; font-size: 15; bold: false } }
+  deny: { style: { fill: "#6b2121"; stroke: "#d3d3d3"; stroke-width: 2; border-radius: 8; font-color: "#d3d3d3"; font-size: 15; bold: false } }
+  ask: { style: { fill: "#4d4111"; stroke: "#d3d3d3"; stroke-width: 2; border-radius: 8; font-color: "#d3d3d3"; font-size: 15; bold: false } }
+  lost: { style: { stroke: "#ff6b6b"; font-color: "#ff8787"; stroke-dash: 4 } }
+  good: { style: { stroke: "#51cf66"; font-color: "#69db7c" } }
+  muted: { style: { stroke: "#6f757c"; font-color: "#adb5bd" } }
+  card: { label.near: top-left; icon.near: top-right; width: 300; style: { font-size: 16; bold: true } }
+  body: { shape: text; style: { font-size: 13; font-color: "#c1c2c5" } }
+  note: { shape: text; style: { font-color: "#adb5bd"; font-size: 14; italic: false } }
 }
 style.fill: transparent
-(** -> **)[*]: { style: { font-size: 12; font: mono; italic: false; stroke-width: 2 } }
+(** -> **)[*]: { style: { font-size: 12; italic: false; stroke-width: 2 } }
+(** <-> **)[*]: { style: { font-size: 12; italic: false; stroke-width: 2 } }
