@@ -25,11 +25,11 @@ jobs:
       - run: sudo apt-get install -y --no-install-recommends zstd && pip install zstandard
       - run: git clone --depth 1 https://github.com/copy/v86 /tmp/v86
       - name: Build image
-        run: vm/build.sh /tmp/v86 out/vm
+        run: vm/ci-run.sh build-image vm/build.sh /tmp/v86 out/vm
       - name: Boot, smoke-test, save state
         run: |
           cd vm && npm install --no-audit --no-fund && cd ..
-          node vm/state.mjs /tmp/v86 "$PWD/out/vm"
+          vm/ci-run.sh smoke-test node vm/state.mjs /tmp/v86 "$PWD/out/vm"
           zstd -19 -T0 --rm out/vm/state.bin
       - name: Add the emulator
         run: |
