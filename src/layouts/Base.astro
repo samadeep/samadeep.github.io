@@ -5,7 +5,8 @@ import { SITE } from '../lib/site';
 
 type Props = { title?: string; description?: string; image?: string; type?: 'website' | 'article'; published?: Date; noindex?: boolean };
 const { title, description = SITE.description, image = '/og/site.png', type = 'website', published, noindex } = Astro.props as Props;
-const fullTitle = title ? `${title} | ${SITE.name}` : SITE.name;
+// articles use their own title: search results cut off around 60 characters
+const fullTitle = !title ? SITE.name : type === 'article' ? title : `${title} | ${SITE.name}`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImage = new URL(image, Astro.site);
 const path = Astro.url.pathname;
