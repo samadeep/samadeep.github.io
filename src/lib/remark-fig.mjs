@@ -2,7 +2,7 @@
 //
 // The look copies the Claude Code docs "Subagents vs Agent Teams" figure: titled grey panels,
 // rows of equal-width pastel boxes, full-width bars, short straight arrows with small labels,
-// grey loop-back lines, Nunito. Colours are CSS variables (global.css, .fig), so the same SVG
+// grey loop-back lines, the site's mono font. Colours are CSS variables (global.css, .fig), so the same SVG
 // follows the site's light/dark toggle. Grammar: see CLAUDE.md ("Diagrams").
 //
 //   panel Subagents            new panel (titled); panels sit side by side, or stacked with `layout stack`
@@ -23,18 +23,19 @@ import { visit } from 'unist-util-visit';
 
 const require = createRequire(import.meta.url);
 const fontkit = require('fontkit');
-const FONT = fontkit.openSync(join(process.cwd(), 'node_modules/@fontsource-variable/nunito/files/nunito-latin-wght-normal.woff2'));
+// labels use the site's mono (Aptos Mono, JetBrains Mono fallback); measure with JetBrains Mono, the wider of the two
+const FONT = fontkit.openSync(join(process.cwd(), 'node_modules/@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2'));
 const OUT = join(process.cwd(), 'public', 'diagrams');
 const LUCIDE = join(process.cwd(), 'node_modules', 'lucide-static', 'icons');
 
 // sizes (SVG units; figures render at most at their natural width)
-const F = { label: 15, edge: 11.5, title: 26, body: 12.5, cardTitle: 15 };
+const F = { label: 14, edge: 11, title: 22, body: 12, cardTitle: 14 };
 const LINE = { label: 19, edge: 14, body: 17 };
 const PAD = 26, GX = 34, GY = 34, TITLE_H = 44, BOX_PX = 22, BOX_PY = 11, PANEL_GAP = 24;
 const KINDS = ['main', 'worker', 'peer', 'shared', 'result', 'allow', 'deny', 'ask', 'box'];
 
-// the font's default instance is its thinnest weight; labels render at 500-600
-const textW = (s, size) => (FONT.layout(String(s)).advanceWidth / FONT.unitsPerEm) * size * 1.1;
+// monospace advances don't change with weight; a little slack for Aptos Mono's metrics
+const textW = (s, size) => (FONT.layout(String(s)).advanceWidth / FONT.unitsPerEm) * size * 1.04;
 const linesOf = (s) => String(s).split('\\n');
 const maxW = (lines, size) => Math.max(0, ...lines.map((l) => textW(l, size)));
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -369,7 +370,7 @@ export function remarkFig() {
       const title = (node.meta ?? '').replace(/^title=/, '').replace(/^"|"$/g, '') || 'Diagram';
       const { w, svg } = renderFig(node.value, title);
       mkdirSync(OUT, { recursive: true });
-      if (first) writeFileSync(join(process.cwd(), 'public', figCover(node.value)), svg.replace('<svg ', `<svg style="font-family:Nunito,sans-serif" `).replace(/(<svg[^>]*>)/, `$1<style>${COVER_CSS}</style>`));
+      if (first) writeFileSync(join(process.cwd(), 'public', figCover(node.value)), svg.replace('<svg ', `<svg style="font-family:'Aptos Mono','JetBrains Mono',ui-monospace,monospace" `).replace(/(<svg[^>]*>)/, `$1<style>${COVER_CSS}</style>`));
       first = false;
       parent.children[index] = {
         type: 'html',

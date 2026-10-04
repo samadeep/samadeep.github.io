@@ -4,7 +4,7 @@
   --f-main: #ffc9c9; --f-worker: #ffd8a8; --f-peer: #d0bfff; --f-shared: #a5d8ff; --f-box: #ffffff;
   --f-allow: #b2f2bb; --f-deny: #ffa8a8; --f-ask: #ffec99;
   --f-muted: #868e96; --f-lost: #e03131; --f-good: #2f9e44;
-  font-family: 'Nunito Variable', Nunito, ui-rounded, system-ui, sans-serif;
+  font-family: 'Aptos Mono', 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace;
 }
 [data-theme='dark'] .fig-svg {
   --f-panel: #202225; --f-panel-edge: #2b2e33; --f-ink: #d3d3d3; --f-body: #adb5bd; --f-life: #45494f;
@@ -20,13 +20,13 @@
 .fig-svg .fn-shared { fill: var(--f-shared); stroke-dasharray: 2 3; stroke-linecap: round; }
 .fig-svg .fn-box { fill: var(--f-box); } .fig-svg .fn-allow { fill: var(--f-allow); } .fig-svg .fn-deny { fill: var(--f-deny); } .fig-svg .fn-ask { fill: var(--f-ask); }
 .fig-svg .fn-result { fill: none; stroke-width: 2; stroke-dasharray: 1.5 4; stroke-linecap: round; }
-.fig-svg .ft { fill: var(--f-ink); font-weight: 600; }
-.fig-svg .ft-card { font-weight: 800; }
-.fig-svg .fb { fill: var(--f-body); font-weight: 500; }
+.fig-svg .ft { fill: var(--f-ink); font-weight: 500; }
+.fig-svg .ft-card { font-weight: 700; }
+.fig-svg .fb { fill: var(--f-body); font-weight: 400; }
 .fig-svg .fi { color: var(--f-body); }
 .fig-svg .fe { fill: none; stroke: var(--f-ink); stroke-width: 1.8; }
 .fig-svg .fa { fill: var(--f-ink); stroke: none; }
-.fig-svg .fl { fill: var(--f-ink); font-weight: 500; }
+.fig-svg .fl { fill: var(--f-ink); font-weight: 400; }
 .fig-svg .fp { fill: var(--f-panel); }
 .fig-svg .fe-muted { stroke: var(--f-muted); stroke-width: 1.6; } .fig-svg .tone-muted { fill: var(--f-muted); }
 .fig-svg .fe-lost { stroke: var(--f-lost); stroke-dasharray: 6 4; } .fig-svg .tone-lost { fill: var(--f-lost); }

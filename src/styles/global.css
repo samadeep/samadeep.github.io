@@ -1,5 +1,4 @@
 @import '@fontsource-variable/jetbrains-mono';
-@import '@fontsource-variable/nunito/wght.css';
 @import './fig.css';
 
 /* ---------- tokens ---------- */
@@ -587,6 +586,6 @@ figure.fig .fig-scroll { margin: 0 auto; }
 figure.fig .fig-svg { display: block; width: 100%; height: auto; }
 figure.fig figcaption { margin-top: 1rem; color: var(--ink-3); font-size: .8rem; text-align: center; }
 /* the old .diagram svg rules (PlantUML era) must not reach into fig figures */
-.diagram .fig-svg text { font-family: 'Nunito Variable', Nunito, ui-rounded, system-ui, sans-serif; }
+.diagram .fig-svg text { font-family: inherit; }
 .diagram .fig-svg svg.fi { display: inline; margin: 0; max-width: none; width: 22px; height: 22px; }
 @media (max-width: 720px) { figure.fig .fig-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; } figure.fig .fig-svg { min-width: var(--fig-min); } figure.diagram.fig { padding: 1rem .75rem .75rem; } }

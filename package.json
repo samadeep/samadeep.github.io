@@ -14,7 +14,6 @@
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.4",
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
-    "@fontsource-variable/nunito": "^5.3.0",
     "@terrastruct/d2": "^0.1.33",
     "astro": "^7.3.5",
     "astro-expressive-code": "^0.44.2",
