@@ -19,6 +19,7 @@ These instructions are **self-evolving**: see "How this file evolves" at the end
 - **Readers run things, they don't read about labs.** Every shell command goes in a ```bash block (it gets a ▶ Run button); small calculations go in ```python blocks. Don't narrate "the lab" or write "lab notes"; show the command and its real output. Evidence is called out briefly, limits and sources go in a closing `<details>` block.
 - **Search-ready:** title at most 60 characters phrased as the query, description at most 160, short answer in the first paragraph.
 - Topics: `algorithms`, `systems`, `low-latency`, `ai`. Process detail lives in the `write-blog-post` skill.
+- **System design posts** follow the interview arc, each part short: requirements (with numbers) -> API -> capacity (a runnable ```python block) -> the design diagram -> "life of a request" in numbered steps -> deep dives (each with evidence) -> data model -> failure modes table -> "what most diagrams get wrong" -> takeaways. Be correct where typical diagrams aren't (for example, KV cache lives in GPU memory, not Redis).
 
 ## Diagrams: D2, styled like his reference
 
@@ -26,6 +27,7 @@ These instructions are **self-evolving**: see "How this file evolves" at the end
 - **Say what a box is, not how it looks:** classes from `src/lib/d2/{light,dark}.d2`: `main` (entry point / the thing in charge), `worker`, `peer` (clients, actors), `shared` (shared state, dashed), `result` (dotted circle outcome), `allow`, `deny`, `ask`, `panel` (titled container). Edges: `{class: lost}` for dropped or broken paths, `{class: good}` for the fixed path.
 - Prefer **side-by-side panels** (`grid-columns: 2`, two `class: panel` containers) for "broken vs fixed" and "what you picture vs what happens", as in his Subagents / Agent Teams reference. Sequence flows use `shape: sequence_diagram`.
 - At most ~7 boxes, labels of a few words, real values (IPs, ports, ms), never foo/bar. Caption states the conclusion.
+- **Architecture diagrams** use numbered component cards: `class: [main; card]` plus `icon: lucide:<name>` (any Lucide icon, recoloured per theme) and a `b: "..." {class: body}` child with two short lines of responsibilities and real numbers. Group cards in `class: panel` rows (`grid-columns: N`) stacked with a root `grid-columns: 1`; put state stores in their own row; reorder cells (or add an invisible spacer) so edges don't cross cards. The legend lives in the card, not in prose.
 - After editing a theme file, clear the content cache (`rm -rf .astro node_modules/.astro dist`) so every diagram re-renders, then delete `d2-*.svg` files no page references.
 - Older posts still use ```plantuml (`remark-plantuml.mjs`); convert them to D2 when you touch them.
 
@@ -43,6 +45,7 @@ These instructions are **self-evolving**: see "How this file evolves" at the end
 - Search: Pagefind with a custom UI (`Search.astro`), index built by `scripts/search-index.mjs` (reading items as records).
 - Reading list automation: `.github/workflows/reading-add.yml` (owner-only issues, iPhone dispatch, nightly Smriti sync).
 - Analytics: Cloudflare Web Analytics; comments and reactions: giscus (`src/lib/site.ts`).
+- Home (`src/pages/index.astro`): terminal-prompt hero ("Samadeep's blog"), three site principles, live stats (posts, runnable commands, diagrams, last update) and a "Start here" pair chosen from posts with `vm` front matter. Keep principles factual about the site, never claims in his voice.
 
 ## Workflow
 
@@ -67,3 +70,5 @@ This file is the project's memory. Keep it current as part of the work, not afte
 - 2026-10-04: diagrams move to D2 in his reference style (dark cards with role colours, side-by-side panels), rendered per theme so light and dark both look right.
 - 2026-10-04: reading-list additions stay owner-only (issue author must be the repo owner).
 - 2026-10-04: delegated approval ("merge if you're happy") never covers testimony.
+- 2026-10-04: system design content must beat the usual component-dump diagram: full interview arc, numbered icon cards, life of a request, failure modes, and calling out common mistakes.
+- 2026-10-04: the home page should feel thoughtful on open: prompt-style hero, principles, stats, "Start here".

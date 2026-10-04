@@ -26,6 +26,7 @@
     "@astrojs/check": "^0.9.10",
     "@fontsource/jetbrains-mono": "^5.3.0",
     "@resvg/resvg-js": "^2.6.2",
+    "lucide-static": "^0.544.0",
     "pagefind": "^1.5.2",
     "plantuml-cli": "^1.2026.8",
     "satori": "^0.35.0",

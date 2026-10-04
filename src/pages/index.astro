@@ -10,14 +10,46 @@ const posts = await getPosts();
 const reading = getReading().slice(0, 5);
 const groups = topicGroups(posts);
 const scale = readScale(posts);
+// "Start here": posts whose commands run in the browser, newest first
+const featured = posts.filter((p) => p.data.vm).slice(0, 2);
+const count = (re: RegExp) => posts.reduce((n, p) => n + (p.body?.match(re)?.length ?? 0), 0);
+const stats = [
+  [posts.length, 'posts'],
+  [count(/^```(bash|python)\b/gm), 'runnable commands'],
+  [count(/^```(d2|plantuml)\b/gm), 'diagrams'],
+] as const;
+const lastUpdate = posts[0]?.data.updated ?? posts[0]?.data.date;
 ---
 <Base>
   <div class="wrap wide with-rail">
   <div class="main-col">
-    <section class="intro">
-      <h1>Samadeep Sengupta</h1>
+    <section class="intro hero">
+      <p class="prompt" aria-hidden="true"><span class="ps">samadeep@blog</span>:<span class="cwd">~</span>$ <span class="cmd">cat README.md</span><span class="caret"></span></p>
+      <h1>Samadeep's blog</h1>
       <p>I build search, messaging and agent infrastructure at a trading firm in Hyderabad. This is where I write about systems, latency and algorithms, and keep a list of what I am reading.</p>
+      <ul class="principles" aria-label="How posts here work">
+        <li><Icon name="zap" /><span><b>Run it here.</b> Every command in a post runs on a real Linux machine in your browser.</span></li>
+        <li><Icon name="layers" /><span><b>Picture first.</b> A diagram for every idea, then the rule it shows.</span></li>
+        <li><Icon name="hash" /><span><b>Real numbers.</b> Outputs from actual runs, with sources for the rest.</span></li>
+      </ul>
+      <p class="stats">{stats.map(([n, l]) => <span><b>{n}</b> {l}</span>)}{lastUpdate && <span>updated <time datetime={lastUpdate.toISOString().slice(0, 10)}>{lastUpdate.toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}</time></span>}</p>
     </section>
+
+    {featured.length > 0 && <>
+      <div class="section-head"><h2>Start here</h2></div>
+      <ul class="start-here">
+        {featured.map((p) => (
+          <li>
+            <a href={p.href}>
+              {p.cover && <img src={p.cover} alt="" loading="lazy" decoding="async" />}
+              <span class="sh-meta"><span class="sh-run"><Icon name="zap" /> runnable</span> {p.minutes} min</span>
+              <span class="sh-title">{p.data.title}</span>
+              <span class="sh-desc">{p.data.description}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </>}
 
     <ul class="topic-jump" aria-label="Topics">
       {groups.map((g) => <li><a href={`/topics/${g.slug}/`}><Icon name={g.icon} />{g.name}<span class="n">{g.posts.length}</span></a></li>)}
