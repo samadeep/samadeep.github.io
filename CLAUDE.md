@@ -45,7 +45,9 @@ These instructions are **self-evolving**: see "How this file evolves" at the end
 - Search: Pagefind with a custom UI (`Search.astro`), index built by `scripts/search-index.mjs` (reading items as records).
 - Reading list automation: `.github/workflows/reading-add.yml` (owner-only issues, iPhone dispatch, nightly Smriti sync).
 - Analytics: Cloudflare Web Analytics; comments and reactions: giscus (`src/lib/site.ts`).
-- Home (`src/pages/index.astro`): terminal-prompt hero ("Samadeep's blog"), three site principles, live stats (posts, runnable commands, diagrams, last update) and a "Start here" pair chosen from posts with `vm` front matter. Keep principles factual about the site, never claims in his voice.
+- Header brand reads "Samadeep's blog" and types itself once per visit (sessionStorage; off for reduced motion). Theme toggle reveals the new theme as a growing circle (View Transitions). Posts show a scroll-driven reading progress bar; the header is sticky and translucent.
+- **Layout on wide screens (>= 1280px):** site width 1320px; posts put the contents rail on the left, keep prose at ~76ch, and let diagrams, labs, code frames and tables spread into the right-hand space. Don't widen the text column itself.
+- Home (`src/pages/index.astro`): terminal-prompt hero (his name as the h1), three site principles, live stats (posts, runnable commands, diagrams, last update) and a "Start here" pair chosen from posts with `vm` front matter. Keep principles factual about the site, never claims in his voice.
 
 ## Workflow
 
@@ -72,3 +74,4 @@ This file is the project's memory. Keep it current as part of the work, not afte
 - 2026-10-04: delegated approval ("merge if you're happy") never covers testimony.
 - 2026-10-04: system design content must beat the usual component-dump diagram: full interview arc, numbered icon cards, life of a request, failure modes, and calling out common mistakes.
 - 2026-10-04: the home page should feel thoughtful on open: prompt-style hero, principles, stats, "Start here".
+- 2026-10-04: use more width on desktop without hurting reading: wide figures and code, not wider text. Header says "Samadeep's blog", typed in.
