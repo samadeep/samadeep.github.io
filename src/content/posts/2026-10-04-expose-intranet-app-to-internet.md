@@ -286,7 +286,15 @@ The detail worth noticing is `200 0 bytes`: the status line and headers arrived,
 
 **Guards that missed it:** health checks fetch small pages. Office testing never crosses a small-MTU link. And "block ICMP for security" sounds responsible.
 
-## Results
+## What this lab doesn't show
+
+A lab is a model, and this one has edges worth knowing:
+
+- **It's plain HTTP.** TLS changes none of the four failures (they all happen below it), but it does change what you can see in a capture.
+- **The idle timeout is 5 seconds, set on a Linux firewall.** Real cloud load balancers and NAT gateways differ: some drop silently like this one, and some can send a RST when the idle timer fires. Check your provider's documentation rather than assuming.
+- **Everything runs on one kernel.** Namespaces give each box its own network stack and its own conntrack table, but not real link latency or loss.
+- **It doesn't cover the application layer.** SSO, header trust and cookies are in the checklist below, not in the lab.
+
 
 | Failure | What you see | What's actually happening | Fix |
 |---|---|---|---|
