@@ -1532,7 +1532,6 @@ This timing diagram shows the optimization of critical operations:
 ```plantuml
 @startuml PerformanceOptimizationTimeline
 !theme plain
-skinparam participantPadding 20
 skinparam sequenceArrowThickness 2
 
 participant "Market Data\nIngestion" as MDI

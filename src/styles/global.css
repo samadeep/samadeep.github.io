@@ -167,11 +167,32 @@ hr { border: 0; border-top: 1px solid var(--rule); margin: 3rem 0; }
 .prose .expressive-code { margin-block: 1.6em; }
 .prose mark { background: var(--mark); color: inherit; }
 
-.diagram { margin: 2em 0; padding: 1.25rem; border: 1px solid var(--rule); border-radius: 8px; background: var(--paper-2); overflow-x: auto; }
-.diagram a { display: block; }
-.diagram img { display: block; margin: 0 auto; max-width: none; height: auto; }
-.diagram a { width: max-content; min-width: 100%; }
-[data-theme='dark'] .diagram { background: #e8e4d3; border-color: #e8e4d3; }
+/* Diagrams are inline SVG drawn in a fixed palette (remark-plantuml DG). Each palette hex
+   is mapped to a variable here, so diagrams follow the theme. .dg-fixed pins the light set. */
+.diagram {
+  --dg-box: #fbfaf6; --dg-line: #6b6f6a; --dg-ink: #1a2221; --dg-group: #f1eee3; --dg-note: #e3f1ef; --dg-accent: #00636c;
+  --dg-allow-bg: #e5f2ea; --dg-allow: #2f7d52; --dg-deny-bg: #fbe9e7; --dg-deny: #c2412d; --dg-ask-bg: #e8f0fb; --dg-ask: #2f6db5;
+  margin: 2.2em 0; padding: 1.5rem 1.25rem 0.75rem; border: 1px solid var(--rule); border-radius: 12px; background: #f6f4ec; overflow-x: auto;
+}
+[data-theme='dark'] .diagram:not(.dg-fixed) {
+  --dg-box: #0d2524; --dg-line: #8e9a97; --dg-ink: #e8e4d3; --dg-group: #081b1a; --dg-note: #0f3331; --dg-accent: #00aebb;
+  --dg-allow-bg: #10301f; --dg-allow: #6fcf97; --dg-deny-bg: #3a1714; --dg-deny: #f08a7a; --dg-ask-bg: #12253d; --dg-ask: #7fb2f0;
+  background: #051716;
+}
+[data-theme='dark'] .diagram.dg-fixed { background: #f6f4ec; border-color: #f6f4ec; }
+.diagram svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+.diagram svg text { font-family: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace; }
+.diagram svg [fill="#FBFAF6" i] { fill: var(--dg-box); }      .diagram svg [stroke="#6B6F6A" i] { stroke: var(--dg-line); }
+.diagram svg [fill="#6B6F6A" i] { fill: var(--dg-line); }     .diagram svg [fill="#1A2221" i] { fill: var(--dg-ink); }
+.diagram svg [fill="#F1EEE3" i] { fill: var(--dg-group); }    .diagram svg [fill="#E3F1EF" i] { fill: var(--dg-note); }
+.diagram svg [stroke="#00636C" i] { stroke: var(--dg-accent); } .diagram svg [fill="#00636C" i] { fill: var(--dg-accent); }
+.diagram svg [fill="#E5F2EA" i] { fill: var(--dg-allow-bg); } .diagram svg [stroke="#2F7D52" i] { stroke: var(--dg-allow); } .diagram svg [fill="#2F7D52" i] { fill: var(--dg-allow); }
+.diagram svg [fill="#FBE9E7" i] { fill: var(--dg-deny-bg); }  .diagram svg [stroke="#C2412D" i] { stroke: var(--dg-deny); }  .diagram svg [fill="#C2412D" i] { fill: var(--dg-deny); }
+.diagram svg [fill="#E8F0FB" i] { fill: var(--dg-ask-bg); }   .diagram svg [stroke="#2F6DB5" i] { stroke: var(--dg-ask); }   .diagram svg [fill="#2F6DB5" i] { fill: var(--dg-ask); }
+.diagram figcaption { margin-top: 0.75rem; font: 400 0.78rem var(--sans); text-align: center; }
+.diagram figcaption a { color: var(--ink-3); text-decoration: none; }
+.diagram figcaption a:hover { color: var(--trace); text-decoration: underline; }
+[data-theme='dark'] .diagram.dg-fixed figcaption a { color: #55615e; }
 
 .toc-rail { padding-top: 4rem; }
 .toc { position: sticky; top: 2rem; font: 400 0.85rem/1.45 var(--sans); max-height: calc(100vh - 4rem); overflow-y: auto; }
