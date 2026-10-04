@@ -264,10 +264,42 @@ hr { border: 0; border-top: 1px solid var(--rule); margin: 3rem 0; }
 .tag-cloud .n { font: 400 0.75rem var(--mono); color: var(--ink-3); margin-left: 0.3rem; }
 
 /* ---------- search dialog ---------- */
-dialog.search { width: min(680px, calc(100vw - 2rem)); max-height: min(78vh, 720px); margin: 10vh auto auto; padding: 0; border: 1px solid var(--rule); border-radius: 12px; background: var(--paper); color: var(--ink); box-shadow: 0 30px 80px -20px rgb(0 0 0 / .35); }
-dialog.search::backdrop { background: rgb(10 14 18 / .45); backdrop-filter: blur(2px); }
-dialog.search .inner { padding: 1rem; overflow-y: auto; max-height: inherit; }
-#search-ui { --pagefind-ui-primary: var(--trace); --pagefind-ui-text: var(--ink); --pagefind-ui-background: var(--paper); --pagefind-ui-border: var(--rule); --pagefind-ui-tag: var(--paper-2); --pagefind-ui-border-width: 1px; --pagefind-ui-border-radius: 8px; --pagefind-ui-font: var(--sans); --pagefind-ui-scale: .9; }
+dialog.search { width: min(640px, calc(100vw - 2rem)); max-height: min(76vh, 680px); margin: 9vh auto auto; padding: 0; border: 1px solid var(--rule); border-radius: 12px; background: var(--paper); color: var(--ink); box-shadow: 0 30px 80px -20px rgb(0 0 0 / .4); overflow: hidden; }
+dialog.search[open] { display: flex; flex-direction: column; }
+dialog.search::backdrop { background: rgb(3 18 17 / .5); backdrop-filter: blur(3px); }
+.sq { display: flex; align-items: center; gap: .6rem; padding: .85rem 1rem; border-bottom: 1px solid var(--rule); }
+.sq svg { width: 18px; height: 18px; flex: none; fill: none; stroke: var(--ink-3); stroke-width: 2; stroke-linecap: round; }
+.sq input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: var(--ink); font: 400 1rem var(--mono); }
+.sq input::-webkit-search-cancel-button { display: none; }
+.sq .esc, .sfoot kbd { font: 500 .7rem var(--mono); color: var(--ink-3); border: 1px solid var(--rule); border-radius: 4px; padding: .1rem .35rem; background: none; cursor: pointer; }
+.sq, .sf, .sfoot { flex: none; }
+.sf { display: flex; flex-wrap: wrap; gap: .35rem; padding: .6rem 1rem 0; }
+.sf:empty { display: none; }
+.sf i { width: 1px; background: var(--rule); margin: 0 .25rem; }
+.sf button { font: 500 .75rem var(--mono); color: var(--ink-2); background: none; border: 1px solid var(--rule); border-radius: 999px; padding: .2rem .6rem; cursor: pointer; }
+.sf button span { color: var(--ink-3); margin-left: .35rem; }
+.sf button:hover { border-color: var(--trace); color: var(--trace); }
+.sf button[aria-pressed='true'] { background: var(--trace); border-color: var(--trace); color: var(--paper); }
+.sf button[aria-pressed='true'] span { color: inherit; opacity: .75; }
+.sbody { overflow-y: auto; padding: .4rem .5rem .6rem; flex: 1; overscroll-behavior: contain; }
+.sstat { font: 500 .72rem var(--mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; margin: .5rem .5rem .35rem; }
+.sstat:empty { display: none; }
+.sr { list-style: none; margin: 0; padding: 0; }
+.sr .hit { display: grid; gap: .15rem; padding: .55rem .6rem; border-radius: 8px; text-decoration: none; color: var(--ink); border-left: 2px solid transparent; }
+.sr .hit[data-sel] { background: var(--trace-soft); border-left-color: var(--trace-fill); }
+.sr .ht { font: 600 .92rem/1.35 var(--mono); }
+.sr .hm { font: 400 .72rem var(--mono); color: var(--ink-3); }
+.sr .hx { font: 400 .8rem/1.5 var(--mono); color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.sr .hx mark { background: var(--mark); color: inherit; border-radius: 2px; padding: 0 .1em; }
+.sr .sub .hit { margin-left: 1.1rem; border-left-color: var(--rule); border-radius: 0 8px 8px 0; }
+.sr .sub .hit[data-sel] { border-left-color: var(--trace-fill); }
+.sr .sub .ht { font-weight: 500; font-size: .85rem; }
+.sr .sub .ht b { color: var(--trace); font-weight: 600; }
+.sempty[hidden] { display: none; }
+.sfoot { display: flex; gap: 1rem; align-items: center; padding: .5rem 1rem; border-top: 1px solid var(--rule); font: 400 .7rem var(--mono); color: var(--ink-3); }
+.sfoot .sp { flex: 1; }
+.sfoot kbd { cursor: default; margin-right: .2rem; }
+@media (max-width: 560px) { dialog.search { margin-top: 1rem; max-height: calc(100dvh - 2rem); } .sf { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: .1rem; } .sf button { flex: none; } .sfoot span:not(:last-child) { display: none; } }
 
 /* ---------- view transitions (cross-document, no JS) ---------- */
 @view-transition { navigation: auto; }

@@ -1,0 +1,133 @@
+---
+// ⌘K search. Pagefind's JS API with our own UI: one row per matching section,
+// compact filter chips, arrow-key navigation. The index loads on first open.
+import { getPosts } from '../lib/posts';
+const recent = (await getPosts()).slice(0, 4).map((p) => ({ href: p.href, title: p.data.title }));
+---
+<dialog class="search" id="search" aria-label="Search the site">
+  <form method="dialog" class="sq" role="search">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="sq" type="search" placeholder="Search posts, sections, reading list" autocomplete="off" spellcheck="false" aria-controls="sr" />
+    <button class="esc" value="close" aria-label="Close search">esc</button>
+  </form>
+  <div class="sf" id="sf" role="group" aria-label="Filter"></div>
+  <div class="sbody">
+    <p class="sstat" id="ss" aria-live="polite"></p>
+    <ol class="sr" id="sr" role="listbox"></ol>
+    <div class="sempty" id="se">
+      <p class="sstat">Recent</p>
+      <ol class="sr">{recent.map((r) => <li><a class="hit" href={r.href}><span class="ht">{r.title}</span></a></li>)}</ol>
+    </div>
+  </div>
+  <footer class="sfoot"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>↵</kbd> open</span><span class="sp"></span><span>keyword search · stemmed</span></footer>
+</dialog>
+
+<script>
+  type Sub = { title: string; url: string; excerpt: string };
+  type Data = { url: string; excerpt: string; meta: Record<string, string>; filters: Record<string, string[]>; sub_results: Sub[] };
+
+  const dlg = document.getElementById('search') as HTMLDialogElement;
+  const input = document.getElementById('sq') as HTMLInputElement;
+  const list = document.getElementById('sr')!;
+  const stat = document.getElementById('ss')!;
+  const chips = document.getElementById('sf')!;
+  const empty = document.getElementById('se')!;
+  let pf: any;
+  let active: Record<string, string> = {};
+  let sel = -1;
+
+  const esc = (s = '') => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+  const external = (u: string) => /^https?:\/\//.test(u);
+
+  async function load() {
+    if (pf) return pf;
+    try {
+      const url = '/pagefind/pagefind.js';
+      pf = await import(/* @vite-ignore */ url);
+      await pf.options({ excerptLength: 22, ranking: { termFrequency: 0.6, pageLength: 0.5 } });
+      renderChips(await pf.filters());
+    } catch {
+      stat.textContent = 'Search is built with the production site: npm run build, then npm run preview.';
+    }
+    return pf;
+  }
+
+  function renderChips(f: Record<string, Record<string, number>>) {
+    const groups = Object.entries(f).sort(([a], [b]) => (a === 'kind' ? -1 : b === 'kind' ? 1 : 0));
+    chips.innerHTML = groups
+      .filter(([, vals]) => Object.keys(vals).length > 1 || Object.keys(f).length === 1)
+      .map(([k, vals]) => Object.entries(vals).map(([v, n]) =>
+        `<button type="button" data-k="${esc(k)}" data-v="${esc(v)}" aria-pressed="false">${esc(v)}<span>${n}</span></button>`).join(''))
+      .join('<i></i>');
+  }
+
+  chips.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest('button');
+    if (!b) return;
+    const { k, v } = b.dataset as { k: string; v: string };
+    active[k] === v ? delete active[k] : (active[k] = v);
+    chips.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(active[x.dataset.k!] === x.dataset.v)));
+    run(true);
+  });
+
+  function hit(d: Data) {
+    const ext = external(d.url);
+    const meta = [d.meta.kind === 'Reading' ? `Reading${d.meta.by ? ' · ' + d.meta.by : ''}` : d.meta.topic, d.meta.date, d.meta.minutes]
+      .filter(Boolean).map((x) => esc(x)).join(' · ');
+    const subs = d.sub_results.filter((s) => s.url !== d.url && s.title !== d.meta.title).slice(0, 4);
+    const page = `<li><a class="hit" href="${esc(d.url)}"${ext ? ' target="_blank" rel="noopener"' : ''}>
+      <span class="ht">${esc(d.meta.title)}${ext ? ' ↗' : ''}</span>${meta ? `<span class="hm">${meta}</span>` : ''}
+      ${subs.length ? '' : `<span class="hx">${d.excerpt}</span>`}</a></li>`;
+    return page + subs.map((s) => `<li class="sub"><a class="hit" href="${esc(s.url)}"><span class="ht"><b>#</b> ${esc(s.title)}</span><span class="hx">${s.excerpt}</span></a></li>`).join('');
+  }
+
+  async function run(now = false) {
+    const q = input.value.trim();
+    empty.hidden = !!q;
+    if (!q) { list.innerHTML = ''; stat.textContent = ''; return; }
+    if (!(await load())) return;
+    const opts = { filters: active };
+    const r = now ? await pf.search(q, opts) : await pf.debouncedSearch(q, opts, 120);
+    if (r === null || input.value.trim() !== q) return; // superseded by a newer keystroke
+    const data: Data[] = await Promise.all(r.results.slice(0, 12).map((x: any) => x.data()));
+    const sections = data.reduce((n, d) => n + Math.max(1, d.sub_results.filter((s) => s.url !== d.url).length), 0);
+    stat.textContent = data.length
+      ? `${data.length} ${data.length === 1 ? 'page' : 'pages'}, ${Math.min(sections, data.length * 5)} matching sections`
+      : `Nothing for “${q}”. Try a shorter word or clear the filters.`;
+    list.innerHTML = data.map(hit).join('');
+    select(0);
+  }
+
+  function rows() { return [...dlg.querySelectorAll<HTMLAnchorElement>('.sbody .hit')].filter((a) => a.offsetParent); }
+  function select(i: number) {
+    const all = rows();
+    if (!all.length) { sel = -1; return; }
+    sel = (i + all.length) % all.length;
+    all.forEach((a, j) => a.toggleAttribute('data-sel', j === sel));
+    all[sel].scrollIntoView({ block: 'nearest' });
+  }
+
+  input.addEventListener('input', () => run());
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); select(sel + (e.key === 'ArrowDown' ? 1 : -1)); }
+    if (e.key === 'Enter') { e.preventDefault(); rows()[sel]?.click(); }
+  });
+
+  async function open() {
+    dlg.showModal();
+    input.select();
+    load();
+  }
+  document.querySelectorAll('[data-open-search]').forEach((b) => b.addEventListener('click', open));
+  addEventListener('keydown', (e) => {
+    const typing = (e.target as HTMLElement).closest('input,textarea,[contenteditable]');
+    if ((e.key === 'k' && (e.metaKey || e.ctrlKey)) || (e.key === '/' && !typing)) {
+      e.preventDefault(); dlg.open ? dlg.close() : open();
+    }
+  });
+  dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+  dlg.addEventListener('mousemove', (e) => {
+    const a = (e.target as HTMLElement).closest('.hit');
+    if (a) select(rows().indexOf(a as HTMLAnchorElement));
+  });
+</script>
