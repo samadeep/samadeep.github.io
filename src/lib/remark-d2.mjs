@@ -12,12 +12,12 @@ import { visit } from 'unist-util-visit';
 
 const OUT = join(process.cwd(), 'public', 'diagrams');
 const THEME_DIR = join(process.cwd(), 'src', 'lib', 'd2');
-const VERSION = 'd2-v2'; // bump to re-render every D2 diagram
+const VERSION = 'd2-v3'; // bump to re-render every D2 diagram
 const THEMES = ['light', 'dark'];
 const prelude = (t) => readFileSync(join(THEME_DIR, `${t}.d2`), 'utf8');
 
 // `icon: lucide:<name>` -> the Lucide icon (ISC), inlined as a data URI in the theme's ink colour
-const INK = { light: '#1a2221', dark: '#e8e4d3' };
+const INK = { light: '#6b6860', dark: '#a9a69a' };
 const LUCIDE = join(process.cwd(), 'node_modules', 'lucide-static', 'icons');
 const withIcons = (src, theme) => src.replace(/icon:\s*"?lucide:([a-z0-9-]+)"?/g, (_, name) => {
   const svg = readFileSync(join(LUCIDE, `${name}.svg`), 'utf8').replace(/currentColor/g, INK[theme]);

@@ -1,24 +1,27 @@
-# Dark theme for ```d2 diagrams. Same class names as light.d2: diagrams say what a box IS.
+# Dark theme for ```d2 diagrams. Same class names in both themes: a diagram says what a box IS.
+# Style: restraint. Neutral boxes, thin warm-grey lines, colour only where it means something
+# (a verdict, a broken path), generous space. Modelled on well-made engineering-blog figures.
 vars: {
-  lost: "#f08a7a"
-  good: "#6fcf97"
-  d2-config: { theme-overrides: { B1: "#cfc9bc"; B2: "#cfc9bc"; N1: "#e8e4d3"; N2: "#cfc9bc"; N3: "#a9a69a" } }
+  lost: "#e07a6c"
+  good: "#7fbf6e"
+  d2-config: { theme-overrides: { B1: "#5f6b68"; B2: "#5f6b68"; N1: "#e8e4d3"; N2: "#a9a69a"; N3: "#9c998e" } }
 }
 classes: {
-  panel: { label.near: top-center; style: { fill: "#1d2124"; stroke: "#4a5057"; border-radius: 14; font-color: "#e8e4d3"; font-size: 18; bold: true; font: mono } }
-  main: { style: { fill: "#5a2a2c"; stroke: "#d9cfc4"; border-radius: 8; font-color: "#f4ede4"; stroke-width: 2; font: mono } }
-  worker: { style: { fill: "#4a3412"; stroke: "#d9cfc4"; border-radius: 8; font-color: "#f4ede4"; stroke-width: 2; font: mono } }
-  peer: { style: { fill: "#3f2f6e"; stroke: "#d9cfc4"; border-radius: 8; font-color: "#f4ede4"; stroke-width: 2; font: mono } }
-  shared: { style: { fill: "#1d3a5a"; stroke: "#c9d6e6"; stroke-dash: 3; border-radius: 8; font-color: "#f4ede4"; stroke-width: 2; font: mono } }
-  result: { shape: circle; style: { fill: transparent; stroke: "#e8e4d3"; stroke-dash: 2; font-color: "#e8e4d3"; stroke-width: 2; font: mono } }
-  allow: { style: { fill: "#163a28"; stroke: "#6fcf97"; border-radius: 8; font-color: "#d7f5e3"; stroke-width: 2; font: mono } }
-  deny: { style: { fill: "#4a1d18"; stroke: "#f08a7a"; border-radius: 8; font-color: "#ffd9d2"; stroke-width: 2; font: mono } }
-  ask: { style: { fill: "#18304d"; stroke: "#7fb2f0"; border-radius: 8; font-color: "#dbe9fb"; stroke-width: 2; font: mono } }
-  lost: { style: { stroke: "#f08a7a"; font-color: "#f08a7a"; stroke-dash: 4; font: mono } }
-  good: { style: { stroke: "#6fcf97"; font-color: "#6fcf97"; font: mono } }
-  card: { label.near: top-left; icon.near: top-right; width: 300; style: { font-size: 15; bold: true; font: mono } }
-  body: { shape: text; style: { font-size: 12; font: mono; font-color: "#cfc9bc" } }
-  note: { shape: text; style: { font-color: "#a9a69a"; font-size: 14; italic: false; font: mono } }
+  panel: { label.near: top-center; style: { fill: "#162120"; stroke: "#162120"; border-radius: 14; font-color: "#e8e4d3"; font-size: 16; bold: false; font: mono } }
+  box: { style: { fill: "#1b2625"; stroke: "#5f6b68"; border-radius: 7; font-color: "#d6d2c6"; stroke-width: 2; font-size: 14; bold: false; font: mono } }
+  main: { style: { fill: "#2a2321"; stroke: "#5f6b68"; border-radius: 7; font-color: "#d6d2c6"; stroke-width: 2; font-size: 14; bold: false; font: mono } }
+  worker: { style: { fill: "#29251a"; stroke: "#5f6b68"; border-radius: 7; font-color: "#d6d2c6"; stroke-width: 2; font-size: 14; bold: false; font: mono } }
+  peer: { style: { fill: "#231f31"; stroke: "#5f6b68"; border-radius: 7; font-color: "#d6d2c6"; stroke-width: 2; font-size: 14; bold: false; font: mono } }
+  shared: { style: { fill: "#1a2533"; stroke: "#5f6b68"; stroke-dash: 3; border-radius: 7; font-color: "#d6d2c6"; stroke-width: 2; font-size: 14; bold: false; font: mono } }
+  result: { shape: circle; style: { fill: transparent; stroke: "#5f6b68"; stroke-dash: 2; font-color: "#9c998e"; stroke-width: 2; font-size: 13; bold: false; font: mono } }
+  allow: { style: { fill: "#17231a"; stroke: "#7fbf6e"; border-radius: 18; font-color: "#a8d99a"; stroke-width: 2; font-size: 14; bold: false; font: mono } }
+  deny: { style: { fill: "#291a18"; stroke: "#e07a6c"; border-radius: 18; font-color: "#f0a99f"; stroke-width: 2; font-size: 14; bold: false; font: mono } }
+  ask: { style: { fill: "#162131"; stroke: "#7ea6dc"; border-radius: 18; font-color: "#b3cdf0"; stroke-width: 2; font-size: 14; bold: false; font: mono } }
+  lost: { style: { stroke: "#e07a6c"; font-color: "#f0a99f"; stroke-dash: 4; font: mono } }
+  good: { style: { stroke: "#7fbf6e"; font-color: "#a8d99a"; font: mono } }
+  card: { label.near: top-left; icon.near: top-right; width: 300; style: { font-size: 14; bold: true; font: mono } }
+  body: { shape: text; style: { font-size: 12; font: mono; font-color: "#9c998e" } }
+  note: { shape: text; style: { font-color: "#9c998e"; font-size: 13; italic: false; font: mono } }
 }
 style.fill: transparent
-(** -> **)[*]: { style: { font-size: 13; font: mono; italic: false; stroke-width: 2; font: mono } }
+(** -> **)[*]: { style: { font-size: 12; font: mono; italic: false; stroke-width: 2 } }

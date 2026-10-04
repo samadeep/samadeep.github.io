@@ -22,9 +22,10 @@ These instructions are **self-evolving**: see "How this file evolves" at the end
 - Topics: `algorithms`, `systems`, `low-latency`, `ai`. Process detail lives in the `write-blog-post` skill.
 - **System design posts** follow the interview arc, each part short: requirements (with numbers) -> API -> capacity (a runnable ```python block) -> the design diagram -> "life of a request" in numbered steps -> deep dives (each with evidence) -> data model -> failure modes table -> "what most diagrams get wrong" -> takeaways. Be correct where typical diagrams aren't (for example, KV cache lives in GPU memory, not Redis).
 
-## Diagrams: D2, styled like his reference
+## Diagrams: D2, refined and restrained
 
 - Write ```d2 title="<the point it makes>"``` fences. `src/lib/remark-d2.mjs` renders each twice at build (light + dark), caches them in `public/diagrams/d2-<hash>-<theme>.svg` (commit these), and the page shows the one matching the site's theme toggle.
+- **Look:** restraint, like well-made engineering-blog figures (anthropic.com/engineering is the bar): neutral boxes with only a faint role tint, thin warm-grey lines, regular-weight labels, generous space, colour only where it carries meaning (a verdict pill, a broken path). Figures sit on a soft canvas card. Don't add saturated fills, heavy borders or shadows.
 - **Say what a box is, not how it looks:** classes from `src/lib/d2/{light,dark}.d2`: `main` (entry point / the thing in charge), `worker`, `peer` (clients, actors), `shared` (shared state, dashed), `result` (dotted circle outcome), `allow`, `deny`, `ask`, `panel` (titled container). Edges: `{class: lost}` for dropped or broken paths, `{class: good}` for the fixed path.
 - Prefer **side-by-side panels** (`grid-columns: 2`, two `class: panel` containers) for "broken vs fixed" and "what you picture vs what happens", as in his Subagents / Agent Teams reference. Sequence flows use `shape: sequence_diagram`.
 - At most ~7 boxes, labels of a few words, real values (IPs, ports, ms), never foo/bar. Caption states the conclusion.
@@ -77,3 +78,4 @@ This file is the project's memory. Keep it current as part of the work, not afte
 - 2026-10-04: the home page should feel thoughtful on open: prompt-style hero, principles, stats, "Start here".
 - 2026-10-04: use more width on desktop without hurting reading: wide figures and code, not wider text. Header says "Samadeep's blog", typed in.
 - 2026-10-04: posts must deliver insights, not just facts: one `Insight` callout per main section. The typing animation must be visible on the home page every time.
+- 2026-10-04: diagrams were "not as good and refined" as Anthropic's: moved to a restrained theme (neutral boxes, thin lines, colour only for meaning, canvas card). This replaces the saturated role colours.
