@@ -92,6 +92,7 @@ const jsonLd = {
   </div>
 
   <script>
+    import '../../scripts/labs';
     // highlight the section currently in view
     const links = new Map([...document.querySelectorAll<HTMLAnchorElement>('.toc a')].map((a) => [decodeURIComponent(a.hash.slice(1)), a]));
     if (links.size) {
