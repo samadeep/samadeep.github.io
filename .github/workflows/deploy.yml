@@ -27,6 +27,12 @@ jobs:
       - run: sudo apt-get install -y --no-install-recommends graphviz
       - run: npm ci
       - run: npm run build
+      # the in-browser lab VM, built by vm.yml onto the vm-dist branch (absent until its first run on main)
+      - name: Add lab VM
+        run: |
+          if git fetch -q --depth 1 origin vm-dist 2>/dev/null; then
+            mkdir -p dist/vm && git --work-tree=dist/vm checkout FETCH_HEAD -- . && git reset -q && du -sh dist/vm
+          else echo "::notice::no vm-dist branch yet"; fi
       - uses: actions/upload-pages-artifact@v3
         with: { path: dist }
 

@@ -18,7 +18,7 @@ function stream(u, lastId) {
       });
       r.on('end', () => ok({ ids, chunks }));
     });
-    req.on('error', () => {});
+    req.on('error', (e) => { if (!(mode === 'resume' && lastId == null)) { console.error('probe:', e.message); process.exit(1); } });
   });
 }
 

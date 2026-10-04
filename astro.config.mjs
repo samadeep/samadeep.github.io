@@ -4,6 +4,7 @@ import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import expressiveCode from 'astro-expressive-code';
 import { remarkPlantuml } from './src/lib/remark-plantuml.mjs';
+import { remarkD2 } from './src/lib/remark-d2.mjs';
 import { remarkReadingTime } from './src/lib/remark-reading-time.mjs';
 import { rehypeHeadingAnchors } from './src/lib/rehype-heading-anchors.mjs';
 
@@ -18,7 +19,7 @@ export default defineConfig({
     '/topics/': '/posts/',
   },
   markdown: {
-    remarkPlugins: [remarkPlantuml, remarkReadingTime],
+    remarkPlugins: [remarkD2, remarkPlantuml, remarkReadingTime],
     rehypePlugins: [rehypeHeadingAnchors],
   },
   integrations: [

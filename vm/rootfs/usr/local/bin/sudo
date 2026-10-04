@@ -1,0 +1,3 @@
+#!/bin/sh
+# You are already root in this machine.
+exec "$@"

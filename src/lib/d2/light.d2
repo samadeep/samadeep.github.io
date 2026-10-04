@@ -1,0 +1,22 @@
+# Light theme for ```d2 diagrams. Same class names as dark.d2: diagrams say what a box IS.
+vars: {
+  lost: "#c2412d"
+  good: "#2f7d52"
+  d2-config: { theme-overrides: { B1: "#55615e"; B2: "#55615e"; N1: "#031211"; N2: "#2c3b39"; N3: "#55615e" } }
+}
+classes: {
+  panel: { label.near: top-center; style: { fill: "#f6f3ea"; stroke: "#cdc8b2"; border-radius: 14; font-color: "#031211"; font-size: 18; bold: true; font: mono } }
+  main: { style: { fill: "#f3c9c4"; stroke: "#1a2221"; border-radius: 8; font-color: "#1a2221"; stroke-width: 2; font: mono } }
+  worker: { style: { fill: "#efd991"; stroke: "#1a2221"; border-radius: 8; font-color: "#1a2221"; stroke-width: 2; font: mono } }
+  peer: { style: { fill: "#d3c6f3"; stroke: "#1a2221"; border-radius: 8; font-color: "#1a2221"; stroke-width: 2; font: mono } }
+  shared: { style: { fill: "#cfddf6"; stroke: "#1a2221"; stroke-dash: 3; border-radius: 8; font-color: "#1a2221"; stroke-width: 2; font: mono } }
+  result: { shape: circle; style: { fill: transparent; stroke: "#1a2221"; stroke-dash: 2; font-color: "#1a2221"; stroke-width: 2; font: mono } }
+  allow: { style: { fill: "#e5f2ea"; stroke: "#2f7d52"; border-radius: 8; font-color: "#1d5c3a"; stroke-width: 2; font: mono } }
+  deny: { style: { fill: "#fbe9e7"; stroke: "#c2412d"; border-radius: 8; font-color: "#8f2a1c"; stroke-width: 2; font: mono } }
+  ask: { style: { fill: "#e8f0fb"; stroke: "#2f6db5"; border-radius: 8; font-color: "#1f4f8a"; stroke-width: 2; font: mono } }
+  lost: { style: { stroke: "#c2412d"; font-color: "#c2412d"; stroke-dash: 4; font: mono } }
+  good: { style: { stroke: "#2f7d52"; font-color: "#2f7d52"; font: mono } }
+  note: { shape: text; style: { font-color: "#55615e"; font-size: 14; italic: false; font: mono } }
+}
+style.fill: transparent
+(** -> **)[*]: { style: { font-size: 13; font: mono; italic: false; stroke-width: 2; font: mono } }

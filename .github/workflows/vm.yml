@@ -1,0 +1,51 @@
+name: Lab VM
+# Builds the Linux machine that runs post commands in the reader's browser (v86 + Alpine),
+# smoke-tests a lab inside it, and publishes it as the "vm-latest" release for deploy.yml.
+on:
+  push:
+    paths: ['vm/**', 'public/labs/**', '.github/workflows/vm.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: vm-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: sudo apt-get install -y --no-install-recommends zstd && pip install zstandard
+      - run: git clone --depth 1 https://github.com/copy/v86 /tmp/v86
+      - name: Build image
+        run: vm/ci-run.sh build-image vm/build.sh /tmp/v86 out/vm
+      - name: Boot, smoke-test, save state
+        run: |
+          cd vm && npm install --no-audit --no-fund && cd ..
+          vm/ci-run.sh smoke-test node vm/state.mjs /tmp/v86 "$PWD/out/vm"
+          zstd -19 -T0 --rm out/vm/state.bin
+      - name: Add the emulator
+        run: |
+          cp vm/node_modules/v86/build/libv86.mjs vm/node_modules/v86/build/v86.wasm out/vm/
+          cp /tmp/v86/bios/seabios.bin /tmp/v86/bios/vgabios.bin out/vm/
+          echo "{\"built\":\"$(date -u +%FT%TZ)\",\"sha\":\"${GITHUB_SHA::7}\"}" > out/vm/version.json
+          tar -C out -czf vm.tar.gz vm
+          vm/ci-run.sh sizes sh -c 'du -sh out/vm out/vm/flat out/vm/state.bin.zst out/vm/v86.wasm vm.tar.gz; ls out/vm/flat | wc -l'
+      - name: Publish to the vm-dist branch (vm-dist-preview off main)
+        run: |
+          BR=vm-dist; [ "$GITHUB_REF" = refs/heads/main ] || BR=vm-dist-preview
+          cd out/vm
+          git init -q -b "$BR" && git add -A
+          git -c user.name=vm-bot -c user.email=41898282+github-actions[bot]@users.noreply.github.com commit -qm "lab vm ${GITHUB_SHA::7}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" "$BR"
+      - name: Redeploy (main only)
+        if: github.ref == 'refs/heads/main'
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: gh workflow run deploy.yml --ref main

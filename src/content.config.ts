@@ -27,6 +27,8 @@ const posts = defineCollection({
       difficulty: z.string().optional(),
     })).default([]),
     draft: z.boolean().default(false),
+    // run code blocks in the in-browser Linux VM; `setup` runs once before the reader's first command
+    vm: z.object({ setup: z.string().default('cd /root') }).optional(),
   }),
 });
 
