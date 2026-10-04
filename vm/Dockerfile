@@ -9,7 +9,8 @@ RUN sed -i 's/getty 38400 tty1/agetty --autologin root tty1 linux/' /etc/inittab
  && echo "root:" | chpasswd && setup-hostname lab
 RUN for i in devfs dmesg mdev hwdrivers; do rc-update add $i sysinit; done \
  && for i in hwclock modules sysctl hostname syslog bootmisc; do rc-update add $i boot; done \
- && rc-update add killprocs shutdown
+ && rc-update add killprocs shutdown \
+ && printf 'auto lo\niface lo inet loopback\n' > /etc/network/interfaces && rc-update add networking boot
 # netfilter and veth modules the labs use, loaded at boot so the saved state already has them
 RUN printf '%s\n' veth nf_conntrack nf_nat nf_tables nft_compat nft_chain_nat xt_conntrack xt_nat xt_tcpudp xt_state iptable_filter iptable_nat iptable_raw >> /etc/modules
 RUN mkinitfs -F "base virtio 9p" $(cat /usr/share/kernel/$KERNEL/kernel.release)
