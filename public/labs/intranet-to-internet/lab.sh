@@ -3,13 +3,15 @@
 #
 #   sudo ./lab.sh up              build client / firewall / app network namespaces
 #   sudo ./lab.sh dnat-bug        FORWARD rule written against the public IP (broken), then fixed
+#   sudo ./lab.sh scan            what an outsider can reach: only the forwarded port answers
+#   sudo ./lab.sh harden          the internal IP is reachable directly; three ways to close it
 #   sudo ./lab.sh entry           show the conntrack entry for one request
 #   sudo ./lab.sh asym            reply leaves through a second gateway with no conntrack entry
 #   sudo ./lab.sh idle            middlebox idle timeout kills a quiet connection; keepalive saves it
 #   sudo ./lab.sh mtu             a small-MTU hop + dropped ICMP hangs large responses; RELATED fixes it
 #   sudo ./lab.sh down            remove everything
 #
-# Needs: root, iproute2, iptables, conntrack (conntrack-tools), socat, curl, python3.
+# Needs: root, iproute2, iptables, conntrack (conntrack-tools), socat, curl, python3, tcpdump.
 # Touches only the namespaces it creates (lab-client, lab-fw, lab-app, lab-hop, lab-fw2).
 set -euo pipefail
 
@@ -78,6 +80,47 @@ dnat_bug() {
   echo; echo "# fixed: FORWARD rule matches the internal IP"
   run "nsx $C curl -s -m 3 http://$PUBLIC/"
   run "nsx $F iptables -L FORWARD -n -v | tail -1"
+}
+
+scan() {
+  rules_good; flush_ct
+  nsx $A socat TCP-LISTEN:22,reuseaddr,fork SYSTEM:'echo ssh' >/dev/null 2>&1 &   # a service nobody meant to publish
+  local s=$!; sleep 0.3
+  # an attacker who guesses the internal range and routes it at the firewall
+  nsx $C ip route add 10.0.1.0/24 via 198.51.100.1 2>/dev/null || true
+  echo "# the app box also listens on :22; only 203.0.113.10:80 is forwarded"
+  for target in "$PUBLIC 80" "$PUBLIC 22" "$PUBLIC 8080" "$APP 22" "$APP 8080"; do
+    set -- $target
+    rc=0; nsx $C timeout 2 bash -c "exec 3<>/dev/tcp/$1/$2" 2>/dev/null || rc=$?
+    case $rc in 0) r="open";; 124) r="no answer (dropped)";; *) r="refused";; esac
+    printf '  %-15s port %-5s %s\n' "$1" "$2" "$r"
+  done
+  say "nsx $F iptables -L FORWARD -n -v | head -1"; nsx $F iptables -L FORWARD -n -v | head -1
+  nsx $C ip route del 10.0.1.0/24 2>/dev/null || true
+  kill $s 2>/dev/null || true
+}
+
+probe() {   # try the public port and the internal port from an attacker who routes 10.0.1.0/24 at the firewall
+  nsx $C ip route add 10.0.1.0/24 via 198.51.100.1 2>/dev/null || true
+  for target in "$PUBLIC 80" "$APP $PORT"; do
+    set -- $target
+    rc=0; nsx $C timeout 2 bash -c "exec 3<>/dev/tcp/$1/$2" 2>/dev/null || rc=$?
+    case $rc in 0) r="open";; 124) r="no answer (dropped)";; *) r="refused";; esac
+    printf '  %-15s port %-5s %s\n' "$1" "$2" "$r"
+  done
+  nsx $C ip route del 10.0.1.0/24 2>/dev/null || true
+}
+
+harden() {
+  rules_good; flush_ct
+  echo "# A: FORWARD allows -d $APP (the Finding 1 fix)"; probe
+  nsx $F iptables -R FORWARD 3 -i f-wan -o f-dmz -d $APP -p tcp --dport $PORT -m conntrack --ctstate DNAT -j ACCEPT; flush_ct
+  echo; echo "# B: only flows the firewall itself DNAT'd:  -m conntrack --ctstate DNAT"; probe
+  nsx $F iptables -R FORWARD 3 -i f-wan -o f-dmz -d $APP -p tcp --dport $PORT -m conntrack --ctstate NEW --ctorigdst $PUBLIC --ctorigdstport 80 -j ACCEPT; flush_ct
+  echo; echo "# C: original destination must be the public address:  --ctorigdst $PUBLIC --ctorigdstport 80"; probe
+  rules_good; nsx $F iptables -t raw -A PREROUTING -i f-wan -d 10.0.0.0/8 -j DROP; flush_ct
+  echo; echo "# D: A's rule, plus drop private destinations arriving on the WAN (raw PREROUTING)"; probe
+  nsx $F iptables -t raw -F PREROUTING; rules_good
 }
 
 entry() {
@@ -172,6 +215,6 @@ mtu() {
 }
 
 case "${1:-}" in
-  up) up ;; down) down ;; dnat-bug) dnat_bug ;; entry) entry ;; asym) asym ;; idle) idle ;; mtu) mtu ;;
-  *) sed -n '2,13p' "$0"; exit 1 ;;
+  up) up ;; down) down ;; dnat-bug) dnat_bug ;; scan) scan ;; harden) harden ;; entry) entry ;; asym) asym ;; idle) idle ;; mtu) mtu ;;
+  *) sed -n '2,15p' "$0"; exit 1 ;;
 esac

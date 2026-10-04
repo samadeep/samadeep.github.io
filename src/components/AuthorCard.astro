@@ -1,0 +1,19 @@
+---
+// Sign-off at the end of every post: who wrote it, and a real way to reply.
+import { SITE } from '../lib/site';
+const { topic } = Astro.props as { topic?: string };
+const mail = `mailto:samadeepwork@gmail.com?subject=${encodeURIComponent('Re: ' + (Astro.props.title ?? 'your post'))}`;
+---
+<aside class="author" aria-label="About the author">
+  <div class="author-mark" aria-hidden="true">SS</div>
+  <div>
+    <p class="author-name">Written by <a href="/about/">Samadeep Sengupta</a></p>
+    <p class="author-bio">Software engineer in Hyderabad. I build search, messaging and agent infrastructure, and I break things in labs until I understand them.</p>
+    <p class="author-links">
+      <a href={mail}>Reply by email</a>
+      <a href={SITE.links.X} rel="me noopener">X</a>
+      <a href={SITE.links.GitHub} rel="me noopener">GitHub</a>
+      {topic && <a href={`/topics/${topic}/`}>More like this</a>}
+    </p>
+  </div>
+</aside>

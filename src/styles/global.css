@@ -337,3 +337,15 @@ dialog.search .inner { padding: 1rem; overflow-y: auto; max-height: inherit; }
 
 /* the post title morphs from card to article (cross-document view transition) */
 ::view-transition-group(*) { animation-duration: 260ms; animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+
+/* ---------- author sign-off ---------- */
+.author { display: grid; grid-template-columns: 3.25rem 1fr; gap: 1.1rem; margin: 3.5rem 0 0; padding: 1.4rem 1.4rem; border: 1px solid var(--rule); border-radius: 12px; background: var(--paper-2); font-family: var(--sans); }
+.author-mark { width: 3.25rem; height: 3.25rem; border-radius: 50%; display: grid; place-items: center; background: var(--trace-fill); color: #031211; font: 700 1rem/1 var(--mono); letter-spacing: 0.04em; }
+.author p { margin: 0; }
+.author-name { font-weight: 600; }
+.author-name a { color: var(--ink); text-decoration-color: var(--trace); }
+.author-bio { color: var(--ink-2); font-size: 0.92rem; line-height: 1.55; margin-top: 0.3rem !important; }
+.author-links { display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; margin-top: 0.7rem !important; font-size: 0.85rem; }
+
+/* "Lab note" asides: first-person moments inside a post */
+.prose blockquote.note, .prose blockquote:has(> p > strong:first-child) { font-style: normal; background: var(--paper-2); border-left-color: var(--trace-fill); border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem; }
