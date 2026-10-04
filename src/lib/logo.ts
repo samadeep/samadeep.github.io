@@ -1,0 +1,2 @@
+// The prompt mark: chevron + block cursor on an Ink Black tile. Also public/favicon.svg.
+export const LOGO_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#031211"/><path d="M8 10l6 6-6 6" fill="none" stroke="#00AEBB" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><rect x="17" y="19" width="8" height="3.4" rx="1" fill="#E8E4D3"/></svg>';

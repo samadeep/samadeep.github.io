@@ -4,6 +4,9 @@ import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
 import { getPosts } from '../../lib/posts';
 import { SITE } from '../../lib/site';
+import { LOGO_SVG } from '../../lib/logo';
+
+const logo = { type: 'img', props: { src: `data:image/svg+xml;base64,${Buffer.from(LOGO_SVG).toString('base64')}`, width: 40, height: 40, style: { borderRadius: 9, border: '1px solid #1d3331' } } };
 
 const require = createRequire(import.meta.url);
 const font = (pkg: string, file: string) => readFileSync(require.resolve(`${pkg}/files/${file}`));
@@ -26,7 +29,7 @@ function card(title: string, sub: string, foot: string, bars: number[]) {
       h('div', { fontSize: 24, color: C.ink2, marginTop: 24, lineHeight: 1.4 }, sub),
     ]),
     h('div', { display: 'flex', justifyContent: 'space-between', marginTop: 48, fontSize: 24, fontWeight: 400, color: C.ink2 }, [
-      h('div', {}, SITE.name), h('div', { color: C.trace }, foot),
+      h('div', { display: 'flex', alignItems: 'center', gap: 16 }, [logo, h('div', {}, SITE.name)]), h('div', { color: C.trace }, foot),
     ]),
   ]);
 }

@@ -27,6 +27,7 @@ const nav = [
   <link rel="canonical" href={canonical} />
   {noindex && <meta name="robots" content="noindex" />}
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <link rel="alternate" type="application/rss+xml" title={`${SITE.name}: writing`} href="/feed.xml" />
   <link rel="alternate" type="application/atom+xml" title={`${SITE.name}: reading list`} href="/reading.xml" />
   <link rel="sitemap" href="/sitemap-index.xml" />
@@ -63,7 +64,7 @@ const nav = [
   <header class="site-head">
     <div class="wrap wide">
       <a class="brand" href="/" aria-label={`${SITE.name}, home`}>
-        <svg viewBox="0 0 32 32" aria-hidden="true"><g fill="var(--trace-fill)"><rect x="3" y="6" width="18" height="5" rx="1"/><rect x="9" y="14" width="20" height="5" rx="1"/><rect x="3" y="22" width="12" height="5" rx="1"/></g></svg>
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M8 10l6 6-6 6" fill="none" stroke="var(--trace-fill)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><rect class="cursor" x="17" y="19" width="8" height="3.4" rx="1" fill="currentColor"/></svg>
         {SITE.name}
       </a>
       <nav class="nav" aria-label="Main">
@@ -94,6 +95,10 @@ const nav = [
   <style is:global>
     [data-theme='light'] .when-dark, [data-theme='dark'] .when-light { display: none; }
     .when-light, .when-dark { display: contents; }
+    .brand .cursor { animation: blink 1.1s steps(1) infinite; }
+    .brand:hover .cursor { animation: none; }
+    @keyframes blink { 50% { opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .brand .cursor { animation: none; } }
   </style>
   <script>
     const root = document.documentElement;
