@@ -1,0 +1,32 @@
+---
+// Reactions + comments via giscus (GitHub Discussions). Renders nothing until GISCUS.categoryId is set.
+import { GISCUS } from '../lib/site';
+const on = Boolean(GISCUS.repoId && GISCUS.categoryId);
+---
+{on && (
+  <section class="reactions" aria-label="Reactions and comments" data-pagefind-ignore>
+    <h2>Reactions</h2>
+    <div class="giscus"></div>
+    <script is:inline define:vars={{ g: GISCUS }}>
+      const theme = () => (document.documentElement.dataset.theme === 'dark' ? 'noborder_dark' : 'noborder_light');
+      const s = document.createElement('script');
+      Object.entries({
+        src: 'https://giscus.app/client.js', 'data-repo': g.repo, 'data-repo-id': g.repoId,
+        'data-category': g.category, 'data-category-id': g.categoryId, 'data-mapping': 'pathname',
+        'data-strict': '0', 'data-reactions-enabled': '1', 'data-emit-metadata': '0',
+        'data-input-position': 'bottom', 'data-theme': theme(), 'data-lang': 'en', 'data-loading': 'lazy',
+        crossorigin: 'anonymous', async: '',
+      }).forEach(([k, v]) => s.setAttribute(k, v));
+      document.currentScript.parentElement.querySelector('.giscus').after(s);
+      // follow the site's theme toggle
+      new MutationObserver(() => {
+        const f = document.querySelector('iframe.giscus-frame');
+        f?.contentWindow?.postMessage({ giscus: { setConfig: { theme: theme() } } }, 'https://giscus.app');
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    </script>
+  </section>
+)}
+<style>
+  .reactions { margin-top: 3rem; }
+  .reactions h2 { font-size: var(--t-md); margin: 0 0 1rem; }
+</style>
