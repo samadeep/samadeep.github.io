@@ -10,7 +10,7 @@ const FIT = 'https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0';
 const SOURCE_RE = /^#.*?:\s*((?:sudo\s+)?\.\/lab\.sh\s+[\w-]+(?:\s+\d+)?)\s*$/m;
 
 type Term = { write(d: string | Uint8Array): void; onData(f: (d: string) => void): void; focus(): void; cols: number; rows: number; loadAddon(a: unknown): void; open(el: HTMLElement): void };
-let dock: HTMLElement | null = null, status: HTMLElement, term: Term, fit: { fit(): void };
+let dock: HTMLElement | null = null, statusEl: HTMLElement, term: Term, fit: { fit(): void };
 let emulator: any = null, booting: Promise<void> | null = null, setupDone = false;
 
 const loadScript = (src: string) => new Promise<void>((ok, fail) => {
@@ -27,7 +27,7 @@ function buildDock() {
     <button type="button" data-a="reset" title="Restart the machine">Reset</button><button type="button" data-a="min" aria-label="Minimise">_</button>
     <button type="button" data-a="close" aria-label="Close terminal">✕</button></div><div class="vm-screen"></div>`;
   document.body.append(dock);
-  status = dock.querySelector('.vm-status')!;
+  statusEl = dock.querySelector('.vm-status')!;
   dock.querySelector('.vm-bar')!.addEventListener('click', (e) => {
     const a = (e.target as HTMLElement).closest('button')?.dataset.a;
     if (a === 'ctrlc') emulator?.serial0_send('\x03');
@@ -43,7 +43,7 @@ async function boot() {
     if (!dock) buildDock();
     dock!.hidden = false; dock!.classList.remove('min'); document.body.classList.add('vm-open');
     if (!term) {
-      status.textContent = 'loading terminal';
+      statusEl.textContent = 'loading terminal';
       css(`${XTERM}/css/xterm.css`);
       await loadScript(`${XTERM}/lib/xterm.js`); await loadScript(`${FIT}/lib/addon-fit.js`);
       const w = window as any;
@@ -55,8 +55,9 @@ async function boot() {
       term.onData((d) => emulator?.serial0_send(d));
       term.write('\x1b[2mA real Linux machine (Alpine, kernel 6.12) emulated in your browser.\r\nFirst start downloads its memory snapshot once; after that files load as commands touch them.\x1b[0m\r\n\r\n');
     }
-    status.textContent = 'starting Linux (first time: about 15-25 MB)';
-    const { V86 } = await import(/* @vite-ignore */ '/vm/libv86.mjs');
+    statusEl.textContent = 'starting Linux (first time: about 15-25 MB)';
+    const lib = '/vm/libv86.mjs';
+    const { V86 } = await import(/* @vite-ignore */ lib);
     emulator = new V86({
       wasm_path: '/vm/v86.wasm', bios: { url: '/vm/seabios.bin' }, vga_bios: { url: '/vm/vgabios.bin' },
       memory_size: 256 * 1024 * 1024, vga_memory_size: 2 * 1024 * 1024, autostart: true,
@@ -70,7 +71,7 @@ async function boot() {
       raf ||= requestAnimationFrame(() => { term.write(Uint8Array.from(pending)); pending = []; raf = 0; });
     });
     await new Promise<void>((ok) => emulator.add_listener('emulator-ready', () => ok()));
-    status.textContent = 'running in your browser';
+    statusEl.textContent = 'running in your browser';
     emulator.serial0_send(`stty cols ${term.cols} rows ${term.rows}; clear\n`);
   })();
   return booting;
@@ -88,13 +89,20 @@ function blockText(pre: HTMLElement) {
   return lines.length ? [...lines].map((l) => l.textContent ?? '').join('\n') : pre.textContent ?? '';
 }
 
+// Expressive Code resets styles inside its frames, so the button sits in a bar just below the block.
 function addButton(frame: HTMLElement, label: string, cmd: string) {
+  const host = frame.closest<HTMLElement>('.expressive-code') ?? frame;
+  const bar = document.createElement('div');
+  bar.className = 'vm-runbar';
   const b = document.createElement('button');
   b.type = 'button'; b.className = 'vm-run'; b.title = 'Run in a Linux machine in your browser';
   b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg><span></span>`;
   b.querySelector('span')!.textContent = label;
   b.onclick = () => run(cmd);
-  frame.append(b);
+  const hint = document.createElement('span');
+  hint.className = 'vm-hint'; hint.textContent = 'real Linux, in your browser';
+  bar.append(b, hint);
+  host.after(bar);
 }
 
 if (article) {

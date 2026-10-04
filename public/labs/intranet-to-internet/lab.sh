@@ -57,7 +57,8 @@ class H(http.server.BaseHTTPRequestHandler):
 socketserver.ThreadingTCPServer.allow_reuse_address = True
 socketserver.ThreadingTCPServer(("0.0.0.0", 8080), H).serve_forever()
 PY
-  sleep 0.5
+  # wait until it listens (python starts slowly on small or emulated machines)
+  for _ in $(seq 100); do nsx $A sh -c "ss -ltn | grep -q ':$PORT '" && break; sleep 0.2; done
 }
 
 rules_base() {

@@ -473,10 +473,10 @@ svg.brand-ico { width: 1em; height: 1em; }
 .lab-stats { white-space: pre-wrap; }
 
 /* ---------- Run on code blocks + Linux dock (src/scripts/vm.ts) ---------- */
-figure.frame { position: relative; }
-.vm-run { position: absolute; top: .45rem; right: .5rem; z-index: 2; display: inline-flex; align-items: center; gap: .35rem; font: 600 .72rem var(--mono); color: #031211; background: #00aebb; border: 0; border-radius: 6px; padding: .25rem .6rem; cursor: pointer; opacity: .92; }
-.vm-run:hover { opacity: 1; } .vm-run svg { width: 11px; height: 11px; fill: currentColor; }
-figure.frame:not(.is-terminal) .vm-run { top: .5rem; }
+.vm-runbar { display: flex; align-items: center; gap: .6rem; margin: -.6rem 0 1.4rem; }
+.vm-run { display: inline-flex; align-items: center; gap: .4rem; font: 600 .74rem var(--mono); color: #031211; background: #00aebb; border: 0; border-radius: 6px; padding: .3rem .7rem; cursor: pointer; }
+.vm-run:hover { filter: brightness(1.08); } .vm-run svg { width: 10px; height: 10px; fill: currentColor; }
+.vm-hint { font: 400 .72rem var(--mono); color: var(--ink-3); }
 .vm-dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; height: min(46vh, 420px); display: flex; flex-direction: column; background: #000c0b; border-top: 1px solid #1d3331; box-shadow: 0 -18px 40px -20px rgb(0 0 0 / .5); }
 .vm-dock[hidden] { display: none; }
 .vm-dock.min { height: auto; } .vm-dock.min .vm-screen { display: none; }
