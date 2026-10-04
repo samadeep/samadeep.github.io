@@ -1,4 +1,5 @@
 ---
+import Sidebar from '../../components/Sidebar.astro';
 import Base from '../../layouts/Base.astro';
 import Icon from '../../components/Icon.astro';
 import FeedItem from '../../components/FeedItem.astro';
@@ -13,7 +14,8 @@ const addUrl = `${SITE.repo}/issues/new?template=reading.yml`;
 const unread = items.filter((i) => i.status === 'to-read').length;
 ---
 <Base title="Reading" description="Posts, papers and threads worth reading, saved as I find them." >
-  <div class="wrap">
+  <div class="wrap wide with-rail">
+  <div class="main-col">
     <header class="page-head">
       <h1>Reading</h1>
       <p>Posts, papers and threads worth your time, saved as I find them. {items.length > 0 && <>{items.length} saved, {unread} still to read.</>}</p>
@@ -60,6 +62,8 @@ const unread = items.filter((i) => i.status === 'to-read').length;
       <a href="/reading.xml"><Icon name="rss" /> Follow this list (Atom)</a>
       <a id="rl-bm" href="#" title="Drag to your bookmarks bar, then click it on any page to save that page here">Save-to-reading bookmarklet</a>
     </p>
+  </div>
+  <Sidebar />
   </div>
 
   <style>

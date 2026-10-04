@@ -1,4 +1,6 @@
 ---
+import Icon from '../components/Icon.astro';
+import Sidebar from '../components/Sidebar.astro';
 import Base from '../layouts/Base.astro';
 import FeedItem from '../components/FeedItem.astro';
 import { getPosts, topicGroups, postCard, readScale } from '../lib/posts';
@@ -10,22 +12,25 @@ const groups = topicGroups(posts);
 const scale = readScale(posts);
 ---
 <Base>
-  <div class="wrap">
+  <div class="wrap wide with-rail">
+  <div class="main-col">
     <section class="intro">
       <h1>Samadeep Sengupta</h1>
       <p>I build search, messaging and agent infrastructure at a trading firm in Hyderabad. This is where I write about systems, latency and algorithms, and keep a list of what I am reading.</p>
     </section>
 
     <ul class="topic-jump" aria-label="Topics">
-      {groups.map((g) => <li><a href={`/topics/${g.slug}/`}>{g.name}<span class="n">{g.posts.length}</span></a></li>)}
+      {groups.map((g) => <li><a href={`/topics/${g.slug}/`}><Icon name={g.icon} />{g.name}<span class="n">{g.posts.length}</span></a></li>)}
     </ul>
 
-    <div class="section-head"><h2>Latest writing</h2><a href="/posts/">All posts by topic</a></div>
+    <div class="section-head"><h2>Latest writing</h2><a href="/posts/">All posts <Icon name="arrow-right" /></a></div>
     <ul class="feed">{posts.slice(0, 6).map((p) => <FeedItem {...postCard(p, scale)} />)}</ul>
 
-    <div class="section-head"><h2>Recently read</h2><a href="/reading/">Reading list</a></div>
-    {reading.length === 0
-      ? <p class="empty">Links I save from X, Medium and papers show up here.</p>
-      : <ul class="feed">{reading.map((r) => <FeedItem {...readingCard(r)} />)}</ul>}
+    {reading.length > 0 && <>
+      <div class="section-head"><h2>Recently read</h2><a href="/reading/">Reading list <Icon name="arrow-right" /></a></div>
+      <ul class="feed">{reading.map((r) => <FeedItem {...readingCard(r)} />)}</ul>
+    </>}
+  </div>
+  <Sidebar />
   </div>
 </Base>

@@ -62,7 +62,7 @@ const bars = [0, 1, 2].map((i) => 34 + ((seed >> (i * 5)) % 56));
       {minutes && (
         <span class="span" aria-label={`${minutes} minute read`}>
           <span class="bar-track"><span class="bar" style={`width:${Math.min(100, (minutes / scale) * 100)}%`}></span></span>
-          <span class="ms">{minutes} min</span>
+          <span class="ms"><Icon name="clock" />{minutes} min</span>
         </span>
       )}
       {done && <span class="done"><Icon name="check" /> Read</span>}

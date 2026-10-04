@@ -40,7 +40,7 @@ export function tagCounts(posts: Post[]) {
 export function postCard(p: Post, scale: number) {
   const t = TOPICS.find((x) => x.slug === p.data.topic)!;
   return {
-    href: p.href, mark: { hue: t.hue, letter: t.name[0] }, context: `In ${t.name}`, by: 'Samadeep', date: p.data.date,
+    href: p.href, mark: { icon: t.icon }, hue: t.hue, context: `In ${t.name}`, by: 'Samadeep', date: p.data.date,
     title: p.data.title, subtitle: p.data.description, thumb: p.cover, thumbAlt: `Diagram from ${p.data.title}`,
     minutes: p.minutes, scale, badges: p.data.problems.map(problemLabel), tags: p.data.tags, morph: `post-${p.id}`,
   };
