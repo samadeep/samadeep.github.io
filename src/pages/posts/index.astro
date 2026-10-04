@@ -38,6 +38,6 @@ const tags = tagCounts(posts);
       <ul class="tag-cloud">{tags.slice(0, 24).map(([t, n]) => <li><a href={`/tags/${t}/`}>{t}<span class="n">{n}</span></a></li>)}</ul>
     </section>
   </div>
-  <Sidebar hrefFor={(s) => `#${s}`} />
+  <Sidebar hrefFor={(s: string) => `#${s}`} />
   </div>
 </Base>
