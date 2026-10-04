@@ -14,7 +14,7 @@ export const SITE = {
 // Fill these in to switch features on; empty values render nothing.
 export const ANALYTICS = {
   // Cloudflare Web Analytics: dashboard > Web Analytics > Add a site > copy the token from the JS snippet
-  cloudflareToken: '',
+  cloudflareToken: 'd5a1558ada30406ab2b1589796d5db1a',
 };
 export const GISCUS = {
   // giscus.app: enable Discussions on the repo, install the giscus app, then copy these from the generated script

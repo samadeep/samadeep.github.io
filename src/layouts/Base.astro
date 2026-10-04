@@ -54,7 +54,7 @@ const nav = [
   </script>
   <slot name="head" />
   {ANALYTICS.cloudflareToken && import.meta.env.PROD && (
-    <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon={JSON.stringify({ token: ANALYTICS.cloudflareToken })}></script>
+    <script is:inline type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon={JSON.stringify({ token: ANALYTICS.cloudflareToken })}></script>
   )}
 </head>
 <body>
