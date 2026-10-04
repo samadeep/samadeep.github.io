@@ -33,6 +33,7 @@ const jsonLd = {
 ---
 <Base title={title} description={description} type="article" published={date} image={`/og/${post.id}.png`}>
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <div class="read-progress" aria-hidden="true"></div>
   <div class="wrap wide">
     <div class="post-layout">
       <article data-pagefind-body data-pagefind-filter="kind:Writing" data-vm-setup={post.data.vm?.setup}>

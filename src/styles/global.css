@@ -205,7 +205,7 @@ hr { border: 0; border-top: 1px solid var(--rule); margin: 3rem 0; }
 [data-theme='dark'] .diagram.dg-fixed figcaption a { color: #55615e; }
 
 .toc-rail { padding-top: 4rem; }
-.toc { position: sticky; top: 2rem; font: 400 0.85rem/1.45 var(--sans); max-height: calc(100vh - 4rem); overflow-y: auto; }
+.toc { position: sticky; top: 5.5rem; font: 400 0.85rem/1.45 var(--sans); max-height: calc(100vh - 7rem); overflow-y: auto; }
 .toc h2 { font-size: 0.85rem; color: var(--ink-3); font-weight: 600; margin: 0 0 0.75rem; }
 .toc ol { list-style: none; padding: 0; margin: 0; border-left: 1px solid var(--rule); }
 .toc li a { display: block; padding: 0.3rem 0 0.3rem 0.9rem; margin-left: -1px; border-left: 2px solid transparent; color: var(--ink-3); text-decoration: none; }
@@ -420,7 +420,7 @@ svg.brand-ico { width: 1em; height: 1em; }
   .with-rail .card { grid-template-columns: minmax(0, 1fr) 14rem; gap: 0.35rem 2.25rem; padding: 1.9rem 0; }
   .with-rail .card .title { font-size: 1.4rem; }
   .with-rail .card .sub { max-width: 60ch; }
-  .rail { display: grid; gap: 2.25rem; position: sticky; top: 2rem; padding-top: 4.5rem; font-family: var(--sans); }
+  .rail { display: grid; gap: 2.25rem; position: sticky; top: 4rem; padding-top: 4.5rem; font-family: var(--sans); }
   .rail h2 { font: 600 .72rem var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); margin: 0 0 .75rem; padding-bottom: .5rem; border-bottom: 1px solid var(--rule); }
   .rail ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .15rem; }
   .rail a { display: flex; align-items: center; gap: .7rem; padding: .5rem .55rem; margin-inline: -.55rem; border-radius: 8px; color: var(--ink); text-decoration: none; font-size: .9rem; }
@@ -492,3 +492,60 @@ figure.d2 img { display: block; width: 100%; height: auto; margin: 0 auto; }
 figure.d2 .d2-dark { display: none; }
 [data-theme='dark'] figure.d2 .d2-light { display: none; }
 [data-theme='dark'] figure.d2 .d2-dark { display: block; }
+
+/* ---------- home: hero, principles, start here ---------- */
+.hero .prompt { font: 500 .85rem var(--mono); color: var(--ink-3); margin: 0 0 1.1rem; }
+.hero .prompt .ps { color: var(--trace); } .hero .prompt .cmd { color: var(--ink); }
+.hero .caret { display: inline-block; width: .55em; height: 1em; margin-left: .2em; vertical-align: -.15em; background: var(--trace-fill); animation: blink 1.1s steps(1) infinite; }
+@media (prefers-reduced-motion: reduce) { .hero .caret { animation: none; } }
+.hero h1 { letter-spacing: -.01em; }
+.principles { list-style: none; padding: 0; margin: 1.8rem 0 0; display: grid; gap: .7rem; max-width: 62ch; }
+.principles li { display: flex; gap: .7rem; align-items: flex-start; font-size: .92rem; color: var(--ink-2); line-height: 1.5; }
+.principles svg { width: 18px; height: 18px; flex: none; color: var(--trace); margin-top: .15rem; }
+.principles b { color: var(--ink); }
+.stats { display: flex; flex-wrap: wrap; gap: .4rem 1.4rem; margin: 1.6rem 0 0 !important; font: 400 .8rem var(--mono) !important; color: var(--ink-3) !important; }
+.stats b { color: var(--ink); font-weight: 700; }
+.start-here { list-style: none; padding: 0; margin: .75rem 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+.start-here a { display: flex; flex-direction: column; gap: .45rem; height: 100%; padding: 1rem; border: 1px solid var(--rule); border-radius: 12px; text-decoration: none; color: var(--ink); background: var(--paper); transition: border-color .15s, transform .15s; }
+.start-here a:hover { border-color: var(--trace); transform: translateY(-2px); }
+.start-here img { width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #f6f4ec; border-radius: 8px; border: 1px solid var(--rule); }
+[data-theme='dark'] .start-here img { background: #0b1b1a; }
+.sh-meta { font: 400 .75rem var(--mono); color: var(--ink-3); display: flex; gap: .7rem; align-items: center; }
+.sh-run { display: inline-flex; align-items: center; gap: .3rem; color: var(--trace); font-weight: 600; }
+.sh-run svg { width: 12px; height: 12px; }
+.sh-title { font: 700 1.05rem/1.3 var(--sans); }
+.sh-desc { font-size: .85rem; color: var(--ink-2); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ---------- small things that make it easier on the eyes ---------- */
+.brand-name.typing::after { content: ''; display: inline-block; width: .5em; height: 1em; margin-left: .12em; vertical-align: -.12em; background: var(--trace-fill); animation: blink 1s steps(1) infinite; }
+::selection { background: var(--trace-soft); color: inherit; }
+a { text-underline-offset: .2em; text-decoration-thickness: 1px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 2px solid var(--trace-fill); outline-offset: 3px; border-radius: 4px; }
+.site-head { position: sticky; top: 0; z-index: 40; background: color-mix(in oklab, var(--paper) 92%, transparent); backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2); }
+html { scroll-padding-top: 5rem; }
+.theme-vt::view-transition-old(root), .theme-vt::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+/* reading progress: driven by scroll position, no JavaScript */
+.read-progress { position: fixed; inset: 0 0 auto 0; height: 2px; z-index: 60; background: var(--trace-fill); transform-origin: 0 50%; transform: scaleX(0); }
+@supports (animation-timeline: scroll()) {
+  .read-progress { animation: read-progress linear both; animation-timeline: scroll(root); }
+  @keyframes read-progress { to { transform: scaleX(1); } }
+}
+@media (prefers-reduced-motion: no-preference) {
+  main > .wrap { animation: rise .5s cubic-bezier(.2,.7,.2,1) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+}
+
+/* ---------- wider on big screens, reading column stays readable ---------- */
+@media (min-width: 1280px) {
+  .wide { max-width: calc(1320px + 2 * var(--gutter)); }
+  /* contents on the left, text in a ~76ch column, figures and code spread into the space on the right */
+  .post-layout { grid-template-columns: 14rem minmax(0, 1fr); gap: 3.5rem; justify-content: stretch; }
+  .post-layout > .toc-rail { grid-column: 1; grid-row: 1; }
+  .post-layout > article { grid-column: 2; grid-row: 1; min-width: 0; }
+  .post-layout > article > :not(.prose) { max-width: var(--measure); }
+  .prose { display: grid; grid-template-columns: minmax(0, var(--measure)) minmax(0, 1fr); column-gap: 0; }
+  .prose > * { grid-column: 1; min-width: 0; }
+  .prose > :is(figure.diagram, .lab, .expressive-code, table, .vm-runbar, details) { grid-column: 1 / -1; }
+  .prose > figure.diagram { margin-inline: 0; }
+}

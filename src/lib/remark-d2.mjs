@@ -12,9 +12,17 @@ import { visit } from 'unist-util-visit';
 
 const OUT = join(process.cwd(), 'public', 'diagrams');
 const THEME_DIR = join(process.cwd(), 'src', 'lib', 'd2');
-const VERSION = 'd2-v1'; // bump to re-render every D2 diagram
+const VERSION = 'd2-v2'; // bump to re-render every D2 diagram
 const THEMES = ['light', 'dark'];
 const prelude = (t) => readFileSync(join(THEME_DIR, `${t}.d2`), 'utf8');
+
+// `icon: lucide:<name>` -> the Lucide icon (ISC), inlined as a data URI in the theme's ink colour
+const INK = { light: '#1a2221', dark: '#e8e4d3' };
+const LUCIDE = join(process.cwd(), 'node_modules', 'lucide-static', 'icons');
+const withIcons = (src, theme) => src.replace(/icon:\s*"?lucide:([a-z0-9-]+)"?/g, (_, name) => {
+  const svg = readFileSync(join(LUCIDE, `${name}.svg`), 'utf8').replace(/currentColor/g, INK[theme]);
+  return `icon: "data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}"`;
+});
 
 export const d2Hash = (src, theme) => createHash('sha1').update(VERSION + prelude(theme) + src).digest('hex').slice(0, 12);
 
@@ -34,7 +42,7 @@ function render(src, theme, file) { return serial(() => renderNow(src, theme, fi
 async function renderNow(src, theme, file) {
   if (existsSync(file)) return readFileSync(file, 'utf8');
   const e = await engine();
-  const code = `${prelude(theme)}\n${src}`;
+  const code = `${prelude(theme)}\n${withIcons(src, theme)}`;
   e.worker?.ref?.();   // hold the process open only while D2 is working
   let svg;
   try {
