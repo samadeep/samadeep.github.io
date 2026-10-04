@@ -27,6 +27,10 @@ content-encoding: gzip; first token after 5107 ms, 200 tokens in 1 chunks, last 
 
 A ChatGPT-style API is two systems joined by a stream: a **connection layer** that has to hold millions of slow, long-lived responses, and a **GPU layer** where the place a request lands decides most of its latency. This post designs both, and breaks each one in a lab first. Everything quoted is from those runs; the [lab](/labs/llm-streaming/lab.sh) reproduces them on any Linux box with Node, Python and nginx.
 
+**Two parts of the lab run right here in your browser:** a streaming demo in Finding 2 and the GPU routing simulator in Finding 4. For the full lab with 10,000 real connections and a real nginx, open a ready-made Linux machine with everything installed (free with a GitHub account):
+
+<p><a class="lab-open" href="https://codespaces.new/samadeep/samadeep.github.io?quickstart=1" rel="noopener">Open the full lab in GitHub Codespaces</a></p>
+
 ## The basics in two minutes
 
 Skip this if you've served an LLM before.
@@ -147,6 +151,10 @@ One response header from the upstream fixed it, even with gzip still enabled:
 content-encoding: gzip; first token after 88 ms, 200 tokens in 200 chunks, last at 5104 ms
 ```
 
+Try it below: pick a path, send the prompt, and watch where the tokens land. The demo models the lab with timers in your browser; the numbers above are from the real runs.
+
+<div data-lab="stream"></div>
+
 The guards that should have caught it, and didn't:
 
 - **Load tests** that measure total time pass: total time was the same 5.1 s in every route.
@@ -244,6 +252,10 @@ cache + load cost           75%      75ms     294ms         31%        11%
 **Hashing the conversation** keeps each chat on its GPU, so the history stays warm: 77% hit, p99 under a second.
 
 **A cost function** does best on the tail, at 294 ms. It sends each request to the GPU with the least `uncached prefill work + queued work`, so it follows the cache until a GPU gets busy, then spills. It's the same shape as [NVIDIA Dynamo's KV router](https://docs.nvidia.com/dynamo/latest/architecture/kv_cache_routing.html) (`overlap_score_weight × prefill_blocks + decode_blocks`). Its hit rate is two points below conversation hashing because it trades some cache hits for balance on purpose.
+
+Run the simulator yourself. This is the same `route_sim.py` that produced the table, running in your browser with [Pyodide](https://pyodide.org). Change the flags, or open the code and change the policies:
+
+<div data-lab="py" data-src="/labs/llm-streaming/route_sim.py" data-args="--users 4000" data-presets="--users 4000|--users 8000|--users 1500 --cache-tokens 400000|--gpus 16 --users 8000|--zipf 0.5 --users 4000"></div>
 
 ```plantuml title="Figure 4: follow the cache until it's busy. The cheapest GPU is the one with the least new work, not the shortest queue"
 @startuml

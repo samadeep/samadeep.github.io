@@ -1,0 +1,6 @@
+{
+  "name": "samadeep.github.io labs",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y nginx python3 && (cd public/labs/llm-streaming && npm install --no-audit --no-fund)",
+  "customizations": { "codespaces": { "openFiles": ["public/labs/llm-streaming/lab.sh"] } }
+}

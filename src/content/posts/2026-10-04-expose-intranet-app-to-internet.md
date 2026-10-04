@@ -160,6 +160,10 @@ iptables -A FORWARD -i f-wan -o f-dmz -d 10.0.1.5 -p tcp --dport 8080 \
 ```
 </details>
 
+**No Linux box handy? Try the firewall in your browser.** [`fw_sim.py`](/labs/intranet-to-internet/fw_sim.py) is a small model of the path a forwarded packet takes through netfilter (raw, conntrack, DNAT, FORWARD, reverse NAT), with the rules written in iptables syntax. It isn't the kernel, but it reproduces Findings 1, 2, 4 and 5 below. Pick a preset, or open the code and edit `CUSTOM` to write your own rules (then run with `--rules custom`):
+
+<div data-lab="py" data-src="/labs/intranet-to-internet/fw_sim.py" data-args="--rules bug" data-presets="--rules bug|--rules good|--rules good --test direct|--compare A B C D|--rules est-only --test big|--rules good --test big|--test idle|--test idle --keepalive 2|--rules custom"></div>
+
 ## One connection, one entry
 
 ```text
