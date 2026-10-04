@@ -18,12 +18,14 @@ import { visit } from 'unist-util-visit';
 const OUT = join(process.cwd(), 'public', 'diagrams');
 const JAR_DIR = join(process.cwd(), 'node_modules', 'plantuml-cli', 'build');
 const FONTS = join(process.cwd(), 'scripts', 'fonts');
-const VERSION = 'v6'; // bump to force re-render of every diagram
+const VERSION = 'v7'; // bump to force re-render of every diagram
 
 // The palette. global.css keys off these exact hex values; change both together.
 export const DG = {
   box: '#FBFAF6', line: '#6B6F6A', ink: '#1A2221', group: '#F1EEE3', note: '#E3F1EF', accent: '#00636C',
   allowBg: '#E5F2EA', allow: '#2F7D52', denyBg: '#FBE9E7', deny: '#C2412D', askBg: '#E8F0FB', ask: '#2F6DB5',
+  // role fills (reference style: colour = role, line style = lifetime)
+  main: '#F3C9C4', worker: '#EFD991', shared: '#CFDDF6', peer: '#D3C6F3', edge: '#1A2221',
 };
 
 // Appended just before @enduml, so these win over a diagram's own skinparams.
@@ -80,6 +82,34 @@ skinparam sequence {
   ParticipantBorderColor ${DG.line}
   LifeLineBorderColor ${DG.line}
   ArrowColor ${DG.line}
+}
+skinparam rectangle<<main>> {
+  BackgroundColor ${DG.main}
+  BorderColor ${DG.edge}
+  BorderThickness 2
+}
+skinparam rectangle<<worker>> {
+  BackgroundColor ${DG.worker}
+  BorderColor ${DG.edge}
+  BorderThickness 2
+}
+skinparam rectangle<<peer>> {
+  BackgroundColor ${DG.peer}
+  BorderColor ${DG.edge}
+  BorderThickness 2
+}
+skinparam rectangle<<shared>> {
+  BackgroundColor ${DG.shared}
+  BorderColor ${DG.edge}
+  BorderThickness 2
+  BorderStyle dashed
+}
+skinparam rectangle<<result>> {
+  BackgroundColor ${DG.box}
+  BorderColor ${DG.edge}
+  BorderThickness 2
+  BorderStyle dotted
+  RoundCorner 60
 }
 hide stereotype`;
 

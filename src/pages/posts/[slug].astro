@@ -5,6 +5,7 @@ import { getPosts } from '../../lib/posts';
 import { topicOf } from '../../lib/topics';
 import { SITE, fmtDate } from '../../lib/site';
 import AuthorCard from '../../components/AuthorCard.astro';
+import Reactions from '../../components/Reactions.astro';
 
 export async function getStaticPaths() {
   const posts = await getPosts();
@@ -65,6 +66,8 @@ const jsonLd = {
         <div class="prose"><Content /></div>
 
         <AuthorCard title={title} topic={topic.slug} />
+
+        <Reactions />
 
         <p class="edit" data-pagefind-ignore>Spotted a mistake? <a href={source}>Suggest an edit on GitHub</a>.</p>
 

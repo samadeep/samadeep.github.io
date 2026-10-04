@@ -188,7 +188,17 @@ hr { border: 0; border-top: 1px solid var(--rule); margin: 3rem 0; }
 .diagram svg [stroke="#00636C" i] { stroke: var(--dg-accent); } .diagram svg [fill="#00636C" i] { fill: var(--dg-accent); }
 .diagram svg [fill="#E5F2EA" i] { fill: var(--dg-allow-bg); } .diagram svg [stroke="#2F7D52" i] { stroke: var(--dg-allow); } .diagram svg [fill="#2F7D52" i] { fill: var(--dg-allow); }
 .diagram svg [fill="#FBE9E7" i] { fill: var(--dg-deny-bg); }  .diagram svg [stroke="#C2412D" i] { stroke: var(--dg-deny); }  .diagram svg [fill="#C2412D" i] { fill: var(--dg-deny); }
-.diagram svg [fill="#E8F0FB" i] { fill: var(--dg-ask-bg); }   .diagram svg [stroke="#2F6DB5" i] { stroke: var(--dg-ask); }   .diagram svg [fill="#2F6DB5" i] { fill: var(--dg-ask); }
+.diagram svg [fill="#E8F0FB" i] { fill: var(--dg-ask-bg); }
+/* role fills: colour = role. Hard offset shadow, no blur, like a sticker on paper. */
+.diagram { --dg-main: #f3c9c4; --dg-worker: #efd991; --dg-shared: #cfddf6; --dg-peer: #d3c6f3; --dg-shadow: #1a2221; }
+[data-theme='dark'] .diagram:not(.dg-fixed) { --dg-main: #5a2c28; --dg-worker: #54461c; --dg-shared: #1f3452; --dg-peer: #3b2e63; --dg-shadow: #000000; }
+.diagram svg [fill="#F3C9C4" i] { fill: var(--dg-main); }
+.diagram svg [fill="#EFD991" i] { fill: var(--dg-worker); }
+.diagram svg [fill="#CFDDF6" i] { fill: var(--dg-shared); }
+.diagram svg [fill="#D3C6F3" i] { fill: var(--dg-peer); }
+.diagram svg [stroke="#1A2221" i] { stroke: var(--dg-ink); }
+.diagram svg :is([fill="#F3C9C4" i], [fill="#EFD991" i], [fill="#D3C6F3" i]) { filter: drop-shadow(2.5px 2.5px 0 var(--dg-shadow)); }
+.diagram svg [stroke-dasharray="1,1"] { stroke-dasharray: 2 5; stroke-linecap: round; }   .diagram svg [stroke="#2F6DB5" i] { stroke: var(--dg-ask); }   .diagram svg [fill="#2F6DB5" i] { fill: var(--dg-ask); }
 .diagram figcaption { margin-top: 0.75rem; font: 400 0.78rem var(--sans); text-align: center; }
 .diagram figcaption a { color: var(--ink-3); text-decoration: none; }
 .diagram figcaption a:hover { color: var(--trace); text-decoration: underline; }

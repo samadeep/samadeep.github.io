@@ -11,4 +11,17 @@ export const SITE = {
   },
 };
 
+// Fill these in to switch features on; empty values render nothing.
+export const ANALYTICS = {
+  // Cloudflare Web Analytics: dashboard > Web Analytics > Add a site > copy the token from the JS snippet
+  cloudflareToken: '',
+};
+export const GISCUS = {
+  // giscus.app: enable Discussions on the repo, install the giscus app, then copy these from the generated script
+  repo: 'samadeep/samadeep.github.io',
+  repoId: 'R_kgDOK3X_9Q', // from the GitHub API (repo node id)
+  category: 'Comments',
+  categoryId: '',
+};
+
 export const fmtDate = (d: Date) => d.toISOString().slice(0, 10);

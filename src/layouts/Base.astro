@@ -1,7 +1,7 @@
 ---
 import '../styles/global.css';
 import Icon from '../components/Icon.astro';
-import { SITE } from '../lib/site';
+import { SITE, ANALYTICS } from '../lib/site';
 
 type Props = { title?: string; description?: string; image?: string; type?: 'website' | 'article'; published?: Date; noindex?: boolean };
 const { title, description = SITE.description, image = '/og/site.png', type = 'website', published, noindex } = Astro.props as Props;
@@ -53,6 +53,9 @@ const nav = [
     })();
   </script>
   <slot name="head" />
+  {ANALYTICS.cloudflareToken && import.meta.env.PROD && (
+    <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon={JSON.stringify({ token: ANALYTICS.cloudflareToken })}></script>
+  )}
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
