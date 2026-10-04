@@ -118,16 +118,17 @@ const nav = [
       t.finished.finally(() => root.classList.remove('theme-vt'));
     });
 
-    // the name types itself once per visit
+    // the name types itself on the home page, and on the first page of a visit elsewhere
     const name = document.querySelector<HTMLElement>('.brand-name');
     let seen = false; try { seen = sessionStorage.getItem('typed') === '1'; sessionStorage.setItem('typed', '1'); } catch {}
-    if (name && !seen && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (name && (location.pathname === '/' || !seen) && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
       const text = name.dataset.text ?? name.textContent ?? '';
       name.textContent = ''; name.classList.add('typing');
-      [...text].forEach((ch, i) => setTimeout(() => {
+      let at = 450;   // cumulative, so a pause after a space can't reorder letters
+      [...text].forEach((ch, i) => { at += ch === ' ' ? 200 : 95; setTimeout(() => {
         name.textContent += ch;
-        if (i === text.length - 1) setTimeout(() => name.classList.remove('typing'), 900);
-      }, 250 + i * 70 + (ch === ' ' ? 60 : 0)));
+        if (i === text.length - 1) setTimeout(() => name.classList.remove('typing'), 1200);
+      }, at); });
     }
 
   </script>

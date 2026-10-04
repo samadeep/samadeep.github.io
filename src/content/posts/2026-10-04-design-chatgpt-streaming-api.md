@@ -33,6 +33,8 @@ content-encoding: gzip; first token after 5107 ms, 200 tokens in 1 chunks, last 
 
 <div data-lab="stream"></div>
 
+> **Insight:** Users feel time to first token, not total time. Anything that batches whole responses for efficiency silently turns one into the other.
+
 ## Requirements
 
 Assumptions for this design (an interview would set its own):
@@ -72,6 +74,8 @@ print(f"live KV state      {streaming * kv_gib_8k / 1024:,.0f} TiB")
 ```
 
 Two numbers shape everything: **millions of writes a second at the edge**, and **hundreds of TiB of KV state that can't all stay on GPUs**.
+
+> **Insight:** The edge scales with tokens per second; the GPU fleet scales with bytes of KV state. Different bottlenecks deserve different tiers.
 
 ## The design
 
@@ -144,6 +148,8 @@ The deep dives below are where each of those choices comes from.
 
 A chat answer is one request followed by a one-way stream, which is exactly SSE, and it's what [OpenAI](https://developers.openai.com/api/docs/guides/streaming-responses) and [Anthropic](https://platform.claude.com/docs/en/build-with-claude/streaming) ship. Serve it over HTTP/2: on HTTP/1.1 a browser allows only [6 SSE connections per domain](https://developer.mozilla.org/en-US/docs/Web/API/EventSource) across all tabs. **Reach for WebSockets when the client talks back mid-stream**, as agents with many tool calls do.
 
+> **Insight:** Pick the transport that matches the shape of the traffic. A chat answer is a one-way stream, and SSE gets HTTP's whole toolchain (proxies, auth, logs, HTTP/2) for free.
+
 ## Deep dive 2: connections are cheap, token writes are not
 
 10,000 chats against one server, first with one write per token, then with tokens batched into 50 ms writes:
@@ -154,6 +160,8 @@ A chat answer is one request followed by a one-way stream, which is exactly SSE,
 | 50 ms batches | 10,000 | 0 | 353 ms |
 
 Memory was ~15 KB per open stream, so a million streams is ~15 GB across a fleet. The killer was 400,000 writes a second. SSE and WebSockets failed and recovered the same way. **Size the streaming tier in token writes per second, not connections.** (Measured on a 2-core Linux box; 10,000 streams is too heavy for the machine in your browser.)
+
+> **Insight:** Connection count is a memory problem and cheap; write rate is a CPU problem and expensive. A 50 ms batch trades latency nobody perceives for an order of magnitude of headroom.
 
 ## Deep dive 3: never let a hop buffer the stream
 
@@ -178,6 +186,8 @@ n -> c: "all 200 at once" {class: lost}
 ```
 
 **Load tests that measure total time pass, and so do direct tests. Only time to first token, through the real edge, catches it.** Also mind idle timeouts while the model thinks (nginx 60 s, AWS ALB 60 s, Cloudflare 125 s) and send an SSE comment line every ~15 s, as the [spec](https://html.spec.whatwg.org/multipage/server-sent-events.html) suggests.
+
+> **Insight:** A streaming system is only as streaming as its least streaming hop, and that hop is usually one nobody on the team thinks of as part of the product.
 
 ## Deep dive 4: the answer has to outlive the connection
 
@@ -207,6 +217,8 @@ s -> c: "20..199" {class: good}
 ```
 
 OpenAI's API does this with [background mode](https://developers.openai.com/api/docs/guides/background) (`starting_after`), the Vercel AI SDK with [resumable streams](https://ai-sdk.dev/docs/ai-sdk-ui/chatbot-resume-streams). One catch: **"Stop generating" now needs its own endpoint**, because a closed tab looks like a network blip.
+
+> **Insight:** If losing the connection loses the work, the connection has become part of your storage layer by accident. Give the work an ID and the connection becomes disposable.
 
 ## Deep dive 5: where a request lands decides its latency
 
@@ -250,6 +262,8 @@ r -> g1: {style.stroke-dash: 3}
 - **A cost of "uncached work + queue"** wins the tail at 294 ms. It's the shape of [NVIDIA Dynamo's KV router](https://docs.nvidia.com/dynamo/latest/architecture/kv_cache_routing.html); [llm-d](https://llm-d.ai/blog/kvcache-wins-you-can-see) reports 0.54 s vs 92.6 s P90 for this kind of routing over random.
 
 Press `--users 8000` above: **every policy collapses to ~30 s.** Past capacity the answers are admission and architecture: reject early ([Mooncake](https://arxiv.org/abs/2407.00079)), split prefill from decode ([DistServe](https://arxiv.org/abs/2401.09670): 7.4x more requests within latency targets), and chunk long prefills ([Sarathi-Serve](https://arxiv.org/abs/2403.02310)).
+
+> **Insight:** LLM serving is a cache-placement problem disguised as load balancing. The cheapest GPU is the one with the least *new* work, not the shortest queue.
 
 ## Data model
 
