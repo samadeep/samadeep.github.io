@@ -1,0 +1,44 @@
+---
+// Desktop rail beside the feed: topics, profiles, subscribe. Hidden below 1100px,
+// where the page falls back to the single column that already works on phones.
+import Icon from './Icon.astro';
+import { SITE } from '../lib/site';
+import { getPosts, topicGroups } from '../lib/posts';
+
+const { current, hrefFor = (slug: string) => `/topics/${slug}/` } = Astro.props as { current?: string; hrefFor?: (slug: string) => string };
+const groups = topicGroups(await getPosts());
+const handle = (u: string) => u.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+---
+<aside class="rail" aria-label="Topics and links">
+  <section>
+    <h2>Topics</h2>
+    <ul class="rail-topics">
+      {groups.map((g) => (
+        <li style={`--hue:${g.hue}`}>
+          <a href={hrefFor(g.slug)} aria-current={current === g.slug ? 'page' : undefined}>
+            <span class="mark"><Icon name={g.icon} /></span>
+            <span class="rt-name">{g.name}</span>
+            <span class="n">{g.posts.length}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section>
+    <h2>Elsewhere</h2>
+    <ul class="rail-links">
+      {Object.entries(SITE.links).map(([k, v]) => (
+        <li><a href={v} rel="me noopener"><Icon name={k.toLowerCase()} /><span>{k}</span><small>{handle(v).split('/').pop()}</small></a></li>
+      ))}
+    </ul>
+  </section>
+
+  <section>
+    <h2>Follow along</h2>
+    <ul class="rail-links">
+      <li><a href="/feed.xml"><Icon name="rss" /><span>Writing feed</span><small>RSS</small></a></li>
+      <li><a href="/reading.xml"><Icon name="book-open" /><span>Reading feed</span><small>Atom</small></a></li>
+    </ul>
+  </section>
+</aside>

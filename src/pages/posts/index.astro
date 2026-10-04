@@ -1,4 +1,6 @@
 ---
+import Icon from '../../components/Icon.astro';
+import Sidebar from '../../components/Sidebar.astro';
 import Base from '../../layouts/Base.astro';
 import FeedItem from '../../components/FeedItem.astro';
 import { getPosts, tagCounts, topicGroups, readScale, postCard } from '../../lib/posts';
@@ -9,14 +11,15 @@ const scale = readScale(posts);
 const tags = tagCounts(posts);
 ---
 <Base title="Writing" description="Posts grouped by topic: algorithms and competitive programming, systems, low latency, AI.">
-  <div class="wrap">
+  <div class="wrap wide with-rail">
+  <div class="main-col">
     <header class="page-head">
       <h1>Writing</h1>
       <p>Pick a topic. The bar on each post is its reading time.</p>
     </header>
 
     <ul class="topic-jump">
-      {groups.map((g) => <li><a href={`#${g.slug}`}>{g.name}<span class="n">{g.posts.length}</span></a></li>)}
+      {groups.map((g) => <li><a href={`#${g.slug}`}><Icon name={g.icon} />{g.name}<span class="n">{g.posts.length}</span></a></li>)}
     </ul>
 
     {groups.map((g) => (
@@ -34,5 +37,7 @@ const tags = tagCounts(posts);
       <div class="topic-head"><h2>By tag</h2><a href="/tags/">All tags</a></div>
       <ul class="tag-cloud">{tags.slice(0, 24).map(([t, n]) => <li><a href={`/tags/${t}/`}>{t}<span class="n">{n}</span></a></li>)}</ul>
     </section>
+  </div>
+  <Sidebar hrefFor={(s: string) => `#${s}`} />
   </div>
 </Base>

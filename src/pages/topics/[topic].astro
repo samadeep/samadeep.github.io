@@ -1,4 +1,5 @@
 ---
+import Sidebar from '../../components/Sidebar.astro';
 import Base from '../../layouts/Base.astro';
 import FeedItem from '../../components/FeedItem.astro';
 import { getPosts, tagCounts, topicGroups, readScale, postCard } from '../../lib/posts';
@@ -12,7 +13,8 @@ const { group, others, scale } = Astro.props;
 const tags = tagCounts(group.posts);
 ---
 <Base title={group.name} description={group.blurb}>
-  <div class="wrap">
+  <div class="wrap wide with-rail">
+  <div class="main-col">
     <header class="page-head">
       <h1>{group.name}</h1>
       <p>{group.blurb}</p>
@@ -30,5 +32,7 @@ const tags = tagCounts(group.posts);
         <ul class="topic-jump">{others.map((o) => <li><a href={`/topics/${o.slug}/`}>{o.name}<span class="n">{o.posts.length}</span></a></li>)}</ul>
       </section>
     )}
+  </div>
+  <Sidebar current={group.slug} />
   </div>
 </Base>

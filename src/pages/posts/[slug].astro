@@ -4,6 +4,7 @@ import Base from '../../layouts/Base.astro';
 import { getPosts } from '../../lib/posts';
 import { topicOf } from '../../lib/topics';
 import { SITE, fmtDate } from '../../lib/site';
+import Icon from '../../components/Icon.astro';
 import AuthorCard from '../../components/AuthorCard.astro';
 import Reactions from '../../components/Reactions.astro';
 
@@ -39,9 +40,9 @@ const jsonLd = {
           <h1 style={`view-transition-name:post-${post.id}`}>{title}</h1>
           <p class="lede">{description}</p>
           <div class="meta">
-            <a class="topic-link" href={`/topics/${topic.slug}/`} data-pagefind-filter="topic" data-pagefind-meta="topic">{topic.name}</a>
-            <time datetime={fmtDate(date)} data-pagefind-meta="date">{fmtDate(date)}</time>
-            <span class="mins" data-pagefind-meta="minutes">{post.minutes} min read</span>
+            <a class="topic-link" href={`/topics/${topic.slug}/`} data-pagefind-filter="topic" data-pagefind-meta="topic"><Icon name={topic.icon} />{topic.name}</a>
+            <time datetime={fmtDate(date)} data-pagefind-meta="date"><Icon name="calendar" />{fmtDate(date)}</time>
+            <span class="mins"><Icon name="clock" /><span data-pagefind-meta="minutes">{post.minutes} min read</span></span>
             <ul class="tags" data-pagefind-ignore>{tags.slice(0, 6).map((t) => <li><a href={`/tags/${t}/`}>{t}</a></li>)}</ul>
           </div>
         </header>
