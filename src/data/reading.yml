@@ -16,4 +16,8 @@
 #   status: to-read                       # to-read | read   (default to-read)
 #   added: 2026-10-03                     # yyyy-mm-dd, newest shows first
 
-[]
+- url: https://news.ycombinator.com/item?id=49494301
+  title: The Rise and Fall of Agent Civilizations | Hacker News
+  tags: [ai, agents, agent, civilisation]
+  status: to-read
+  added: 2026-10-04
