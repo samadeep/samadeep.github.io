@@ -1,18 +1,22 @@
 ---
 title: 'How to Expose an Intranet Application to the Internet Safely'
-description: Moving an internal web app from intranet to internet. Exposure options, firewall and NAT setup, SSO, a security checklist and the network bugs that break it.
+description: Moving an internal web app from intranet to internet. Exposure options, firewall and NAT setup, SSO, and four failures reproduced in a lab with real captures.
 date: '2026-10-04'
 topic: systems
 tags: [intranet, networking, security, reverse-proxy, nat, port-forwarding, firewall, conntrack]
 ---
 
-**Short answer:** to expose an intranet application to the internet, put it behind a reverse proxy or an identity-aware access proxy, publish only port 443 through the firewall (DNAT / port forwarding to the proxy, never straight to the app), and replace "trusted because it's on our network" with real authentication (SSO with MFA). Then fix the things that only break from outside: MTU, client IPs behind the proxy, idle timeouts, and hardcoded internal hostnames.
+**Short answer:** to expose an intranet application to the internet, put it behind a reverse proxy or an identity-aware access proxy, publish only port 443 through the firewall (DNAT / port forwarding to the proxy, never straight to the app), and replace "trusted because it's on our network" with real authentication: SSO with MFA. Then test from *outside*, because the bugs that matter only show up there.
 
-An intranet app gets a lot for free. Every request comes from a known network, behind a firewall, often from a managed laptop. Half its security is "you can only reach me if you're inside." Move it to the internet and that free half disappears.
+## Introduction
 
-The one rule this whole post hangs on: **on the intranet, the network is the auth boundary; on the internet, identity has to be.** Everything below is either moving that boundary or a networking detail that breaks while you move it.
+Inside the office, an intranet app gets half its security for free: every request comes from a known network, behind a firewall, often from a managed laptop. The moment it goes public, that free half disappears, and so do a set of network assumptions nobody wrote down.
 
-```plantuml title="Before and after: where the trust boundary sits"
+To find out exactly what breaks, I rebuilt the path in a lab: a client on the "internet", a stateful Linux firewall doing DNAT, and the app behind it. Then I broke it on purpose in the four ways that show up most often in practice. **Every output in this post is copied from those runs**, and the [lab script](/labs/intranet-to-internet/lab.sh) reproduces all of it on any Linux machine.
+
+## Background: the trust boundary moves
+
+```plantuml title="Figure 1: on the intranet, location is the credential. On the internet, identity has to be."
 @startuml
 package "Before: intranet" {
   rectangle "Employee laptop\n10.20.0.0/16" as L1
@@ -33,19 +37,19 @@ note bottom of P : trust moves here:\nwho you are,\nnot where you are
 @enduml
 ```
 
-## 3 ways to make an internal app accessible from the internet
+Everything that follows is either moving that boundary (authentication, TLS, headers) or a network detail that breaks while you move it.
 
-There are three ways to put an internal app in front of outside users. They differ in what's reachable from the internet and how much of the app has to change.
+## Architecture: three ways to expose an internal app
 
-| Pattern | What's exposed | App changes | Good for |
+| Pattern | What's reachable from the internet | App changes | Good for |
 |---|---|---|---|
-| **Identity-aware access proxy** (zero-trust style) | only the proxy; it authenticates before forwarding | almost none | internal tools that employees use from home |
-| **Reverse proxy in a DMZ** + firewall DNAT | the proxy's public IP and port 443 | some: real client IP, absolute URLs, cookies | partners or customers, real public traffic |
-| **Outbound tunnel** to an edge provider | nothing inbound; the app dials out | almost none | no public IP, CGNAT, or "we can't open ports" |
+| **Identity-aware access proxy** (zero-trust style) | only the proxy, which authenticates before forwarding | almost none | internal tools used by employees from home |
+| **Reverse proxy in a DMZ** + firewall DNAT | the proxy's public IP on port 443 | some: client IP, absolute URLs, cookies | partners, customers, real public traffic |
+| **Outbound tunnel** to an edge provider | nothing inbound; the app dials out | almost none | no public IP, carrier-grade NAT, "we can't open ports" |
 
-A rule of thumb: if the audience is still "our people", don't make the app public. Put an access proxy in front, keep the app internal, and you avoid most of what follows. The rest of this post covers the DMZ case, because that's where the networking matters.
+If the audience is still "our people", don't make the app public at all. Put an access proxy in front and keep the app internal. For everything else there's the DMZ pattern, and Figure 2 shows what its edge has to decide for every request.
 
-```plantuml title="What the edge decides for each request"
+```plantuml title="Figure 2: what the edge decides for each request"
 @startuml
 left to right direction
 package "Internet" {
@@ -73,160 +77,251 @@ PX --> O4 : spoofed
 @enduml
 ```
 
-## How port forwarding (DNAT) reaches the app
+## The lab
 
-The classic setup: a public IP on the firewall, DNAT to the reverse proxy, which talks to the app.
+```plantuml title="Figure 3: lab topology. Each box is a Linux network namespace."
+@startuml
+rectangle "client\n198.51.100.23" as C
+rectangle "firewall\n203.0.113.10 (public)\n10.0.1.1 (DMZ)\nDNAT :80 to 10.0.1.5:8080" as F
+node "app\n10.0.1.5:8080" as A
+rectangle "fw2\nsecond gateway,\nno NAT state" <<deny>> as F2
+rectangle "hop\n1200-byte link\n(a VPN, say)" <<ask>> as H
+C --> F : wan
+F --> A : dmz
+A ..> F2 : asymmetric-routing test
+C ..> H : MTU test
+@enduml
+```
+
+The firewall runs the same ruleset you'd write in production: default-deny forwarding, accept established flows, and one port forward.
 
 ```bash
-# default deny, then let established flows through
 iptables -P FORWARD DROP
 iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 iptables -A FORWARD -m conntrack --ctstate INVALID -j DROP
-
-# publish 203.0.113.10:443 as the reverse proxy at 10.0.1.5:443
-iptables -t nat -A PREROUTING -i wan0 -d 203.0.113.10 -p tcp --dport 443 \
-         -j DNAT --to-destination 10.0.1.5:443
-iptables -A FORWARD -i wan0 -o dmz0 -d 10.0.1.5 -p tcp --dport 443 \
+iptables -t nat -A PREROUTING -i f-wan -d 203.0.113.10 -p tcp --dport 80 \
+         -j DNAT --to-destination 10.0.1.5:8080
+iptables -A FORWARD -i f-wan -o f-dmz -d 10.0.1.5 -p tcp --dport 8080 \
          -m conntrack --ctstate NEW -j ACCEPT
 ```
 
-Two things make this work, and both are easy to get wrong.
+To run it yourself (root on any Linux box; it only touches namespaces it creates):
 
-**1. The filter rule matches the internal IP.** DNAT runs in PREROUTING, before routing and filtering, so by the time the FORWARD chain sees the packet, its destination is already `10.0.1.5`. Writing the FORWARD rule against `203.0.113.10` is the most common "my port forward doesn't work" bug.
-
-**2. The firewall decides once per flow, not per packet.** The first packet is judged by the rules, and the verdict plus the address rewrite gets frozen into a conntrack entry:
-
-```text
-tcp 6 431987 ESTABLISHED
-  src=198.51.100.23 dst=203.0.113.10  sport=51544 dport=443   ← ORIGINAL: what the client sent
-  src=10.0.1.5      dst=198.51.100.23 sport=443   dport=51544 ← REPLY: what the answer will look like
-  [ASSURED] mark=0 use=1
+```bash
+curl -O https://samadeep.github.io/labs/intranet-to-internet/lab.sh && chmod +x lab.sh
+sudo ./lab.sh up          # then: dnat-bug, entry, asym, idle, mtu, and finally down
 ```
 
-Replies match the REPLY tuple and get their source rewritten back to `203.0.113.10` automatically. You never write an "un-DNAT" rule. The `431987` is the seconds left before the entry is evicted (the TCP established default is 432000, 5 days).
+## How a stateful firewall sees one request
 
-That one idea, a decision frozen per flow, explains most of the failures you'll meet during the move.
-
-## Common problems after exposing an intranet app
-
-### Works on the office network, hangs from outside
+A stateful firewall makes **one decision per flow, not per packet**. The first packet is judged by the rules; the verdict and the address rewrite are frozen into a conntrack entry, and every later packet is matched against that entry instead. Here is one `curl` through the lab firewall, watched with `conntrack -E`:
 
 ```text
-office:   laptop ─────────────────────────► app            MTU 1500 the whole way
-outside:  laptop ─► home router ─► VPN/tunnel ─► firewall ─► app
-          large response ─► needs fragmenting  -X-  "fragmentation needed" ICMP dropped
-          small pages load, large ones hang forever
+$ curl -s http://203.0.113.10/
+hello from 10.0.1.5
+    [NEW] tcp 6 120 SYN_SENT src=198.51.100.23 dst=203.0.113.10 sport=58336 dport=80 [UNREPLIED] src=10.0.1.5 dst=198.51.100.23 sport=8080 dport=58336
+ [UPDATE] tcp 6 60 SYN_RECV src=198.51.100.23 dst=203.0.113.10 sport=58336 dport=80 src=10.0.1.5 dst=198.51.100.23 sport=8080 dport=58336
+ [UPDATE] tcp 6 432000 ESTABLISHED src=198.51.100.23 dst=203.0.113.10 sport=58336 dport=80 src=10.0.1.5 dst=198.51.100.23 sport=8080 dport=58336 [ASSURED]
+ [UPDATE] tcp 6 120 FIN_WAIT ...
+ [UPDATE] tcp 6 30 LAST_ACK ...
+ [UPDATE] tcp 6 120 TIME_WAIT ...
 ```
 
-Guards that missed it:
+Each line holds two tuples. The first is what the client sent (`dst=203.0.113.10:80`). The second is what the reply is *expected* to look like (`src=10.0.1.5:8080`), and that second tuple is where the DNAT lives: when the app answers, the kernel matches it and rewrites the source back to `203.0.113.10`. The third number is seconds until eviction, and an ESTABLISHED TCP entry gets 432000 seconds (5 days) by default.
 
-- **Testing from inside.** The office path never needed path MTU discovery.
-- **The firewall policy.** It allowed the TCP flow but dropped ICMP, so the "fragmentation needed" message, which conntrack would have classed as RELATED to that flow, never arrived.
+Keep that picture in mind. All four failures below are this one mechanism being violated.
 
-Fix: accept `RELATED` traffic (the rule above does), and never blanket-drop ICMP.
+## Finding 1: the port forward that never forwards
 
-### Every user shows up with the proxy's IP
+```plantuml title="Figure 4: DNAT runs before the filter, so the FORWARD rule must match the internal IP"
+@startuml
+left to right direction
+rectangle "SYN\ndst 203.0.113.10:80" as P
+rectangle "nat PREROUTING\nDNAT: dst becomes\n10.0.1.5:8080" as N
+rectangle "routing\nout via f-dmz" as R
+rectangle "FORWARD rule\n-d 203.0.113.10\nno match, DROP" <<deny>> as B
+rectangle "FORWARD rule\n-d 10.0.1.5\nmatch, ACCEPT" <<allow>> as G
+P --> N
+N --> R
+R --> B : broken rule
+R --> G : fixed rule
+@enduml
+```
+
+**Symptom:** the port forward is configured, the DNAT counter climbs, and nothing ever connects.
 
 ```text
-client 198.51.100.23 ─► proxy SNATs ─► app sees src=10.0.1.20 for everyone
-                                    -X- rate limiter bans 10.0.1.20, everyone locked out
-                                    -X- audit log: every login "from" the proxy
+# broken: FORWARD rule matches the public IP
+$ curl -s -m 3 http://203.0.113.10/
+curl: timed out
+
+$ iptables -L FORWARD -n -v | tail -1
+    0     0 ACCEPT  6  --  f-wan  f-dmz  0.0.0.0/0  203.0.113.10  tcp dpt:80 ctstate NEW
+$ iptables -t nat -L PREROUTING -n -v | tail -1
+    3   180 DNAT    6  --  f-wan  *      0.0.0.0/0  203.0.113.10  tcp dpt:80 to:10.0.1.5:8080
+
+# fixed: FORWARD rule matches the internal IP
+$ curl -s -m 3 http://203.0.113.10/
+hello from 10.0.1.5
 ```
 
-Proxies and SNAT replace the client's IP. That's often deliberate, because it forces replies back through the same box (see asymmetric routing below). The real IP then travels in `X-Forwarded-For`.
+The counters tell the whole story: **3 packets** hit the DNAT rule (the SYN and two retries), and **0** hit the FORWARD rule. By the time a packet reaches FORWARD, PREROUTING has already rewritten its destination to `10.0.1.5:8080`, so a rule written for `203.0.113.10:80` can never match.
 
-Guards that missed it:
+**Guards that missed it:** the DNAT rule's counter going up looks like progress. And the default-deny policy drops silently, so the client sees a timeout rather than a refusal.
 
-- **The app's IP allowlist.** It was written for the intranet and now sees only the proxy, so it either allows everything or nothing.
-- **The rate limiter.** It keys on the socket's source IP.
+## Finding 2: replies that take a different way home
 
-Fix: read the client IP from `X-Forwarded-For`, but **only trust that header when the request came from your proxy.** Anyone on the internet can send an `X-Forwarded-For` header, so taking it at face value lets them claim any IP they like.
+```plantuml title="Figure 5: the reply leaves through fw2, which has no conntrack entry, so it is never translated back"
+@startuml
+participant "client\n198.51.100.23" as C
+participant "firewall\n203.0.113.10" as F
+participant "app\n10.0.1.5" as S
+participant "fw2\nno NAT state" as F2
+C -> F : SYN to 203.0.113.10:80
+F -> S : SYN to 10.0.1.5:8080 (DNAT)
+S -> F2 : SYN-ACK (default route is fw2)
+F2 -> C : SYN-ACK from 10.0.1.5:8080
+note over C : not the address it called:\nignored, SYN retried
+C -> F : SYN (retry)
+@enduml
+```
 
-### Port forwarding works one way only (asymmetric routing)
+**Symptom:** connections time out, but only for some servers or some paths. The lab gives the app a second gateway and points its default route at it. Here is `tcpdump` on the client:
 
 ```text
-SYN       client → FW-A (DNAT, entry created) → 10.0.1.5
-SYN-ACK   10.0.1.5 → default gateway is FW-B  -X-  FW-B has no entry
-          reply leaves with src 10.0.1.5, the client drops it as unknown
+c-wan Out IP 198.51.100.23.33322 > 203.0.113.10.80: Flags [S], seq 2849747145, ...
+c-alt In  IP 10.0.1.5.8080 > 198.51.100.23.33322: Flags [S.], seq 3318416431, ack 2849747146, ...
+c-wan Out IP 198.51.100.23.33322 > 203.0.113.10.80: Flags [S], seq 2849747145, ...
+c-alt In  IP 10.0.1.5.8080 > 198.51.100.23.33322: Flags [S.], seq 3318416431, ack 2849747146, ...
 ```
 
-Guards that missed it:
+The SYN-ACK arrives on a *different interface*, from `10.0.1.5:8080` instead of `203.0.113.10:80`. Only the firewall that saw the SYN holds the entry that would translate the reply back, and the reply never went through it. The client doesn't recognise the sender and keeps retrying.
 
-- **FW-A's rules were correct.** It only ever saw half the flow.
-- **FW-B dropped the SYN-ACK as INVALID.** That looks like a timeout, not an error.
+**Guards that missed it:** the first firewall's rules are correct, because it only ever sees half the flow. A second firewall *with* conntrack would drop the reply as INVALID, which looks like a timeout, not an error.
 
-This bites when the app's default route points at an internal gateway instead of the firewall that did the DNAT. Fix: symmetric routing, or SNAT inbound so replies have to come back through FW-A (which is exactly why you then need the `X-Forwarded-For` handling above).
+**Fix:** symmetric routing (the app's route back to the internet goes through the firewall that did the DNAT), or SNAT inbound so replies have to return the same way. SNAT costs you the client's IP, which is why the proxy then has to pass it along in `X-Forwarded-For`.
 
-### WebSockets and long connections drop after a few minutes
+## Finding 3: quiet connections die, and nobody is told
+
+```plantuml title="Figure 6: the idle timeout evicts the entry; the push is lost and the reset comes from the firewall"
+@startuml
+participant "client" as C
+participant "firewall" as F
+participant "app" as S
+C -> F : handshake + "hi"
+F -> S : (DNAT)
+note over F : ESTABLISHED, 5 s idle timeout\n(stands in for a cloud LB's 4 min)
+... 5 s of silence ...
+note over F : entry DESTROYED
+S ->x F : push after 8 s, retransmitted
+... client hears nothing ...
+C -> F : FIN (client finally speaks)
+note over F : no entry, no DNAT:\npacket is for the firewall itself
+F -> C : RST, from the firewall, not the app
+@enduml
+```
+
+**Symptom:** WebSockets, long polls, database pools and Kafka consumers work in the office and silently stall from outside. On the intranet nothing sat in the path to forget the connection. On the internet a load balancer or NAT gateway does, usually after a few minutes of idle (4 minutes by default on an Azure load balancer, 350 seconds on an AWS NAT gateway). The lab shrinks that to 5 seconds:
 
 ```text
-t=0      browser ↔ app over WebSocket, through a cloud load balancer or NAT
-t=4min   quiet; the middlebox's idle timeout evicts its entry
-t=6min   app pushes an update  -X-  no entry, dropped
-         the UI shows stale data until something reconnects
+[UPDATE] tcp 6 5 ESTABLISHED src=198.51.100.23 dst=203.0.113.10 sport=36472 dport=9000 ... [ASSURED]
+[DESTROY] tcp 6 ESTABLISHED src=198.51.100.23 dst=203.0.113.10 sport=36472 dport=9000 ... [ASSURED]
+client received: nothing; when it finally sent, the connection was reset
+
+# same again, client sends a TCP keepalive every 2 s
+client received: pushed after 8s idle
 ```
 
-Guards that missed it:
+The packet capture shows what actually happened. On the DMZ side, the app sent its message at 8 seconds and kept retransmitting it. On the client side, nothing arrived. When the client finally sent its own FIN at 11 seconds, there was no entry to un-DNAT it, so the packet was addressed to the firewall's own IP, and **the firewall's kernel answered with a RST**. The side that was waiting never heard anything, and when the error finally came, it came from a machine that doesn't run the app.
 
-- **TCP keepalive.** The Linux default is 2 hours, far above typical middlebox idle timeouts (4 minutes by default on an Azure load balancer, 350 seconds on an AWS NAT gateway).
-- **Error reporting.** The side that's waiting never gets a RST, so nothing logs an error.
+**Guards that missed it:** TCP keepalive exists, but the Linux default fires after 2 hours, far longer than any middlebox waits. And there's no RST at the moment of loss, so nothing logs an error.
 
-On the intranet, nothing sat in the path to expire the entry. Fix: application-level heartbeats (WebSocket pings, SSE comments) more often than the shortest idle timeout on the path.
+**Fix:** application heartbeats (WebSocket pings, SSE comments, Kafka's heartbeat settings) or TCP keepalive, shorter than the shortest idle timeout on the path. In the lab, a 2-second keepalive was enough to keep the entry alive.
 
-### Random connection drops under load (conntrack table full)
+## Finding 4: small pages load, large ones hang
+
+```plantuml title="Figure 7: the 'fragmentation needed' ICMP is RELATED traffic; drop it and path MTU discovery fails"
+@startuml
+participant "client" as C
+participant "hop\n1200-byte link" as H
+participant "firewall" as F
+participant "app" as S
+C -> F : GET /big (small packets pass)
+S -> F : 1500-byte segment, Don't Fragment
+F -> H
+H -> F : ICMP "fragmentation needed, MTU 1200"
+F ->x S : ESTABLISHED-only rule drops it
+note over S : keeps sending 1500 bytes,\nnever learns the smaller MTU
+@enduml
+```
+
+**Symptom:** the classic "works from the office, hangs from home". Office paths are 1500 bytes end to end. Home paths go through VPNs, tunnels and PPPoE links with smaller MTUs. The lab puts a 1200-byte hop between the client and the firewall:
 
 ```text
-dmesg: nf_conntrack: table full, dropping packet
+# firewall forwards ESTABLISHED only (ICMP 'fragmentation needed' is RELATED, so it is dropped)
+$ curl -s -o /dev/null -w '%{http_code} %{size_download} bytes\n' http://203.0.113.10/
+200 20 bytes
+$ curl -s -o /dev/null -w '%{http_code} %{size_download} bytes\n' http://203.0.113.10/big
+200 0 bytes
+large page: timed out
+
+# firewall forwards ESTABLISHED,RELATED
+$ curl -s -o /dev/null -w '%{http_code} %{size_download} bytes\n' http://203.0.113.10/big
+200 200000 bytes
+
+$ ip route get 198.51.100.23        # on the app, afterwards
+198.51.100.23 via 10.0.1.1 dev a-dmz src 10.0.1.5
+    cache expires 599sec mtu 1200
 ```
 
-Internet traffic includes scanners, bots and SYN floods, and every one of those flows costs a conntrack entry. When `nf_conntrack_max` fills up, new connections drop at random while existing ones look fine. Check `conntrack -C` against `sysctl net.netfilter.nf_conntrack_max`, and put rate limiting at the edge so junk never reaches the stateful firewall.
+The detail worth noticing is `200 0 bytes`: the status line and headers arrived, because they fit in a small packet, and then the body never came. The hop sent back the "fragmentation needed" ICMP message, conntrack classified it as RELATED to the flow, and a rule accepting only ESTABLISHED dropped it. Once RELATED was allowed, the app learned the smaller path MTU (`mtu 1200`) and the 200 KB page loaded.
 
-## Security checklist for an internet-facing internal app
+**Guards that missed it:** health checks fetch small pages. Office testing never crosses a small-MTU link. And "block ICMP for security" sounds responsible.
+
+## Results
+
+| Failure | What you see | What's actually happening | Fix |
+|---|---|---|---|
+| FORWARD rule on the public IP | timeout; DNAT counter climbs, FORWARD counter stays at 0 | DNAT already rewrote the destination before filtering | match the internal IP in FORWARD |
+| Asymmetric routing | timeouts on some paths | the reply skips the firewall holding the NAT entry | symmetric routing, or SNAT inbound + `X-Forwarded-For` |
+| Idle timeout | stalls; later a reset from the wrong box | the entry was evicted; nobody was told | heartbeats or keepalive shorter than the idle timeout |
+| Dropped RELATED ICMP | small responses work, large ones hang | path MTU discovery can't complete | accept `ESTABLISHED,RELATED`; never blanket-drop ICMP |
+
+## The application side: a checklist
 
 The network path is half the work. The other half is everything the app assumed because it lived inside:
 
 | Intranet assumption | Internet reality | Change |
 |---|---|---|
-| "If you can reach me, you're an employee" | anyone can reach you | SSO (OIDC or SAML) with MFA in front of every route, including APIs |
+| "If you can reach me, you're an employee" | anyone can reach you | SSO (OIDC or SAML) with MFA in front of every route, APIs included |
 | plain HTTP is fine inside | traffic crosses networks you don't own | TLS at the edge, HSTS, and TLS or mTLS from proxy to app |
 | links like `http://reports-host:8080/x` | those names don't resolve outside | relative URLs, or a configurable public base URL |
-| cookies with no flags | cross-site and plain-HTTP risks | `Secure`, `HttpOnly`, explicit `SameSite` |
-| admin pages "hidden" by not linking them | scanners find every path | block admin routes at the proxy, or keep them on the intranet hostname |
-| one DNS name | internal and external clients need different answers | split-horizon DNS: the same name resolves to the internal IP inside and the public IP outside |
-| logs keyed by source IP | the source IP is the proxy | log the trusted client IP and the authenticated user |
-| errors show stack traces | attackers read them | generic error pages outside, details only in logs |
+| the source IP is the user | the source IP is the proxy | read `X-Forwarded-For`, **but only trust it when the request came from your proxy** |
+| cookies with no flags | cross-site and plain-HTTP risks | `Secure`, `HttpOnly`, an explicit `SameSite` |
+| admin pages "hidden" by not linking them | scanners find every path | block admin routes at the proxy |
+| one DNS name | internal and external clients need different answers | split-horizon DNS |
 
-## Step-by-step rollout plan
+## Rollout plan
 
 ```text
-stage 1  internal only, through the new proxy path      (the proxy and SSO work)
-stage 2  public DNS + SSO, allowlist a few outside IPs  (the network path works from outside)
-stage 3  open to all authenticated users                (rate limits, logging, alerting)
-stage 4  decommission the old intranet-only access      (one path, one set of rules)
+stage 1  internal users only, through the new proxy path   proves the proxy and SSO
+stage 2  public DNS + SSO, allowlist a few outside IPs      proves the network path from outside
+stage 3  open to all authenticated users                    rate limits, logging, alerting in place
+stage 4  remove the old intranet-only access                one path, one set of rules
 ```
 
-Keep the old path alive until stage 4, so rolling back is a DNS change rather than an incident.
+Keep the old path alive until stage 4, so rolling back is a DNS change rather than an incident. And run every stage's tests from **outside** (a phone hotspot is enough), because every failure in this post passes an inside test.
 
-## How to test it from outside your network
+## Key takeaways
 
-From a machine **outside** your network (a phone hotspot is enough):
-
-```bash
-curl -v https://app.example.com/                # TLS, redirect to SSO, no internal hostnames in the response
-curl -s -H 'X-Forwarded-For: 1.2.3.4' https://app.example.com/whoami   # the app must NOT believe this header
-```
-
-On the firewall, while you make that request:
-
-```bash
-sudo conntrack -E -d 203.0.113.10               # watch the entry be created, go ESTABLISHED, then expire
-sudo iptables -t nat -L PREROUTING -n -v        # the DNAT rule's packet counter should move
-```
-
-If the conntrack entry appears but the counter on your FORWARD rule doesn't move, your filter rule is matching the public IP instead of the internal one.
+1. **Location stops being a credential.** Put identity (SSO plus MFA) at the proxy before anything else.
+2. **A stateful firewall decides once per flow.** Port-forward rules, reply routing and idle timeouts all follow from that one fact.
+3. **The failures are silent.** Timeouts, stalls and half-loaded pages, rarely a clean error. Watch `conntrack -E` and the rule counters instead of guessing.
+4. **Test from where your users are.** Every bug here passed an office test.
 
 ## References
 
+- [Lab script for this post](/labs/intranet-to-internet/lab.sh): reproduces every output above
 - [Netfilter conntrack sysctl defaults](https://docs.kernel.org/networking/nf_conntrack-sysctl.html), Linux kernel documentation
 - [Azure Load Balancer TCP reset and idle timeout](https://learn.microsoft.com/azure/load-balancer/load-balancer-tcp-reset)
-- [RFC 6598: the 100.64.0.0/10 shared address space used by carrier-grade NAT](https://www.rfc-editor.org/rfc/rfc6598)
+- [RFC 1191: Path MTU Discovery](https://www.rfc-editor.org/rfc/rfc1191)
