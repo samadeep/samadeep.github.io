@@ -38,12 +38,14 @@ jobs:
           echo "{\"built\":\"$(date -u +%FT%TZ)\",\"sha\":\"${GITHUB_SHA::7}\"}" > out/vm/version.json
           tar -C out -czf vm.tar.gz vm
           vm/ci-run.sh sizes sh -c 'du -sh out/vm out/vm/flat out/vm/state.bin.zst out/vm/v86.wasm vm.tar.gz; ls out/vm/flat | wc -l'
-      - uses: actions/upload-artifact@v4
-        with: { name: vm, path: vm.tar.gz, retention-days: 7 }
-      - name: Publish and redeploy (main only)
+      - name: Publish to the vm-dist branch (vm-dist-preview off main)
+        run: |
+          BR=vm-dist; [ "$GITHUB_REF" = refs/heads/main ] || BR=vm-dist-preview
+          cd out/vm
+          git init -q -b "$BR" && git add -A
+          git -c user.name=vm-bot -c user.email=41898282+github-actions[bot]@users.noreply.github.com commit -qm "lab vm ${GITHUB_SHA::7}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" "$BR"
+      - name: Redeploy (main only)
         if: github.ref == 'refs/heads/main'
         env: { GH_TOKEN: '${{ github.token }}' }
-        run: |
-          gh release view vm-latest >/dev/null 2>&1 || gh release create vm-latest --title "Lab VM" --notes "Built by .github/workflows/vm.yml. Unpacked into /vm/ at deploy."
-          gh release upload vm-latest vm.tar.gz --clobber
-          gh workflow run deploy.yml --ref main
+        run: gh workflow run deploy.yml --ref main
