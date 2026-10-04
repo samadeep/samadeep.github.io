@@ -2,7 +2,7 @@
 # Build the lab image as v86 9p files:  vm/build.sh <v86 checkout> <out dir>
 set -euo pipefail
 V86=$1; OUT=$2
-mkdir -p "$OUT"
+mkdir -p "$OUT/flat"
 docker build . -f vm/Dockerfile --platform linux/386 --tag lab-vm
 docker rm -f lab-vm-c >/dev/null 2>&1 || true
 docker create --platform linux/386 --name lab-vm-c lab-vm >/dev/null
