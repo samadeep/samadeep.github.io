@@ -73,7 +73,7 @@ function pyLab(root: HTMLElement) {
       if (data.status) status.textContent = data.status + '\n';
       if (data.out != null) { status.textContent = ''; term.append(data.out + '\n'); }
       if (data.err != null) { status.textContent = ''; term.append(h('span', { class: 'lab-err' }, data.err + '\n')); }
-      if (data.done != null) { if (data.done >= 0) term.append(h('span', { class: 'lab-dim' }, `\n[done in ${(data.done / 1000).toFixed(1)} s]`)); finish(); }
+      if (data.done != null) { if (data.done >= 0) term.append(h('span', { class: 'lab-dim' }, `\n[done in ${data.done < 1000 ? data.done + " ms" : (data.done / 1000).toFixed(1) + " s"}]`)); finish(); }
       term.scrollTop = term.scrollHeight;
     };
     worker.postMessage({ base: (window as any).PYODIDE_BASE ?? PYODIDE, code: source, argv: [file, ...args.value.trim().split(/\s+/).filter(Boolean)] });
