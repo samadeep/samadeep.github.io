@@ -126,6 +126,15 @@ function render(src, file) {
   return svg;
 }
 
+// PlantUML defaults that ignore the skinparams above, mapped onto the palette.
+const DEFAULTS = { '#181818': DG.line, '#E2E2F0': DG.box, '#FEFFDD': DG.note, '#000': DG.ink, '#000000': DG.ink };
+function normalize(svg) {
+  return svg.replace(/(fill|stroke)(="|:)(#[0-9a-fA-F]{3,6})\b/g, (m, k, sep, c) => {
+    const to = DEFAULTS[c.toUpperCase()];
+    return to ? `${k}${sep}${to}` : m;
+  });
+}
+
 /** Inline-ready markup: no XML prolog, ids namespaced per diagram, scales to its container. */
 function inline(svg, hash, alt) {
   let s = svg.replace(/^<\?xml[^>]*>\s*/, '').replace(/<!--[\s\S]*?-->/g, '');
@@ -136,8 +145,7 @@ function inline(svg, hash, alt) {
     const rest = css.split(';').filter((d) => d && !/^\s*(stroke|stroke-width|stroke-dasharray|fill)\s*:/.test(d)).join(';');
     return attrs.map(([k, v]) => ` ${k}="${v}"`).join('') + (rest ? ` style="${rest}"` : '');
   });
-  s = s.replace(/"#181818"/gi, `"${DG.line}"`); // PlantUML's default arrow colour
-  s = s.replace(/fill="#000(000)?"/gi, `fill="${DG.ink}"`); // arrow labels ignore defaultFontColor
+  s = normalize(s);
   s = s.replace(/\bid="([^"]+)"/g, `id="d${hash}-$1"`)
     .replace(/url\(#([^)]+)\)/g, `url(#d${hash}-$1)`)
     .replace(/(xlink:href|href)="#([^"]+)"/g, `$1="#d${hash}-$2"`);
@@ -152,7 +160,7 @@ function inline(svg, hash, alt) {
 
 /** True when every colour in the SVG is from the palette, so it can follow the theme. */
 function themable(svg) {
-  const cols = (svg.replace(/#181818/gi, DG.line).replace(/"#000(000)?"/gi, `"${DG.ink}"`).match(/(?:fill|stroke)(?:="|:)(#[0-9a-fA-F]{6})/g) ?? []);
+  const cols = (normalize(svg).match(/(?:fill|stroke)(?:="|:)(#[0-9a-fA-F]{6})/g) ?? []);
   return cols.every((c) => PALETTE.has(c.slice(-7).toUpperCase()));
 }
 
