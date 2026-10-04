@@ -14,41 +14,41 @@ This post started with an incident I kept coming back to: an internal service th
 
 A port forward is one line. The ways it goes wrong are silent. Below: the one idea that explains every failure, the five failures in the order you'll hit them, and the ruleset that survives all five. **Every command below has a ▶ Run button**: it runs on a real Linux machine inside your browser, with a client, a firewall and an app wired together.
 
-```d2 title="The whole path, and the five places it breaks"
-direction: right
-client: "Client\n198.51.100.23" {class: peer}
-fw: "Firewall\nDNAT + conntrack" {class: main}
-app: "App\n10.0.1.5:8080" {class: worker}
-client -> fw: "1 forward · 4 idle · 5 MTU"
-fw -> app: "2 side door"
-app -> client: "3 reply path" {class: lost}
+```fig title="The whole path, and the five places it breaks"
+row
+client: peer "Client\n198.51.100.23"
+fw: main "Firewall\nDNAT + conntrack"
+app: worker "App\n10.0.1.5:8080"
+client -> fw "1 forward · 4 idle · 5 MTU"
+fw -> app "2 side door"
+app -> client "3 reply path" lost via below
 ```
 
 ## The one idea: the firewall decides once
 
-```d2 title="You picture rules judging every packet. Linux judges the first, then remembers."
-grid-columns: 2
-grid-gap: 28
-picture: "What you picture" {
-  class: panel
-  direction: down
-  p: "every packet" {class: peer}
-  r: rules {class: main}
-  v: verdict {class: result}
-  p -> r: judged
-  r -> v
-}
-linux: "What Linux does" {
-  class: panel
-  direction: down
-  p1: "first packet" {class: peer}
-  r: rules {class: main}
-  t: "conntrack entry" {class: shared}
-  rest: "every later packet" {class: peer}
-  p1 -> r: "judged once"
-  r -> t: remembered
-  rest -> t: "just matched"
-}
+```fig title="You picture rules judging every packet. Linux judges the first, then remembers."
+panel What you picture
+row
+p: peer "every packet"
+row
+r: main "rules"
+row
+v: result "verdict"
+p -> r "judged"
+r -> v
+panel What Linux does
+row
+p1: peer "first packet"
+_
+row
+r2: main "rules"
+_
+row
+t: shared "conntrack entry"
+rest: peer "every later packet"
+p1 -> r2 "judged once"
+r2 -> t "remembered"
+rest -> t "just matched"
 ```
 
 **Rules run once per connection.** The verdict and the address rewrite are saved in a table entry, and every later packet, both ways, just matches it. All five breaks below come from that.
@@ -84,15 +84,17 @@ The entry holds what the client sent (`dst=203.0.113.10:80`) and what the reply 
 
 ## 1. The port forward that never forwards
 
-```d2 title="Translation happens before filtering. A rule for the public IP can never match."
-direction: right
-pkt: "to\n203.0.113.10:80" {class: peer}
-dnat: "DNAT\nto 10.0.1.5:8080" {class: main}
-bad: "FORWARD\n-d 203.0.113.10" {class: deny}
-ok: "FORWARD\n-d 10.0.1.5" {class: allow}
+```fig title="Translation happens before filtering. A rule for the public IP can never match."
+row
+pkt: peer "to\n203.0.113.10:80"
+dnat: main "DNAT\nto 10.0.1.5:8080"
+bad: deny "FORWARD\n-d 203.0.113.10"
+row
+_ 2
+ok: allow "FORWARD\n-d 10.0.1.5"
 pkt -> dnat
-dnat -> bad: "never matches" {class: lost}
-dnat -> ok: matches {class: good}
+dnat -> bad "never matches" lost
+dnat -> ok "matches" good
 ```
 
 ```bash
@@ -114,34 +116,32 @@ hello from 10.0.1.5                                   # rule fixed to match 10.0
 
 The rule that fixed #1 allows anything headed to `10.0.1.5:8080`, including someone who skips the front door and routes straight to the internal address.
 
-```d2 title="Allow the front door, not the destination"
-grid-columns: 2
-grid-gap: 28
-a: "-d 10.0.1.5" {
-  class: panel
-  direction: down
-  x: attacker {class: peer}
-  front: "front door\n203.0.113.10:80" {class: main}
-  direct: "direct\n10.0.1.5:8080" {class: worker}
-  app: "App" {class: deny}
-  x -> front
-  x -> direct: "skips proxy"
-  front -> app
-  direct -> app: "allowed" {class: lost}
-}
-b: "--ctstate DNAT" {
-  class: panel
-  direction: down
-  x: attacker {class: peer}
-  front: "front door\n203.0.113.10:80" {class: main}
-  direct: "direct\n10.0.1.5:8080" {class: worker}
-  app: "App" {class: allow}
-  drop: dropped {class: result}
-  x -> front
-  x -> direct: "skips proxy"
-  front -> app: allowed {class: good}
-  direct -> drop: "no DNAT"
-}
+```fig title="Allow the front door, not the destination"
+panel -d 10.0.1.5
+row
+x: peer "attacker" span 2
+row
+front: main "front door\n203.0.113.10:80"
+direct: worker "direct\n10.0.1.5:8080"
+row
+app: deny "App" span 2
+x -> front
+x -> direct "skips proxy"
+front -> app
+direct -> app "allowed" lost
+panel --ctstate DNAT
+row
+x2: peer "attacker" span 2
+row
+front2: main "front door\n203.0.113.10:80"
+direct2: worker "direct\n10.0.1.5:8080"
+row
+app2: allow "App"
+drop: result "dropped"
+x2 -> front2
+x2 -> direct2 "skips proxy"
+front2 -> app2 "allowed" good
+direct2 -> drop "no DNAT"
 ```
 
 ```bash
@@ -162,16 +162,16 @@ D  A + drop 10.0.0.0/8 arriving on the WAN       open              dropped
 
 ## 3. Replies take a different way home
 
-```d2 title="The reply skips the firewall that holds the entry, so it's never translated back"
-shape: sequence_diagram
-c: client {class: peer}
-f: firewall {class: main}
-s: app {class: worker}
-f2: fw2 {class: deny}
-c -> f: "to 203.0.113.10:80"
-f -> s: "to 10.0.1.5:8080"
-s -> f2: reply
-f2 -> c: "from 10.0.1.5: wrong sender, ignored" {class: lost}
+```fig title="The reply skips the firewall that holds the entry, so it's never translated back"
+seq
+c: peer "client"
+f: main "firewall"
+s: worker "app"
+f2: deny "fw2"
+c -> f "to 203.0.113.10:80"
+f -> s "to 10.0.1.5:8080"
+s -> f2 "reply"
+f2 -> c "from 10.0.1.5: wrong sender, ignored" lost
 ```
 
 ```bash
@@ -189,17 +189,17 @@ c-alt In  10.0.1.5.8080 > 198.51.100.23.33322:   Flags [S.]   <- other interface
 
 ## 4. Quiet connections die, and nobody is told
 
-```d2 title="The idle entry is evicted; the late push is lost and the reset comes from the firewall"
-shape: sequence_diagram
-c: client {class: peer}
-f: firewall {class: main}
-s: app {class: worker}
-c -> f: "connect, say hi"
-f -> s
-f -> f: "idle 5 s: entry evicted" {class: lost}
-s -> f: "push at 8 s: dropped" {class: lost}
-c -> f: FIN
-f -> c: "RST from the firewall" {class: lost}
+```fig title="The idle entry is evicted; the late push is lost and the reset comes from the firewall"
+seq
+c: peer "client"
+f: main "firewall"
+s: worker "app"
+c -> f "connect, say hi"
+f -> s "forward"
+f -> f "idle 5 s: entry evicted" lost
+s -> f "push at 8 s: dropped" lost
+c -> f "FIN"
+f -> c "RST from the firewall" lost
 ```
 
 ```bash
@@ -218,15 +218,15 @@ WebSockets, long polls, database pools and Kafka consumers stall exactly like th
 
 ## 5. Small pages load, large ones hang
 
-```d2 title="Drop the RELATED 'too big' ICMP and the large response never gets through"
-shape: sequence_diagram
-s: app {class: worker}
-f: firewall {class: main}
-h: "1200-byte hop" {class: ask}
-s -> f: "1500-byte packet"
-f -> h
-h -> f: "ICMP: need 1200"
-f -> s: "dropped: not ESTABLISHED" {class: lost}
+```fig title="Drop the RELATED 'too big' ICMP and the large response never gets through"
+seq
+s: worker "app"
+f: main "firewall"
+h: ask "1200-byte hop"
+s -> f "1500-byte packet"
+f -> h "forward"
+h -> f "ICMP: need 1200"
+f -> s "dropped: not ESTABLISHED" lost
 ```
 
 ```bash

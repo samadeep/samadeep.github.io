@@ -79,49 +79,37 @@ Two numbers shape everything: **millions of writes a second at the edge**, and *
 
 ## The design
 
-```d2 title="Ten components, one rule: the stream is a resource, and state lives where it's cheapest to keep warm"
-grid-columns: 1
-grid-gap: 70
-edge: "Edge" {
-  class: panel
-  grid-columns: 2
-  grid-gap: 60
-  client: "1. Clients" {class: [peer; card]; icon: lucide:smartphone; b: "web · mobile · API\nEventSource / fetch" {class: body}}
-  lb: "2. Edge / L7 LB" {class: [main; card]; icon: lucide:globe; b: "TLS · HTTP/2 · WAF\nno gzip, no buffering on SSE" {class: body}}
-  client -> lb
-}
-control: "Control plane" {
-  class: panel
-  grid-columns: 3
-  grid-gap: 60
-  router: "5. KV-aware router" {class: [main; card]; icon: lucide:route; b: "cost = uncached work + queue\nsays busy when full" {class: body}}
-  chat: "4. Chat service" {class: [main; card]; icon: lucide:messages-square; b: "auth · quotas · history (10)\nstable prefix first" {class: body}}
-  gw: "3. Stream gateway" {class: [main; card]; icon: lucide:radio-tower; b: "holds SSE · ~15 KB/stream\n50 ms write batches" {class: body}}
-  chat -> router
-}
-gpu: "GPU fleet" {
-  class: panel
-  grid-columns: 3
-  grid-gap: 60
-  prefill: "6. Prefill" {class: [worker; card]; icon: lucide:cpu; b: "compute-bound\nchunked prefill" {class: body}}
-  decode: "7. Decode" {class: [worker; card]; icon: lucide:zap; b: "memory-bound · continuous\nbatching · paged KV" {class: body}}
-  spacer: "" {width: 300; style: {opacity: 0}}
-  prefill -> decode: KV
-}
-state: "State" {
-  class: panel
-  grid-columns: 3
-  grid-gap: 40
-  kv: "9. KV cache tiers" {class: [shared; card]; icon: lucide:layers; b: "GPU HBM -> CPU RAM -> SSD\nprefix blocks, LRU" {class: body}}
-  db: "10. Conversation DB" {class: [shared; card]; icon: lucide:database; b: "messages · source of truth\nrebuilds cache on a miss" {class: body}}
-  stream: "8. Stream store" {class: [shared; card]; icon: lucide:list-ordered; b: "tokens by stream id + seq\nTTL minutes · replay" {class: body}}
-}
-edge.lb -> control.gw
-control.gw -> control.chat
-control.router -> gpu.prefill: "new tokens"
-gpu.prefill <-> state.kv
-gpu.decode -> state.stream
-state.stream -> control.gw: "fan out"
+```fig title="Ten components, one rule: the stream is a resource, and state lives where it's cheapest to keep warm"
+layout stack
+panel Edge
+row
+_
+client: peer "1. Clients" icon smartphone body "web · mobile · API\nEventSource / fetch"
+lb: main "2. Edge / L7 LB" icon globe body "TLS · HTTP/2 · WAF\nno gzip, no buffering on SSE"
+panel Control plane
+row
+router: main "5. KV-aware router" icon route body "cost = uncached work + queue\nsays busy when full"
+chat: main "4. Chat service" icon messages-square body "auth · quotas · history (10)\nstable prefix first"
+gw: main "3. Stream gateway" icon radio-tower body "holds SSE · ~15 KB/stream\n50 ms write batches"
+panel GPU fleet
+row
+prefill: worker "6. Prefill" icon cpu body "compute-bound\nchunked prefill"
+decode: worker "7. Decode" icon zap body "memory-bound · continuous\nbatching · paged KV"
+_
+panel State
+row
+kv: shared "9. KV cache tiers" icon layers body "GPU HBM -> CPU RAM -> SSD\nprefix blocks, LRU"
+stream: shared "8. Stream store" icon list-ordered body "tokens by stream id + seq\nTTL minutes · replay"
+db: shared "10. Conversation DB" icon database body "messages · source of truth\nrebuilds cache on a miss"
+client -> lb
+lb -> gw
+gw -> chat
+chat -> router
+router -> prefill "new tokens"
+prefill -> decode "KV"
+prefill <-> kv
+decode -> stream
+stream -> gw "fan out" via right
 ```
 
 **Life of a request:**
@@ -172,17 +160,17 @@ That 5-second stall was **compression**, not the usual suspect. nginx's `proxy_b
 content-encoding: gzip; first token after 88 ms, 200 tokens in 200 chunks, last at 5104 ms
 ```
 
-```d2 title="Every token was on time until the compressor"
-shape: sequence_diagram
-c: Client {class: peer}
-n: "nginx + gzip" {class: main}
-m: Model {class: worker}
-c -> n: "GET /sse"
-n -> m
-m -> n: "token 1 (85 ms)"
-m -> n: "tokens 2 ... 199: held" {class: lost}
-m -> n: "token 200 (5.1 s)"
-n -> c: "all 200 at once" {class: lost}
+```fig title="Every token was on time until the compressor"
+seq
+c: peer "Client"
+n: main "nginx + gzip"
+m: worker "Model"
+c -> n "GET /sse"
+n -> m "forward"
+m -> n "token 1 (85 ms)"
+m -> n "tokens 2 ... 199: held" lost
+m -> n "token 200 (5.1 s)"
+n -> c "all 200 at once" lost
 ```
 
 **Load tests that measure total time pass, and so do direct tests. Only time to first token, through the real edge, catches it.** Also mind idle timeouts while the model thinks (nginx 60 s, AWS ALB 60 s, Cloudflare 125 s) and send an SSE comment line every ~15 s, as the [spec](https://html.spec.whatwg.org/multipage/server-sent-events.html) suggests.
@@ -203,17 +191,17 @@ reconnected with Last-Event-ID: 19; first replayed id 20, got 180 more
 total 200 tokens, unique 200, gaps or duplicates: 0
 ```
 
-```d2 title="Generation keeps going while the client is gone; reconnect replays the gap"
-shape: sequence_diagram
-c: Client {class: peer}
-s: "Stream store" {class: shared}
-m: Model {class: worker}
-m -> s: "tokens 0..19"
-s -> c: "id 0..19"
-c -> s: "connection drops" {class: lost}
-m -> s: "20..85 (keeps going)"
-c -> s: "Last-Event-ID: 19"
-s -> c: "20..199" {class: good}
+```fig title="Generation keeps going while the client is gone; reconnect replays the gap"
+seq
+c: peer "Client"
+s: shared "Stream store"
+m: worker "Model"
+m -> s "tokens 0..19"
+s -> c "id 0..19"
+c -> s "connection drops" lost
+m -> s "20..85 (keeps going)"
+c -> s "Last-Event-ID: 19"
+s -> c "20..199" good
 ```
 
 OpenAI's API does this with [background mode](https://developers.openai.com/api/docs/guides/background) (`starting_after`), the Vercel AI SDK with [resumable streams](https://ai-sdk.dev/docs/ai-sdk-ui/chatbot-resume-streams). One catch: **"Stop generating" now needs its own endpoint**, because a closed tab looks like a network blip.
@@ -244,17 +232,19 @@ hash(conversation)          77%      57ms     863ms         21%        20%
 cache + load cost           75%      75ms     294ms         31%        11%
 ```
 
-```d2 title="Follow the cache until it's busy: the cheapest GPU has the least new work"
-direction: right
-q: "Turn 7 of chat c42" {class: peer}
-r: "Router\nnew work + queue" {class: main}
-g3: "GPU 3\nhas turns 1-6\n0.205 s" {class: allow}
-g5: "GPU 5\nidle, no history\n0.215 s" {class: ask}
-g1: "GPU 1\nempty cache\n0.365 s" {class: deny}
+```fig title="Follow the cache until it's busy: the cheapest GPU has the least new work"
+row
+q: peer "Turn 7 of chat c42" span 3
+row
+r: main "Router: new work + queue" span 3
+row
+g3: allow "GPU 3\nhas turns 1-6\n0.205 s"
+g5: ask "GPU 5\nidle, no history\n0.215 s"
+g1: deny "GPU 1\nempty cache\n0.365 s"
 q -> r
-r -> g3: chosen {class: good}
-r -> g5: {style.stroke-dash: 3}
-r -> g1: {style.stroke-dash: 3}
+r -> g3 "chosen" good
+r -> g5 dashed
+r -> g1 dashed
 ```
 
 - **Round-robin** spreads work and wastes it: a 10 s p99.

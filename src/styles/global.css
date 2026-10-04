@@ -1,4 +1,6 @@
 @import '@fontsource-variable/jetbrains-mono';
+@import '@fontsource-variable/nunito/wght.css';
+@import './fig.css';
 
 /* ---------- tokens ---------- */
 :root {
@@ -577,3 +579,14 @@ figure.diagram.d2 figcaption { margin-top: 1rem; color: var(--ink-3); font-size:
 .to-top path { stroke: currentColor; stroke-width: 2; }
 body.vm-open .to-top { bottom: calc(1.25rem + min(46vh, 420px)); }
 body.vm-open:has(.vm-dock.min) .to-top { bottom: 4rem; }
+
+/* ---------- fig diagrams: inline SVG on a light card, scroll sideways on phones if wide ---------- */
+figure.diagram.fig { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 16px; padding: 1.5rem 1.25rem .9rem; }
+[data-theme='dark'] figure.diagram.fig { background: #17191c; border-color: #202225; }
+figure.fig .fig-scroll { margin: 0 auto; }
+figure.fig .fig-svg { display: block; width: 100%; height: auto; }
+figure.fig figcaption { margin-top: 1rem; color: var(--ink-3); font-size: .8rem; text-align: center; }
+/* the old .diagram svg rules (PlantUML era) must not reach into fig figures */
+.diagram .fig-svg text { font-family: 'Nunito Variable', Nunito, ui-rounded, system-ui, sans-serif; }
+.diagram .fig-svg svg.fi { display: inline; margin: 0; max-width: none; width: 22px; height: 22px; }
+@media (max-width: 720px) { figure.fig .fig-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; } figure.fig .fig-svg { min-width: var(--fig-min); } figure.diagram.fig { padding: 1rem .75rem .75rem; } }

@@ -1,0 +1,38 @@
+<svg style="font-family:Nunito,sans-serif" class="fig-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 926 134" width="926" height="134" role="img" aria-label="The whole path, and the five places it breaks"><style>/* ```fig diagrams (src/lib/remark-fig.mjs). Palette from the Claude Code docs Subagents / Agent Teams figure. */
+.fig-svg {
+  --f-panel: #e9ecef; --f-panel-edge: #ffffff; --f-ink: #1e1e1e; --f-body: #495057; --f-life: #ced4da;
+  --f-main: #ffc9c9; --f-worker: #ffd8a8; --f-peer: #d0bfff; --f-shared: #a5d8ff; --f-box: #ffffff;
+  --f-allow: #b2f2bb; --f-deny: #ffa8a8; --f-ask: #ffec99;
+  --f-muted: #868e96; --f-lost: #e03131; --f-good: #2f9e44;
+  font-family: 'Nunito Variable', Nunito, ui-rounded, system-ui, sans-serif;
+}
+[data-theme='dark'] .fig-svg {
+  --f-panel: #202225; --f-panel-edge: #2b2e33; --f-ink: #d3d3d3; --f-body: #adb5bd; --f-life: #45494f;
+  --f-main: #5b2c2c; --f-worker: #4c2a01; --f-peer: #483a71; --f-shared: #154163; --f-box: #2c2f33;
+  --f-allow: #1f4a2a; --f-deny: #6b2121; --f-ask: #4d4111;
+  --f-muted: #6f757c; --f-lost: #ff6b6b; --f-good: #51cf66;
+}
+.fig-svg .fpanel { fill: var(--f-panel); stroke: var(--f-panel-edge); stroke-width: 2; }
+.fig-svg .ftitle { fill: var(--f-ink); font-weight: 500; }
+.fig-svg .ftitle-in { fill: var(--f-body); font-weight: 700; letter-spacing: .02em; }
+.fig-svg .fn { stroke: var(--f-ink); stroke-width: 1.6; }
+.fig-svg .fn-main { fill: var(--f-main); } .fig-svg .fn-worker { fill: var(--f-worker); } .fig-svg .fn-peer { fill: var(--f-peer); }
+.fig-svg .fn-shared { fill: var(--f-shared); stroke-dasharray: 2 3; stroke-linecap: round; }
+.fig-svg .fn-box { fill: var(--f-box); } .fig-svg .fn-allow { fill: var(--f-allow); } .fig-svg .fn-deny { fill: var(--f-deny); } .fig-svg .fn-ask { fill: var(--f-ask); }
+.fig-svg .fn-result { fill: none; stroke-width: 2; stroke-dasharray: 1.5 4; stroke-linecap: round; }
+.fig-svg .ft { fill: var(--f-ink); font-weight: 600; }
+.fig-svg .ft-card { font-weight: 800; }
+.fig-svg .fb { fill: var(--f-body); font-weight: 500; }
+.fig-svg .fi { color: var(--f-body); }
+.fig-svg .fe { fill: none; stroke: var(--f-ink); stroke-width: 1.8; }
+.fig-svg .fa { fill: var(--f-ink); stroke: none; }
+.fig-svg .fl { fill: var(--f-ink); font-weight: 500; }
+.fig-svg .fp { fill: var(--f-panel); }
+.fig-svg .fe-muted { stroke: var(--f-muted); stroke-width: 1.6; } .fig-svg .tone-muted { fill: var(--f-muted); }
+.fig-svg .fe-lost { stroke: var(--f-lost); stroke-dasharray: 6 4; } .fig-svg .tone-lost { fill: var(--f-lost); }
+.fig-svg .fe-good { stroke: var(--f-good); } .fig-svg .tone-good { fill: var(--f-good); }
+.fig-svg .fe-dashed { stroke-dasharray: 5 4; }
+.fig-svg .flife { stroke: var(--f-life); stroke-width: 1.5; fill: none; }
+.fig-svg .fnote { fill: var(--f-panel); stroke-width: 1.2; }
+.fig-svg .fnote { stroke: var(--f-ink); } .fig-svg .fnote.tone-lost { stroke: var(--f-lost); fill: var(--f-panel); }
+</style><rect class="fpanel" x="1" y="1" width="923.5" height="132" rx="16"/><path class="fe" d="M201.1 56H367.2"/><path class="fa " d="M375.2 56L367.2 60.3L367.2 51.7Z"/><rect class="fp" x="214.1" y="48" width="148.1" height="16"/><text class="fl " x="288.1" y="56" text-anchor="middle" dominant-baseline="central" font-size="11.5"><tspan x="288.1" y="56">1 forward · 4 idle · 5 MTU</tspan></text><path class="fe" d="M550.3 56H716.4"/><path class="fa " d="M724.4 56L716.4 60.3L716.4 51.7Z"/><rect class="fp" x="602.7" y="48" width="69.2" height="16"/><text class="fl " x="637.3" y="56" text-anchor="middle" dominant-baseline="central" font-size="11.5"><tspan x="637.3" y="56">2 side door</tspan></text><path class="fe fe-lost" d="M811.9 86V108H113.5V94"/><path class="fa tone-lost" d="M113.5 86L117.9 94.1L109.2 94.1Z"/><rect class="fp" x="425.7" y="100" width="74.1" height="16"/><text class="fl tone-lost" x="462.7" y="108" text-anchor="middle" dominant-baseline="central" font-size="11.5"><tspan x="462.7" y="108">3 reply path</tspan></text><rect class="fn fn-peer" x="26" y="26" width="175.1" height="60" rx="8"/><text class="ft" x="113.5" y="46.5" text-anchor="middle" dominant-baseline="central" font-size="15"><tspan x="113.5" y="46.5">Client</tspan><tspan x="113.5" y="65.5">198.51.100.23</tspan></text><rect class="fn fn-main" x="375.2" y="26" width="175.1" height="60" rx="8"/><text class="ft" x="462.7" y="46.5" text-anchor="middle" dominant-baseline="central" font-size="15"><tspan x="462.7" y="46.5">Firewall</tspan><tspan x="462.7" y="65.5">DNAT + conntrack</tspan></text><rect class="fn fn-worker" x="724.4" y="26" width="175.1" height="60" rx="8"/><text class="ft" x="811.9" y="46.5" text-anchor="middle" dominant-baseline="central" font-size="15"><tspan x="811.9" y="46.5">App</tspan><tspan x="811.9" y="65.5">10.0.1.5:8080</tspan></text></svg>

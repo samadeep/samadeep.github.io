@@ -4,6 +4,7 @@ import { TOPICS } from './topics';
 import { firstDiagram } from './remark-plantuml.mjs';
 // @ts-ignore: plain .mjs helper shared with the markdown pipeline
 import { firstD2 } from './remark-d2.mjs';
+import { firstFig } from './remark-fig.mjs';
 
 export type Post = CollectionEntry<'posts'> & { minutes: number; href: string; cover?: string };
 
@@ -15,7 +16,7 @@ export async function getPosts(): Promise<Post[]> {
       return Object.assign(p, {
         minutes: Number(remarkPluginFrontmatter.minutes ?? 1),
         href: `/posts/${p.id}/`,
-        cover: p.data.cover ?? ((firstD2(p.body) ?? firstDiagram(p.body)) as string | undefined),
+        cover: p.data.cover ?? ((firstFig(p.body) ?? firstD2(p.body) ?? firstDiagram(p.body)) as string | undefined),
       });
     }),
   );
