@@ -2,15 +2,20 @@
 
 /* ---------- tokens ---------- */
 :root {
-  --paper: #f5f6f2;
-  --paper-2: #eceee8;
-  --ink: #1a1f24;
-  --ink-2: #4a535c;
-  --ink-3: #6b7580;
-  --rule: #d9dcd6;
-  --trace: #4b3bcf;
-  --trace-soft: #4b3bcf1f;
-  --mark: #fff1a8;
+  /* palette: Ink Black #031211, Warm Ivory #E8E4D3, Electric Teal #00AEBB.
+     Electric Teal is 2.1:1 on ivory, so in light mode it is a fill only;
+     text and links use a deeper teal (5.5:1). Every pair checked against WCAG AA. */
+  --paper: #e8e4d3;
+  --paper-2: #ddd8c4;
+  --ink: #031211;
+  --ink-2: #2c3b39;
+  --ink-3: #55615e;
+  --rule: #cdc8b2;
+  --trace: #00636c;        /* text, links, borders */
+  --trace-fill: #00aebb;   /* bars, brand mark, decorative fills */
+  --trace-soft: #00aebb2e;
+  --chip: #b5d8ce;
+  --mark: #00aebb40;
 
   /* one family everywhere; Aptos Mono when installed, JetBrains Mono (self-hosted) otherwise */
   --mono: 'Aptos Mono', 'JetBrains Mono Variable', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
@@ -31,15 +36,17 @@
 }
 
 :root[data-theme='dark'] {
-  --paper: #101418;
-  --paper-2: #171c21;
-  --ink: #e4e7ea;
-  --ink-2: #b4bcc4;
-  --ink-3: #8a949e;
-  --rule: #262c33;
-  --trace: #a99bff;
-  --trace-soft: #a99bff26;
-  --mark: #5a4b00;
+  --paper: #031211;
+  --paper-2: #0a1e1d;
+  --ink: #e8e4d3;
+  --ink-2: #bdb9aa;
+  --ink-3: #8e8c80;
+  --rule: #1d3331;
+  --trace: #00aebb;
+  --trace-fill: #00aebb;
+  --trace-soft: #00aebb33;
+  --chip: #023436;
+  --mark: #00aebb4d;
   color-scheme: dark;
 }
 
@@ -111,7 +118,7 @@ hr { border: 0; border-top: 1px solid var(--rule); margin: 3rem 0; }
 .trace a.row:hover .t { color: var(--trace); }
 .trace .d { grid-column: 2; color: var(--ink-2); font: 400 0.95rem/1.55 var(--serif); margin: 0.1rem 0 0.4rem; }
 .span { grid-column: 2; display: flex; align-items: center; gap: 0.6rem; }
-.span .bar { height: 6px; border-radius: 3px; background: var(--trace); min-width: 6px; transform-origin: left; }
+.span .bar { height: 6px; border-radius: 3px; background: var(--trace-fill); min-width: 6px; transform-origin: left; }
 .span .bar-track { flex: 1; max-width: 22rem; background: var(--paper-2); border-radius: 3px; display: flex; }
 .span .ms { font: 400 0.75rem var(--mono); color: var(--ink-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
 @media (max-width: 560px) {
@@ -164,7 +171,7 @@ hr { border: 0; border-top: 1px solid var(--rule); margin: 3rem 0; }
 .diagram a { display: block; }
 .diagram img { display: block; margin: 0 auto; max-width: none; height: auto; }
 .diagram a { width: max-content; min-width: 100%; }
-[data-theme='dark'] .diagram { background: #e6e9e3; border-color: #e6e9e3; }
+[data-theme='dark'] .diagram { background: #e8e4d3; border-color: #e8e4d3; }
 
 .toc-rail { padding-top: 4rem; }
 .toc { position: sticky; top: 2rem; font: 400 0.85rem/1.45 var(--sans); max-height: calc(100vh - 4rem); overflow-y: auto; }
@@ -259,8 +266,8 @@ dialog.search .inner { padding: 1rem; overflow-y: auto; max-height: inherit; }
 /* ---------- feed cards (posts + reading) ---------- */
 /* Topic/source hue -> OKLCH tints; light-dark() follows the color-scheme set by the theme toggle. */
 .card {
-  --tint: light-dark(oklch(95% 0.03 var(--hue)), oklch(28% 0.04 var(--hue)));
-  --tint-ink: light-dark(oklch(48% 0.16 var(--hue)), oklch(80% 0.12 var(--hue)));
+  --tint: var(--chip);
+  --tint-ink: var(--trace);
 }
 .feed { list-style: none; padding: 0; margin: 0; container-type: inline-size; }
 .card {
@@ -285,13 +292,13 @@ dialog.search .inner { padding: 1rem; overflow-y: auto; max-height: inherit; }
 .card .sub { margin: 0.45rem 0 0; color: var(--ink-2); font-size: 0.95rem; line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .thumb { grid-area: thumb; align-self: center; aspect-ratio: 3 / 2; border-radius: 6px; overflow: hidden; background: var(--tint); border: 1px solid var(--rule); }
 .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.card:has(img[src$='.svg']) .thumb { background: #f3f4f0; } /* diagrams keep their light ground */
+.card:has(img[src$='.svg']) .thumb { background: #f1eee2; } /* diagrams keep their light ground */
 .card:has(img[src$='.svg']) .thumb img { object-fit: contain; padding: 6px; }
-.thumb svg { width: 100%; height: 100%; display: block; fill: var(--tint-ink); opacity: 0.85; }
+.thumb svg { width: 100%; height: 100%; display: block; fill: var(--trace-fill); }
 .foot { grid-area: foot; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; margin-top: 0.75rem; font: 400 0.8rem var(--sans); color: var(--ink-3); }
 .foot .span { gap: 0.5rem; }
 .foot .bar-track { width: 5.5rem; flex: none; }
-.foot .bar { background: var(--tint-ink); }
+.foot .bar { background: var(--trace-fill); }
 .foot .badge { margin-left: 0; }
 .foot .done { color: var(--trace); display: inline-flex; gap: 0.25rem; align-items: center; }
 .foot .done svg { width: 14px; height: 14px; }

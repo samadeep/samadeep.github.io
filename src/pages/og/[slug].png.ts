@@ -13,7 +13,8 @@ const fonts = [
   { name: 'Mono', data: font('@fontsource/jetbrains-mono', 'jetbrains-mono-latin-400-normal.woff'), weight: 400 as const, style: 'normal' as const },
 ];
 
-const C = { paper: '#F5F6F2', ink: '#1A1F24', ink2: '#4A535C', trace: '#4B3BCF', track: '#E4E6E0' };
+// share cards use the dark scheme: Electric Teal only reaches contrast on Ink Black
+const C = { paper: '#031211', ink: '#E8E4D3', ink2: '#BDB9AA', trace: '#00AEBB', track: '#123332' };
 const h = (type: string, style: Record<string, unknown>, children?: unknown) => ({ type, props: { style, children } });
 
 function card(title: string, sub: string, foot: string, bars: number[]) {

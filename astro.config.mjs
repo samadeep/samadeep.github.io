@@ -26,8 +26,12 @@ export default defineConfig({
       themes: ['github-light', 'github-dark-dimmed'],
       themeCssSelector: (theme) => `[data-theme='${theme.type}']`,
       useDarkModeMediaQuery: false,
+      // tokens are nudged until they reach 5.5:1 on the backgrounds below
+      minSyntaxHighlightingColorContrast: 5.5,
       styleOverrides: {
         borderRadius: '6px',
+        codeBackground: ['#0a1e1d', '#f3f0e5'], // [dark, light]: Ink Black / Warm Ivory family
+        borderColor: ['#1d3331', '#cdc8b2'],
         codeFontFamily: "'Aptos Mono', 'JetBrains Mono Variable', ui-monospace, 'SF Mono', Menlo, Consolas, monospace",
         codeFontSize: '0.84rem',
         uiFontFamily: "'Aptos Mono', 'JetBrains Mono Variable', ui-monospace, 'SF Mono', Menlo, Consolas, monospace",
