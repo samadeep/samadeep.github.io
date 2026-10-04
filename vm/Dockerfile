@@ -3,7 +3,7 @@
 FROM docker.io/i386/alpine:3.21.0
 ENV KERNEL=virt
 RUN apk add --no-cache openrc alpine-base agetty alpine-conf linux-$KERNEL linux-firmware-none \
-      bash coreutils grep sed iptables iproute2 conntrack-tools curl socat python3 tcpdump procps less
+      bash coreutils grep sed iptables iproute2 conntrack-tools curl socat python3 tcpdump procps less nodejs npm nginx
 RUN sed -i 's/getty 38400 tty1/agetty --autologin root tty1 linux/' /etc/inittab \
  && echo 'ttyS0::respawn:/sbin/agetty --autologin root -s ttyS0 115200 vt100' >> /etc/inittab \
  && echo "root:" | chpasswd && setup-hostname lab
@@ -15,4 +15,5 @@ RUN printf '%s\n' veth nf_conntrack nf_nat nf_tables nft_compat nft_chain_nat xt
 RUN mkinitfs -F "base virtio 9p" $(cat /usr/share/kernel/$KERNEL/kernel.release)
 COPY vm/rootfs/ /
 COPY public/labs/ /root/site/labs/
-RUN chmod +x /usr/local/bin/* && find /root/site -name '*.sh' -exec chmod +x {} +
+RUN chmod +x /usr/local/bin/* && find /root/site -name '*.sh' -exec chmod +x {} + \
+ && cd /root/site/labs/llm-streaming && npm install --no-audit --no-fund --omit=dev && npm cache clean --force

@@ -48,7 +48,9 @@ try {
   await run('stty cols 120; uname -r; iptables -V; python3 -V; ip -V');
   // smoke test: the firewall lab, exactly as a reader runs it
   await run('cd /root && curl -O https://samadeep.github.io/labs/intranet-to-internet/lab.sh && chmod +x lab.sh && sudo ./lab.sh up && sudo ./lab.sh dnat-bug', 600_000);
-  await run('sudo ./lab.sh down; rm -f lab.sh; cd /root; clear');
+  await run('sudo ./lab.sh down; rm -f lab.sh');
+  await run('cd /root/site/labs/llm-streaming && ./lab.sh proxy && ./lab.sh resume', 600_000);
+  await run('cd /root; clear');
   await run('sync; echo 3 > /proc/sys/vm/drop_caches');
   await new Promise((r) => setTimeout(r, 3000));
   const state = await emulator.save_state();
