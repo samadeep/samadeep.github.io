@@ -18,20 +18,23 @@ These instructions are **self-evolving**: see "How this file evolves" at the end
 - **Short and engaging.** Lead with the answer, then one hook (a real moment or a surprising result), then numbered sections: *the break -> a diagram -> ▶ a runnable command -> its output -> the fix in one line.* Aim for ~1,500 to 1,800 words; cut anything a skimmer wouldn't miss.
 - **Every section earns one insight.** End each main section with `> **Insight:** ...` (rendered as a lightbulb callout): one or two sentences a reader could repeat to a colleague. An insight is a mechanism ("rules run once per connection"), a reframing ("serving is cache placement disguised as load balancing") or a transferable rule ("debug from the counter of the rule that should have matched"). It is never a summary of the section, a definition, or a claim about his feelings. If a section has no insight, cut or merge the section.
 - **Readers run things, they don't read about labs.** Every shell command goes in a ```bash block (it gets a ▶ Run button); small calculations go in ```python blocks. Don't narrate "the lab" or write "lab notes"; show the command and its real output. Evidence is called out briefly, limits and sources go in a closing `<details>` block.
+- **Borrowed from Cloudflare's best posts:** headings are claims, not labels ("API: the stream is a resource, not a connection", not "API"). Under the short answer, one roadmap sentence says what the rest of the post covers. Show the smallest complete thing first (the whole fix, the whole API), then "there's a lot underneath". End with a `## Try it` section that says how to run it on the reader's own machine. Commands meant for the reader's own machine (they'd fail in the browser VM, for example `npm install`) go in a ```zsh block, which gets no ▶ Run button.
 - **Search-ready:** title at most 60 characters phrased as the query, description at most 160, short answer in the first paragraph.
 - Topics: `algorithms`, `systems`, `low-latency`, `ai`. Process detail lives in the `write-blog-post` skill.
 - **System design posts** follow the interview arc, each part short: requirements (with numbers) -> API -> capacity (a runnable ```python block) -> the design diagram -> "life of a request" in numbered steps -> deep dives (each with evidence) -> data model -> failure modes table -> "what most diagrams get wrong" -> takeaways. Be correct where typical diagrams aren't (for example, KV cache lives in GPU memory, not Redis).
 
-## Diagrams: D2 in the Claude Code docs style
+## Diagrams: ```fig, laid out on a grid (the Agent Teams look)
 
-- Write ```d2 title="<the point it makes>"``` fences. `src/lib/remark-d2.mjs` renders each twice at build (light + dark), caches them in `public/diagrams/d2-<hash>-<theme>.svg` (commit these), and the page shows the one matching the site's theme toggle.
-- **Look:** the "Subagents vs Agent Teams" figure in the Claude Code docs is the bar (his pick). Open-colour pastel role fills (pink #ffc9c9, peach #ffd8a8, lavender #d0bfff, blue #a5d8ff dotted), thin near-black outlines (#1e1e1e; dark mode #d3d3d3 on deep fills #5b2c2c / #4c2a01 / #483a71 / #154163), D2's default sans font, grey #e9ecef panels with large titles above them, black arrows with small labels, grey (`muted`) loop-back lines. Figures sit on a light card (#f8f9fa / #17191c). Not restrained neutrals, not mono labels.
-- **Say what a box is, not how it looks:** classes from `src/lib/d2/{light,dark}.d2`: `main` (entry point / the thing in charge), `worker`, `peer` (clients, actors), `shared` (shared state, dashed), `result` (dotted circle outcome), `allow`, `deny`, `ask`, `panel` (titled container). Edges: `{class: lost}` for dropped or broken paths, `{class: good}` for the fixed path, `{class: muted}` for grey return/loop lines ("Report", "Work").
-- Prefer **side-by-side panels** (`grid-columns: 2`, two `class: panel` containers) for "broken vs fixed" and "what you picture vs what happens", as in his Subagents / Agent Teams reference. Sequence flows use `shape: sequence_diagram`.
-- At most ~7 boxes, labels of a few words, real values (IPs, ports, ms), never foo/bar. Caption states the conclusion.
-- **Architecture diagrams** use numbered component cards: `class: [main; card]` plus `icon: lucide:<name>` (any Lucide icon, recoloured per theme) and a `b: "..." {class: body}` child with two short lines of responsibilities and real numbers. Group cards in `class: panel` rows (`grid-columns: N`) stacked with a root `grid-columns: 1`; put state stores in their own row; reorder cells (or add an invisible spacer) so edges don't cross cards. The legend lives in the card, not in prose.
-- After editing a theme file, clear the content cache (`rm -rf .astro node_modules/.astro dist`) so every diagram re-renders, then delete `d2-*.svg` files no page references.
-- Older posts still use ```plantuml (`remark-plantuml.mjs`); convert them to D2 when you touch them.
+- The bar is the Claude Code docs "Subagents vs Agent Teams" figure (his pick, and `fig` redraws it from ~30 lines). Its posture comes from layout, not colour: strict rows, one width per row, full-width bars, short straight arrows with small labels, titled grey panels. Text is the site's Aptos Mono (his call), not the reference's Nunito. Auto-layout (D2, Mermaid) can't do that, so posts use our renderer `src/lib/remark-fig.mjs`: ```fig title="<the conclusion>"``` -> one inline SVG, coloured by CSS variables in `src/styles/fig.css` (follows the theme toggle; no per-theme files). The first figure of a post is also written to `public/diagrams/fig-<hash>.svg` as its cover.
+- **Grammar** (full notes at the top of `remark-fig.mjs`):
+  - `panel <title>` starts a panel (side by side; `layout stack` stacks them, sharing one column grid, titles inside). `row` starts a row. `_` (or `_ 2`) is an empty cell.
+  - Node: `id: <class> "Label\nsecond line" [span N] [icon <lucide-name>] [body "line\nline"]` (icon/body make a card). Classes: `main` (the thing in charge), `worker`, `peer` (clients, actors), `shared` (shared state, dotted), `result` (dotted circle), `allow`, `deny`, `ask`, `box`.
+  - Edge: `a -> b "label" [lost|good|muted|dashed] [via left|right|below]`, `<->` for both ways, `r1 r2 r3 -> m "Report" muted via left` merges loop-backs onto one bus like the reference.
+  - `seq` as the first line makes a sequence diagram: actors as nodes, then messages top to bottom (`f -> f "note"` is a note on f's lifeline).
+- Place boxes so lines run straight: put a target in the same column as its source, use `_` cells to line things up, and reorder cells before reaching for `via`. Prefer side-by-side panels for "broken vs fixed" and "what you picture vs what happens"; wide, short layouts over tall ones.
+- At most ~7 boxes per panel, labels of a few words, real values (IPs, ports, ms), never foo/bar. Caption states the conclusion.
+- Check every figure in light, dark and at 390px (narrow screens keep a readable minimum width and scroll sideways).
+- Older posts use ```d2 (`remark-d2.mjs`) or ```plantuml; convert them to ```fig when you touch them.
 
 ## Running code in the reader's browser
 
@@ -49,6 +52,7 @@ These instructions are **self-evolving**: see "How this file evolves" at the end
 - Analytics: Cloudflare Web Analytics; comments and reactions: giscus (`src/lib/site.ts`).
 - Header brand reads "Samadeep's blog" and types itself on every home page load and on the first page of a visit elsewhere (off when the OS asks for reduced motion). Theme toggle reveals the new theme as a growing circle (View Transitions). Posts show a scroll-driven reading progress bar; the header is sticky and translucent.
 - **Layout on wide screens (>= 1280px):** site width 1320px; posts put the contents rail on the left, keep prose at ~76ch, and let diagrams, labs, code frames and tables spread into the right-hand space. Don't widen the text column itself.
+- Posts: every h2/h3 gets a link icon on hover that copies the section URL; a back-to-top button appears after the first screen, with a ring that fills as you read.
 - Home (`src/pages/index.astro`): terminal-prompt hero (his name as the h1), three site principles, live stats (posts, runnable commands, diagrams, last update) and a "Start here" pair chosen from posts with `vm` front matter. Keep principles factual about the site, never claims in his voice.
 
 ## Workflow
@@ -57,7 +61,7 @@ These instructions are **self-evolving**: see "How this file evolves" at the end
 2. Screenshot light, dark and 390px phone with Playwright (`executablePath: '/opt/pw-browsers/chromium'`) and look at them.
 3. PR via `gh api repos/samadeep/samadeep.github.io/pulls`; list unverified claims and any first-person lines.
 4. After merge, check the live page (the agent workspace can't reach the site; use the browser pane).
-- Gotchas: D2 `stroke-width` must be an integer; a D2 error is only logged, `npm run build` still exits 0, so grep the build log for `error` and count `public/diagrams/d2-*` files. Never `pkill -f` (kills the agent shell); a process whose command line contains `node server.mjs` gets killed by the streaming lab's `stop_server`; Actions logs aren't downloadable from the workspace, so CI steps surface output as annotations (`vm/ci-run.sh`).
+- Gotchas: a remark plugin error is only logged and `npm run build` still exits 0, so grep the build log for `error`. Old `.diagram svg` rules in global.css reach into inline SVGs; fig styles are scoped under `.fig-svg` to win. Never `pkill -f` (kills the agent shell); a process whose command line contains `node server.mjs` gets killed by the streaming lab's `stop_server`; Actions logs aren't downloadable from the workspace, so CI steps surface output as annotations (`vm/ci-run.sh`).
 
 ## How this file evolves
 
@@ -79,3 +83,6 @@ This file is the project's memory. Keep it current as part of the work, not afte
 - 2026-10-04: use more width on desktop without hurting reading: wide figures and code, not wider text. Header says "Samadeep's blog", typed in.
 - 2026-10-04: posts must deliver insights, not just facts: one `Insight` callout per main section. The typing animation must be visible on the home page every time.
 - 2026-10-04: the restrained neutral theme was rejected; diagrams now copy the Claude Code docs Subagents / Agent Teams figure (pastel fills, thin dark outlines, sans, titled grey panels).
+- 2026-10-05: took Cloudflare's Workers Cache post as a model: claim headings, a roadmap line, a Try it close, wide left-to-right figures, heading copy-links, a back-to-top progress ring.
+- 2026-10-05: D2's auto-layout never matched the Agent Teams figure's posture ("how the fonts and diagrams are arranged"); all diagrams moved to our own grid renderer (```fig) with equal-width rows, full-width bars and straight short arrows.
+- 2026-10-05: diagram text uses Aptos Mono (JetBrains Mono fallback), the site's font, not Nunito.

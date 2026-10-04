@@ -17,6 +17,7 @@
     "@terrastruct/d2": "^0.1.33",
     "astro": "^7.3.5",
     "astro-expressive-code": "^0.44.2",
+    "fontkit": "^2.0.4",
     "mdast-util-to-string": "^4.0.0",
     "reading-time": "^1.5.0",
     "unist-util-visit": "^5.1.0",

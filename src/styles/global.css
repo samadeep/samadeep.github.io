@@ -1,4 +1,5 @@
 @import '@fontsource-variable/jetbrains-mono';
+@import './fig.css';
 
 /* ---------- tokens ---------- */
 :root {
@@ -559,3 +560,32 @@ html { scroll-padding-top: 5rem; }
 figure.diagram.d2 { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 16px; padding: 1.5rem 1.25rem .9rem; }
 [data-theme='dark'] figure.diagram.d2 { background: #17191c; border-color: #202225; }
 figure.diagram.d2 figcaption { margin-top: 1rem; color: var(--ink-3); font-size: .8rem; }
+
+/* ---------- heading links and back-to-top (posts) ---------- */
+.prose h2[id], .prose h3[id] { position: relative; scroll-margin-top: 5rem; }
+.h-anchor { position: absolute; left: -1.6rem; top: 50%; translate: 0 -50%; width: 1.1rem; height: 1.1rem; color: var(--ink-3); opacity: 0; transition: opacity .15s, color .15s; }
+.h-anchor svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.prose h2:hover .h-anchor, .prose h3:hover .h-anchor, .h-anchor:focus-visible { opacity: 1; }
+.h-anchor:hover { color: var(--trace); }
+.h-anchor[data-copied] { opacity: 1; color: var(--trace); }
+.h-anchor[data-copied]::after { content: 'Link copied'; position: absolute; left: 50%; bottom: calc(100% + 6px); translate: -50% 0; white-space: nowrap; font: 500 .7rem/1 var(--mono, monospace); padding: .3rem .45rem; border-radius: 6px; background: var(--ink); color: var(--paper); }
+@media (max-width: 720px) { .h-anchor { display: none; } }
+.to-top { position: fixed; right: 1.25rem; bottom: 1.25rem; z-index: 55; width: 44px; height: 44px; border-radius: 50%; background: var(--paper); box-shadow: 0 2px 10px rgb(0 0 0 / .12); color: var(--ink); display: grid; place-items: center; }
+.to-top[hidden] { display: none; }
+.to-top svg { width: 44px; height: 44px; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.to-top .ring-bg { stroke: color-mix(in srgb, var(--ink) 12%, transparent); stroke-width: 2.5; }
+.to-top .ring { stroke: var(--trace); stroke-width: 2.5; stroke-dasharray: 100; stroke-dashoffset: 100; transform: rotate(-90deg); transform-origin: 50% 50%; }
+.to-top path { stroke: currentColor; stroke-width: 2; }
+body.vm-open .to-top { bottom: calc(1.25rem + min(46vh, 420px)); }
+body.vm-open:has(.vm-dock.min) .to-top { bottom: 4rem; }
+
+/* ---------- fig diagrams: inline SVG on a light card, scroll sideways on phones if wide ---------- */
+figure.diagram.fig { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 16px; padding: 1.5rem 1.25rem .9rem; }
+[data-theme='dark'] figure.diagram.fig { background: #17191c; border-color: #202225; }
+figure.fig .fig-scroll { margin: 0 auto; }
+figure.fig .fig-svg { display: block; width: 100%; height: auto; }
+figure.fig figcaption { margin-top: 1rem; color: var(--ink-3); font-size: .8rem; text-align: center; }
+/* the old .diagram svg rules (PlantUML era) must not reach into fig figures */
+.diagram .fig-svg text { font-family: inherit; }
+.diagram .fig-svg svg.fi { display: inline; margin: 0; max-width: none; width: 22px; height: 22px; }
+@media (max-width: 720px) { figure.fig .fig-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; } figure.fig .fig-svg { min-width: var(--fig-min); } figure.diagram.fig { padding: 1rem .75rem .75rem; } }
