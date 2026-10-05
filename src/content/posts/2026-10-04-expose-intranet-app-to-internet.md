@@ -1,6 +1,6 @@
 ---
-title: 'Your iptables FORWARD rule for the public IP never matches'
-description: 'Exposing an intranet app to the internet: DNAT runs before FORWARD, the fix opens a side door, replies go astray. Every command runs in your browser.'
+title: 'How to Expose an Intranet Application to the Internet Safely'
+description: 'Moving an internal app from intranet to internet: the safe pattern, and five silent ways a port forward breaks. Every command runs in your browser.'
 hook:
   stat: '3 → 0'
   caption: 'packets DNAT translated → packets FORWARD let through'
