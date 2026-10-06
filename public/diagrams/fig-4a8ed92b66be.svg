@@ -1,0 +1,38 @@
+<svg style="font-family:'Aptos Mono','JetBrains Mono',ui-monospace,monospace" class="fig-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1081 281" width="1081" height="281" role="img" aria-label="Only the neutrino arrives straight and intact"><style>/* ```fig diagrams (src/lib/remark-fig.mjs). Palette from the Claude Code docs Subagents / Agent Teams figure. */
+.fig-svg {
+  --f-panel: #e9ecef; --f-panel-edge: #ffffff; --f-ink: #1e1e1e; --f-body: #495057; --f-life: #ced4da;
+  --f-main: #ffc9c9; --f-worker: #ffd8a8; --f-peer: #d0bfff; --f-shared: #a5d8ff; --f-box: #ffffff;
+  --f-allow: #b2f2bb; --f-deny: #ffa8a8; --f-ask: #ffec99;
+  --f-muted: #868e96; --f-lost: #e03131; --f-good: #2f9e44;
+  font-family: 'Aptos Mono', 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace;
+}
+[data-theme='dark'] .fig-svg {
+  --f-panel: #202225; --f-panel-edge: #2b2e33; --f-ink: #d3d3d3; --f-body: #adb5bd; --f-life: #45494f;
+  --f-main: #5b2c2c; --f-worker: #4c2a01; --f-peer: #483a71; --f-shared: #154163; --f-box: #2c2f33;
+  --f-allow: #1f4a2a; --f-deny: #6b2121; --f-ask: #4d4111;
+  --f-muted: #6f757c; --f-lost: #ff6b6b; --f-good: #51cf66;
+}
+.fig-svg .fpanel { fill: var(--f-panel); stroke: var(--f-panel-edge); stroke-width: 2; }
+.fig-svg .ftitle { fill: var(--f-ink); font-weight: 500; }
+.fig-svg .ftitle-in { fill: var(--f-body); font-weight: 700; letter-spacing: .02em; }
+.fig-svg .fn { stroke: var(--f-ink); stroke-width: 1.6; }
+.fig-svg .fn-main { fill: var(--f-main); } .fig-svg .fn-worker { fill: var(--f-worker); } .fig-svg .fn-peer { fill: var(--f-peer); }
+.fig-svg .fn-shared { fill: var(--f-shared); stroke-dasharray: 2 3; stroke-linecap: round; }
+.fig-svg .fn-box { fill: var(--f-box); } .fig-svg .fn-allow { fill: var(--f-allow); } .fig-svg .fn-deny { fill: var(--f-deny); } .fig-svg .fn-ask { fill: var(--f-ask); }
+.fig-svg .fn-result { fill: none; stroke-width: 2; stroke-dasharray: 1.5 4; stroke-linecap: round; }
+.fig-svg .ft { fill: var(--f-ink); font-weight: 500; }
+.fig-svg .ft-card { font-weight: 700; }
+.fig-svg .fb { fill: var(--f-body); font-weight: 400; }
+.fig-svg .fi { color: var(--f-body); }
+.fig-svg .fe { fill: none; stroke: var(--f-ink); stroke-width: 1.8; }
+.fig-svg .fa { fill: var(--f-ink); stroke: none; }
+.fig-svg .fl { fill: var(--f-ink); font-weight: 400; }
+.fig-svg .fp { fill: var(--f-panel); }
+.fig-svg .fe-muted { stroke: var(--f-muted); stroke-width: 1.6; } .fig-svg .tone-muted { fill: var(--f-muted); }
+.fig-svg .fe-lost { stroke: var(--f-lost); stroke-dasharray: 6 4; } .fig-svg .tone-lost { fill: var(--f-lost); }
+.fig-svg .fe-good { stroke: var(--f-good); } .fig-svg .tone-good { fill: var(--f-good); }
+.fig-svg .fe-dashed { stroke-dasharray: 5 4; }
+.fig-svg .flife { stroke: var(--f-life); stroke-width: 1.5; fill: none; }
+.fig-svg .fnote { fill: var(--f-panel); stroke-width: 1.2; }
+.fig-svg .fnote { stroke: var(--f-ink); } .fig-svg .fnote.tone-lost { stroke: var(--f-lost); fill: var(--f-panel); }
+</style><rect class="fpanel" x="1" y="1" width="1078.7" height="279" rx="16"/><path class="fe" d="M227.2 56H431.7"/><path class="fa " d="M439.7 56L431.7 60.3L431.7 51.7Z"/><path class="fe fe-lost" d="M641 56H845.4"/><path class="fa tone-lost" d="M853.4 56L845.4 60.3L845.4 51.7Z"/><rect class="fp" x="664.3" y="48" width="165.9" height="16"/><text class="fl tone-lost" x="747.2" y="56" text-anchor="middle" dominant-baseline="central" font-size="11"><tspan x="747.2" y="56">bent by magnetic fields</tspan></text><path class="fe" d="M227.2 140.5H431.7"/><path class="fa " d="M439.7 140.5L431.7 144.8L431.7 136.2Z"/><path class="fe fe-lost" d="M641 140.5H845.4"/><path class="fa tone-lost" d="M853.4 140.5L845.4 144.8L845.4 136.2Z"/><rect class="fp" x="654" y="132.5" width="186.5" height="16"/><text class="fl tone-lost" x="747.2" y="140.5" text-anchor="middle" dominant-baseline="central" font-size="11"><tspan x="747.2" y="140.5">absorbed by dust and light</tspan></text><path class="fe" d="M227.2 225H431.7"/><path class="fa " d="M439.7 225L431.7 229.3L431.7 220.7Z"/><path class="fe fe-good" d="M641 225H845.4"/><path class="fa tone-good" d="M853.4 225L845.4 229.3L845.4 220.7Z"/><rect class="fp" x="678" y="217" width="138.4" height="16"/><text class="fl tone-good" x="747.2" y="225" text-anchor="middle" dominant-baseline="central" font-size="11"><tspan x="747.2" y="225">straight, untouched</tspan></text><rect class="fn fn-main" x="26" y="35.5" width="201.2" height="41" rx="8"/><text class="ft" x="126.6" y="56" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="126.6" y="56">Cosmic accelerator</tspan></text><rect class="fn fn-deny" x="439.7" y="26" width="201.2" height="60" rx="8"/><text class="ft" x="540.3" y="46.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="540.3" y="46.5">proton</tspan><tspan x="540.3" y="65.5">(charged)</tspan></text><rect class="fn fn-peer" x="853.4" y="35.5" width="201.2" height="41" rx="8"/><text class="ft" x="954" y="56" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="954" y="56">Earth</tspan></text><rect class="fn fn-main" x="26" y="120" width="201.2" height="41" rx="8"/><text class="ft" x="126.6" y="140.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="126.6" y="140.5">Cosmic accelerator</tspan></text><rect class="fn fn-deny" x="439.7" y="120" width="201.2" height="41" rx="8"/><text class="ft" x="540.3" y="140.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="540.3" y="140.5">gamma ray</tspan></text><rect class="fn fn-peer" x="853.4" y="120" width="201.2" height="41" rx="8"/><text class="ft" x="954" y="140.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="954" y="140.5">Earth</tspan></text><rect class="fn fn-main" x="26" y="204.5" width="201.2" height="41" rx="8"/><text class="ft" x="126.6" y="225" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="126.6" y="225">Cosmic accelerator</tspan></text><rect class="fn fn-allow" x="439.7" y="195" width="201.2" height="60" rx="8"/><text class="ft" x="540.3" y="215.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="540.3" y="215.5">neutrino</tspan><tspan x="540.3" y="234.5">(no charge)</tspan></text><rect class="fn fn-peer" x="853.4" y="204.5" width="201.2" height="41" rx="8"/><text class="ft" x="954" y="225" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="954" y="225">Earth</tspan></text></svg>

@@ -1,43 +1,132 @@
 ---
+// Writing: "where do I start?" first, then a filterable list grouped by year.
+//   Start here   up to two posts whose commands run in the browser, led by their hook number
+//   Filters      topic, "runs in your browser", "under 10 min" (client-side, mirrored in the URL)
+//   List         one line per post: date, title, its one-line hook, topic, minutes, runnable count
 import Icon from '../../components/Icon.astro';
 import Sidebar from '../../components/Sidebar.astro';
 import Base from '../../layouts/Base.astro';
-import FeedItem from '../../components/FeedItem.astro';
-import { getPosts, tagCounts, topicGroups, readScale, postCard } from '../../lib/posts';
+import { getPosts, topicGroups } from '../../lib/posts';
+import { TOPICS } from '../../lib/topics';
 
 const posts = await getPosts();
 const groups = topicGroups(posts);
-const scale = readScale(posts);
-const tags = tagCounts(posts);
+const runs = (p: { body?: string; data: { vm?: unknown } }) => (p.data.vm ? (p.body?.match(/^```(bash|python)\b/gm) ?? []).length : 0); // Run buttons exist only on posts with a VM
+const topicOf = (slug: string) => TOPICS.find((t) => t.slug === slug)!;
+const fmt = (d: Date) => d.toLocaleDateString('en', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+const featured = posts.filter((p) => p.data.vm).slice(0, 2);
+const years = [...new Set(posts.map((p) => p.data.date.getUTCFullYear()))];
+const QUICK = 10;
 ---
-<Base title="Writing" description="Posts grouped by topic: algorithms and competitive programming, systems, low latency, AI.">
+<Base title="Writing" description="Engineering posts on systems, low latency, AI infrastructure and algorithms. Most commands run in your browser.">
   <div class="wrap wide with-rail">
-  <div class="main-col">
+  <div class="main-col writing">
     <header class="page-head">
       <h1>Writing</h1>
-      <p>Pick a topic. The bar on each post is its reading time.</p>
+      <p>{posts.length} posts. New here? Start with one you can run.</p>
     </header>
 
-    <ul class="topic-jump">
-      {groups.map((g) => <li><a href={`#${g.slug}`}><Icon name={g.icon} />{g.name}<span class="n">{g.posts.length}</span></a></li>)}
-    </ul>
+    {featured.length > 0 && (
+      <section class="start" aria-labelledby="h-start">
+        <h2 id="h-start" class="eyebrow">Start here</h2>
+        <ul class="start-grid">
+          {featured.map((p) => {
+            const t = topicOf(p.data.topic);
+            return (
+              <li><a class="start-card" href={p.href}>
+                <span class="sc-topic"><Icon name={t.icon} />{t.name}</span>
+                {p.data.hook && <span class="sc-stat">{p.data.hook.stat}</span>}
+                {p.data.hook && <span class="sc-cap">{p.data.hook.caption}</span>}
+                <span class="sc-title" style={`view-transition-name:post-${p.id}`}>{p.data.title}</span>
+                <span class="sc-meta"><span class="run"><Icon name="zap" />{runs(p)} runnable</span><span>{p.minutes} min</span></span>
+              </a></li>
+            );
+          })}
+        </ul>
+      </section>
+    )}
 
-    {groups.map((g) => (
-      <section class="topic" id={g.slug} aria-labelledby={`h-${g.slug}`}>
-        <div class="topic-head">
-          <h2 id={`h-${g.slug}`}>{g.name}</h2>
-          <a href={`/topics/${g.slug}/`}>Topic page</a>
-        </div>
-        <p>{g.blurb}</p>
-        <ul class="feed">{g.posts.map((p) => <FeedItem {...postCard(p, scale)} />)}</ul>
+    <div class="wfilter" role="group" aria-label="Filter posts">
+      <div class="wf-topics">
+        <button type="button" class="chip" data-topic="" aria-pressed="true">All</button>
+        {groups.map((g) => <button type="button" class="chip" data-topic={g.slug} aria-pressed="false"><Icon name={g.icon} />{g.name}<span class="n">{g.posts.length}</span></button>)}
+      </div>
+      <div class="wf-toggles">
+        <button type="button" class="chip" data-flag="run" aria-pressed="false"><Icon name="zap" />Runs in your browser</button>
+        <button type="button" class="chip" data-flag="quick" aria-pressed="false"><Icon name="clock" />Under {QUICK} min</button>
+      </div>
+    </div>
+    <p class="wf-count" aria-live="polite"></p>
+
+    {years.map((y) => (
+      <section class="wyear" data-year={y}>
+        <h2 class="eyebrow">{y}</h2>
+        <ol class="wlist">
+          {posts.filter((p) => p.data.date.getUTCFullYear() === y).map((p) => {
+            const t = topicOf(p.data.topic);
+            const n = runs(p);
+            return (
+              <li class="wl" data-topic={t.slug} data-run={n > 0 ? '1' : '0'} data-quick={p.minutes < QUICK ? '1' : '0'}>
+                <time datetime={p.data.date.toISOString().slice(0, 10)}>{fmt(p.data.date)}</time>
+                <div class="wl-body">
+                  <a class="wl-title" href={p.href}>{p.data.title}</a>
+                  <p class="wl-why">{p.data.hook ? <><b>{p.data.hook.stat}</b> {p.data.hook.caption}</> : p.data.description}</p>
+                  <p class="wl-meta">
+                    <span class="wl-topic"><Icon name={t.icon} />{t.name}</span>
+                    <span>{p.minutes} min</span>
+                    {n > 0 && <span class="run"><Icon name="zap" />{n} runnable</span>}
+                  </p>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
       </section>
     ))}
+    <p class="wf-empty" hidden>Nothing matches yet. <button type="button" class="linkish" data-reset>Clear filters</button></p>
+    <p class="wf-more"><a href="/tags/">Browse by tag</a> · <a href="/feed.xml">RSS</a></p>
+  </div>
+  <Sidebar hrefFor={(s: string) => `/topics/${s}/`} />
+  </div>
 
-    <section class="topic">
-      <div class="topic-head"><h2>By tag</h2><a href="/tags/">All tags</a></div>
-      <ul class="tag-cloud">{tags.slice(0, 24).map(([t, n]) => <li><a href={`/tags/${t}/`}>{t}<span class="n">{n}</span></a></li>)}</ul>
-    </section>
-  </div>
-  <Sidebar hrefFor={(s: string) => `#${s}`} />
-  </div>
+  <script>
+    const root = document.querySelector<HTMLElement>('.writing');
+    if (root) {
+      const items = [...root.querySelectorAll<HTMLElement>('.wl')];
+      const topicBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-topic]')].filter((b) => b.tagName === 'BUTTON');
+      const flagBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-flag]')];
+      const count = root.querySelector<HTMLElement>('.wf-count')!;
+      const empty = root.querySelector<HTMLElement>('.wf-empty')!;
+      const state = { topic: '', run: false, quick: false };
+      const read = () => {
+        const q = new URLSearchParams(location.search);
+        state.topic = q.get('topic') ?? ''; state.run = q.has('run'); state.quick = q.has('quick');
+      };
+      const write = () => {
+        const q = new URLSearchParams();
+        if (state.topic) q.set('topic', state.topic);
+        if (state.run) q.set('run', '');
+        if (state.quick) q.set('quick', '');
+        const s = q.toString().replace(/=(&|$)/g, '$1');
+        history.replaceState(null, '', s ? `?${s}` : location.pathname);
+      };
+      const apply = () => {
+        let shown = 0;
+        for (const li of items) {
+          const ok = (!state.topic || li.dataset.topic === state.topic) && (!state.run || li.dataset.run === '1') && (!state.quick || li.dataset.quick === '1');
+          li.hidden = !ok; if (ok) shown++;
+        }
+        root.querySelectorAll<HTMLElement>('.wyear').forEach((s) => { s.hidden = !s.querySelector('.wl:not([hidden])'); });
+        topicBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.topic === state.topic)));
+        flagBtns.forEach((b) => b.setAttribute('aria-pressed', String(state[b.dataset.flag as 'run' | 'quick'])));
+        const filtered = state.topic || state.run || state.quick;
+        count.textContent = filtered ? `Showing ${shown} of ${items.length}` : '';
+        empty.hidden = shown > 0;
+      };
+      topicBtns.forEach((b) => b.addEventListener('click', () => { state.topic = b.dataset.topic ?? ''; write(); apply(); }));
+      flagBtns.forEach((b) => b.addEventListener('click', () => { const k = b.dataset.flag as 'run' | 'quick'; state[k] = !state[k]; write(); apply(); }));
+      root.querySelector('[data-reset]')?.addEventListener('click', () => { state.topic = ''; state.run = state.quick = false; write(); apply(); });
+      read(); apply();
+    }
+  </script>
 </Base>
