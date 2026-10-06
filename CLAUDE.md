@@ -26,7 +26,7 @@ These instructions are **self-evolving**: see "How this file evolves" at the end
   - **`hook: { stat, caption }` in front matter** puts the number huge on the share card (`src/pages/og/[slug].png.ts`); write `→` freely, the card draws it.
   - Pick topics with pull: a live debate, current AI-infra news, or a classic mechanism nobody has made runnable. Our edge is "runs in your browser"; say so on the card and in launch posts.
   - **Launch kit per post** (drafts only; he posts them himself): a 10 to 20 s screen recording of the bug for X (native video, link in the first reply), the share card, an HN title (the real post title, no editorializing; a blog post isn't Show HN, but a playable lab can be), and a LinkedIn text post.
-- Topics: `algorithms`, `systems`, `low-latency`, `ai`. Process detail lives in the `write-blog-post` skill.
+- Topics: `algorithms`, `systems`, `low-latency`, `ai`, `science` (big results in physics and maths, made runnable; news-timed posts like a Nobel go here). Process detail lives in the `write-blog-post` skill.
 - **System design posts** follow the interview arc, each part short: requirements (with numbers) -> API -> capacity (a runnable ```python block) -> the design diagram -> "life of a request" in numbered steps -> deep dives (each with evidence) -> data model -> failure modes table -> "what most diagrams get wrong" -> takeaways. Be correct where typical diagrams aren't (for example, KV cache lives in GPU memory, not Redis).
 
 ## Diagrams: ```fig, laid out on a grid (the Agent Teams look)

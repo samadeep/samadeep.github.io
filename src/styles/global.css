@@ -642,3 +642,18 @@ figure.fig figcaption { margin-top: 1rem; color: var(--ink-3); font-size: .8rem;
 .wf-more { margin-top: 2rem; font-size: .8rem; color: var(--ink-3); }
 @media (max-width: 560px) { .wl { grid-template-columns: 1fr; gap: .25rem; } .wfilter { flex-direction: column; } }
 [data-theme='dark'] .start-card { background: #0b2221; border-color: #1d3331; }
+/* ---------- IceCube slice lab ---------- */
+.lab-ice .lab-actions { padding: .7rem .9rem 0; display: flex; gap: .5rem; }
+.ice-svg { display: block; width: 100%; max-width: 560px; height: auto; margin: .6rem auto 0; }
+.ice-string { stroke: #1d3331; stroke-width: 1; }
+.ice-dom { fill: #2c4643; }
+.ice-hit { stroke: #031211; stroke-width: .8; opacity: .95; }
+.ice-label { fill: #8e8c80; font: 400 11px var(--mono); }
+.ice-true { stroke: #e8e4d3; stroke-width: 1.4; opacity: .85; }
+.ice-true-head { fill: #e8e4d3; }
+.ice-fit { stroke: #00aebb; stroke-width: 2.2; stroke-dasharray: 7 5; }
+.ice-fit-head { fill: #00aebb; }
+.ice-vertex { fill: none; stroke: #e8e4d3; stroke-width: 1.4; }
+.ice-legend { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .5rem 1rem; padding: .4rem .9rem 0; font-size: .72rem; color: #8e8c80; }
+.ice-legend i { display: inline-block; width: 120px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, hsl(0 85% 55%), hsl(60 85% 55%), hsl(120 85% 55%), hsl(200 85% 55%), hsl(275 85% 55%)); }
+.ice-key-fit { color: #00aebb; } .ice-key-true { color: #e8e4d3; }

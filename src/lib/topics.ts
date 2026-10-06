@@ -5,6 +5,7 @@ export const TOPICS = [
   { slug: 'systems', icon: 'server', hue: 195, name: 'Systems', blurb: 'Schedulers, queues, networks and distributed systems, from the failure modes up.' },
   { slug: 'low-latency', icon: 'zap', hue: 65, name: 'Low latency', blurb: 'C++, trading engines and where the microseconds go.' },
   { slug: 'ai', icon: 'sparkles', hue: 350, name: 'AI & agents', blurb: 'Retrieval, agents and the infrastructure that keeps them honest.' },
+  { slug: 'science', icon: 'atom', hue: 220, name: 'Science', blurb: 'Big results in physics and maths, rebuilt small enough to run in your browser.' },
 ] as const;
 
 export type TopicSlug = (typeof TOPICS)[number]['slug'];
