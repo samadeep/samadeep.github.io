@@ -1,0 +1,38 @@
+<svg style="font-family:'Aptos Mono','JetBrains Mono',ui-monospace,monospace" class="fig-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1020 112" width="1020" height="112" role="img" aria-label="Figure 1: Swapping the first two entries pairs all 6 permutations of 3 into even/odd couples, so exactly 3 are odd"><style>/* ```fig diagrams (src/lib/remark-fig.mjs). Palette from the Claude Code docs Subagents / Agent Teams figure. */
+.fig-svg {
+  --f-panel: #e9ecef; --f-panel-edge: #ffffff; --f-ink: #1e1e1e; --f-body: #495057; --f-life: #ced4da;
+  --f-main: #ffc9c9; --f-worker: #ffd8a8; --f-peer: #d0bfff; --f-shared: #a5d8ff; --f-box: #ffffff;
+  --f-allow: #b2f2bb; --f-deny: #ffa8a8; --f-ask: #ffec99;
+  --f-muted: #868e96; --f-lost: #e03131; --f-good: #2f9e44;
+  font-family: 'Aptos Mono', 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace;
+}
+[data-theme='dark'] .fig-svg {
+  --f-panel: #202225; --f-panel-edge: #2b2e33; --f-ink: #d3d3d3; --f-body: #adb5bd; --f-life: #45494f;
+  --f-main: #5b2c2c; --f-worker: #4c2a01; --f-peer: #483a71; --f-shared: #154163; --f-box: #2c2f33;
+  --f-allow: #1f4a2a; --f-deny: #6b2121; --f-ask: #4d4111;
+  --f-muted: #6f757c; --f-lost: #ff6b6b; --f-good: #51cf66;
+}
+.fig-svg .fpanel { fill: var(--f-panel); stroke: var(--f-panel-edge); stroke-width: 2; }
+.fig-svg .ftitle { fill: var(--f-ink); font-weight: 500; }
+.fig-svg .ftitle-in { fill: var(--f-body); font-weight: 700; letter-spacing: .02em; }
+.fig-svg .fn { stroke: var(--f-ink); stroke-width: 1.6; }
+.fig-svg .fn-main { fill: var(--f-main); } .fig-svg .fn-worker { fill: var(--f-worker); } .fig-svg .fn-peer { fill: var(--f-peer); }
+.fig-svg .fn-shared { fill: var(--f-shared); stroke-dasharray: 2 3; stroke-linecap: round; }
+.fig-svg .fn-box { fill: var(--f-box); } .fig-svg .fn-allow { fill: var(--f-allow); } .fig-svg .fn-deny { fill: var(--f-deny); } .fig-svg .fn-ask { fill: var(--f-ask); }
+.fig-svg .fn-result { fill: none; stroke-width: 2; stroke-dasharray: 1.5 4; stroke-linecap: round; }
+.fig-svg .ft { fill: var(--f-ink); font-weight: 500; }
+.fig-svg .ft-card { font-weight: 700; }
+.fig-svg .fb { fill: var(--f-body); font-weight: 400; }
+.fig-svg .fi { color: var(--f-body); }
+.fig-svg .fe { fill: none; stroke: var(--f-ink); stroke-width: 1.8; }
+.fig-svg .fa { fill: var(--f-ink); stroke: none; }
+.fig-svg .fl { fill: var(--f-ink); font-weight: 400; }
+.fig-svg .fp { fill: var(--f-panel); }
+.fig-svg .fe-muted { stroke: var(--f-muted); stroke-width: 1.6; } .fig-svg .tone-muted { fill: var(--f-muted); }
+.fig-svg .fe-lost { stroke: var(--f-lost); stroke-dasharray: 6 4; } .fig-svg .tone-lost { fill: var(--f-lost); }
+.fig-svg .fe-good { stroke: var(--f-good); } .fig-svg .tone-good { fill: var(--f-good); }
+.fig-svg .fe-dashed { stroke-dasharray: 5 4; }
+.fig-svg .flife { stroke: var(--f-life); stroke-width: 1.5; fill: none; }
+.fig-svg .fnote { fill: var(--f-panel); stroke-width: 1.2; }
+.fig-svg .fnote { stroke: var(--f-ink); } .fig-svg .fnote.tone-lost { stroke: var(--f-lost); fill: var(--f-panel); }
+</style><rect class="fpanel" x="1" y="1" width="1017.3" height="110" rx="16"/><path class="fe" d="M144 56H189.5"/><path class="fa " d="M197.5 56L189.4 60.3L189.4 51.7Z"/><path class="fa " d="M136 56L144.1 51.7L144.1 60.3Z"/><rect class="fp" x="149" y="48" width="35.5" height="16"/><text class="fl " x="166.7" y="56" text-anchor="middle" dominant-baseline="central" font-size="11"><tspan x="166.7" y="56">swap</tspan></text><path class="fe" d="M486.9 56H532.4"/><path class="fa " d="M540.4 56L532.3 60.3L532.3 51.7Z"/><path class="fa " d="M478.9 56L487 51.7L487 60.3Z"/><rect class="fp" x="491.9" y="48" width="35.5" height="16"/><text class="fl " x="509.6" y="56" text-anchor="middle" dominant-baseline="central" font-size="11"><tspan x="509.6" y="56">swap</tspan></text><path class="fe" d="M829.8 56H875.3"/><path class="fa " d="M883.3 56L875.2 60.3L875.2 51.7Z"/><path class="fa " d="M821.8 56L829.9 51.7L829.9 60.3Z"/><rect class="fp" x="834.8" y="48" width="35.5" height="16"/><text class="fl " x="852.6" y="56" text-anchor="middle" dominant-baseline="central" font-size="11"><tspan x="852.6" y="56">swap</tspan></text><rect class="fn fn-allow" x="26" y="26" width="110" height="60" rx="8"/><text class="ft" x="81" y="46.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="81" y="46.5">(1,2,3)</tspan><tspan x="81" y="65.5">0 inv</tspan></text><rect class="fn fn-deny" x="197.5" y="26" width="110" height="60" rx="8"/><text class="ft" x="252.5" y="46.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="252.5" y="46.5">(2,1,3)</tspan><tspan x="252.5" y="65.5">1 inv</tspan></text><rect class="fn fn-deny" x="368.9" y="26" width="110" height="60" rx="8"/><text class="ft" x="423.9" y="46.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="423.9" y="46.5">(1,3,2)</tspan><tspan x="423.9" y="65.5">1 inv</tspan></text><rect class="fn fn-allow" x="540.4" y="26" width="110" height="60" rx="8"/><text class="ft" x="595.4" y="46.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="595.4" y="46.5">(3,1,2)</tspan><tspan x="595.4" y="65.5">2 inv</tspan></text><rect class="fn fn-allow" x="711.8" y="26" width="110" height="60" rx="8"/><text class="ft" x="766.8" y="46.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="766.8" y="46.5">(2,3,1)</tspan><tspan x="766.8" y="65.5">2 inv</tspan></text><rect class="fn fn-deny" x="883.3" y="26" width="110" height="60" rx="8"/><text class="ft" x="938.3" y="46.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="938.3" y="46.5">(3,2,1)</tspan><tspan x="938.3" y="65.5">3 inv</tspan></text></svg>
