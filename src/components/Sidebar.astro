@@ -3,10 +3,12 @@
 // where the page falls back to the single column that already works on phones.
 import Icon from './Icon.astro';
 import { SITE } from '../lib/site';
-import { getPosts, topicGroups } from '../lib/posts';
+import { getPosts, topicGroups, seriesGroups } from '../lib/posts';
 
 const { current, hrefFor = (slug: string) => `/topics/${slug}/` } = Astro.props as { current?: string; hrefFor?: (slug: string) => string };
-const groups = topicGroups(await getPosts());
+const posts = await getPosts();
+const groups = topicGroups(posts);
+const series = seriesGroups(posts);
 const handle = (u: string) => u.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
 ---
 <aside class="rail" aria-label="Topics and links">
@@ -24,6 +26,23 @@ const handle = (u: string) => u.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$
       ))}
     </ul>
   </section>
+
+  {series.length > 0 && (
+    <section>
+      <h2>Series</h2>
+      <ul class="rail-topics">
+        {series.map((g) => (
+          <li style={`--hue:${g.hue}`}>
+            <a href={`/series/${g.slug}/`} aria-current={current === `series:${g.slug}` ? 'page' : undefined}>
+              <span class="mark"><Icon name={g.icon} /></span>
+              <span class="rt-name">{g.name}</span>
+              <span class="n">{g.posts.length}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
 
   <section>
     <h2>Elsewhere</h2>

@@ -2,6 +2,7 @@ import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 import { topicSlugs } from './lib/topics';
+import { seriesSlugs } from './lib/series';
 
 // 2025-01-27-my-post.md -> my-post  (keeps the old /posts/<slug>/ URLs)
 const posts = defineCollection({
@@ -16,6 +17,8 @@ const posts = defineCollection({
     date: z.coerce.date(),
     updated: z.coerce.date().optional(),
     topic: z.enum(topicSlugs),
+    // optional series (src/lib/series.ts); the issue number comes from the date order
+    series: z.enum(seriesSlugs).optional(),
     // the one surprising number, shown huge on the share card (X, LinkedIn, Slack unfurls)
     hook: z.object({ stat: z.string(), caption: z.string() }).optional(),
     cover: z.string().optional(), // /path or URL; default is the post's first diagram, then a topic tile

@@ -1,0 +1,49 @@
+---
+// One page per series: what it is, how to follow it, then every issue newest first.
+// Each row: issue number, date, title, the one-line lede and the judge problems it covers.
+import Base from '../../../layouts/Base.astro';
+import Icon from '../../../components/Icon.astro';
+import Sidebar from '../../../components/Sidebar.astro';
+import { getPosts, seriesGroups, problemLabel } from '../../../lib/posts';
+
+export async function getStaticPaths() {
+  return seriesGroups(await getPosts()).map((g) => ({ params: { series: g.slug }, props: { group: g } }));
+}
+const { group } = Astro.props;
+const fmt = (d: Date) => d.toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+const latest = group.posts[0];
+---
+<Base title={group.name} description={group.blurb}>
+  <link slot="head" rel="alternate" type="application/rss+xml" title={group.name} href={`/series/${group.slug}.xml`} />
+  <div class="wrap wide with-rail">
+  <div class="main-col">
+    <header class="page-head series-head" style={`--hue:${group.hue}`}>
+      <p class="kicker"><span class="topic-link"><Icon name={group.icon} />Series</span><span class="kick-tag">{group.cadence}</span></p>
+      <h1>{group.name}</h1>
+      <p>{group.blurb}</p>
+      <p class="series-follow">
+        <a href={latest.href}>Read the latest, #{latest.issue}</a>
+        <a href={`/series/${group.slug}.xml`}><Icon name="rss" />Subscribe to this series only</a>
+      </p>
+    </header>
+
+    <ol class="issues" reversed>
+      {group.posts.map((p) => (
+        <li>
+          <span class="is-n" aria-hidden="true">#{p.issue}</span>
+          <div class="is-body">
+            <a class="is-t" href={p.href}>{p.data.title}</a>
+            <p class="is-d">{p.data.description}</p>
+            <p class="is-meta">
+              <time datetime={p.data.date.toISOString().slice(0, 10)}>{fmt(p.data.date)}</time>
+              <span>{p.minutes} min read</span>
+              {p.data.problems.map((pr) => <a class="is-pr" href={pr.url} rel="noopener">{problemLabel(pr)}</a>)}
+            </p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </div>
+  <Sidebar current={`series:${group.slug}`} />
+  </div>
+</Base>

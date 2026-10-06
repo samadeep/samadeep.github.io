@@ -3,6 +3,7 @@ import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import { getPosts } from '../../lib/posts';
 import { topicOf } from '../../lib/topics';
+import { seriesOf } from '../../lib/series';
 import { SITE, fmtDate } from '../../lib/site';
 import Icon from '../../components/Icon.astro';
 import AuthorCard from '../../components/AuthorCard.astro';
@@ -10,23 +11,27 @@ import Reactions from '../../components/Reactions.astro';
 
 export async function getStaticPaths() {
   const posts = await getPosts();
-  // prev/next stay inside the post's topic, so a reader keeps reading what they came for
+  // prev/next stay inside the post's series (else its topic), so a reader keeps reading what they came for
   return posts.map((post) => {
-    const same = posts.filter((p) => p.data.topic === post.data.topic);
+    const same = posts.filter((p) => (post.data.series ? p.data.series === post.data.series : p.data.topic === post.data.topic));
     const i = same.indexOf(post);
-    return { params: { slug: post.id }, props: { post, newer: same[i - 1], older: same[i + 1] } };
+    return { params: { slug: post.id }, props: { post, newer: same[i - 1], older: same[i + 1], issues: post.data.series ? same : [] } };
   });
 }
 
-const { post, newer, older } = Astro.props;
+const { post, newer, older, issues } = Astro.props;
 const { Content, headings } = await render(post);
 const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 const { title, description, date, updated, tags, problems } = post.data;
 const topic = topicOf(post.data.topic);
+const series = post.data.series ? seriesOf(post.data.series) : undefined;
+const olderLabel = series ? 'Previous issue' : `Older in ${topic.name}`;
+const newerLabel = series ? 'Next issue' : `Newer in ${topic.name}`;
 const runnable = post.data.vm ? (post.body?.match(/^```(bash|python)\b/gm) ?? []).length : 0; // Run buttons need the VM
 const source = `${SITE.repo}/blob/main/src/content/posts/${post.filePath?.split('/').pop()}`;
 const jsonLd = {
   '@context': 'https://schema.org', '@type': 'BlogPosting', headline: title, description,
+  ...(series && { isPartOf: { '@type': 'CreativeWorkSeries', name: series.name, url: new URL(`/series/${series.slug}/`, SITE.url).href }, position: post.issue }),
   datePublished: date.toISOString(), dateModified: (updated ?? date).toISOString(),
   author: { '@type': 'Person', name: SITE.name, url: SITE.url },
   image: new URL(`/og/${post.id}.png`, SITE.url).href, keywords: tags.join(', '),
@@ -59,6 +64,18 @@ const jsonLd = {
           </div>
         </header>
 
+        {series && (
+          <nav class="series-strip" aria-label={`${series.name} issues`} data-pagefind-ignore>
+            <a class="ss-name" href={`/series/${series.slug}/`}><span class="ss-kick">Series</span>{series.name}</a>
+            <span class="ss-of">Issue {post.issue} of {issues.length}</span>
+            <ol class="ss-issues">
+              {[...issues].reverse().map((p) => (
+                <li><a href={p.href} title={p.data.title} aria-current={p === post ? 'page' : undefined}>{p.issue}</a></li>
+              ))}
+            </ol>
+          </nav>
+        )}
+
         {problems.length > 0 && (
           <ul class="problems" aria-label="Problems in this post" data-pagefind-ignore>
             {problems.map((pr) => (
@@ -86,8 +103,8 @@ const jsonLd = {
 
         {(newer || older) && (
           <nav class="post-foot" aria-label="More posts" data-pagefind-ignore>
-            {older && <a href={older.href}><small>Older in {topic.name}</small>{older.data.title}</a>}
-            {newer && <a class="next" href={newer.href}><small>Newer in {topic.name}</small>{newer.data.title}</a>}
+            {older && <a href={older.href}><small>{olderLabel}</small>{older.data.title}</a>}
+            {newer && <a class="next" href={newer.href}><small>{newerLabel}</small>{newer.data.title}</a>}
           </nav>
         )}
       </article>

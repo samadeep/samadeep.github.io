@@ -1,12 +1,13 @@
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import { TOPICS } from './topics';
+import { SERIES, seriesOf } from './series';
 // @ts-ignore: plain .mjs helper shared with the markdown pipeline
 import { firstDiagram } from './remark-plantuml.mjs';
 // @ts-ignore: plain .mjs helper shared with the markdown pipeline
 import { firstD2 } from './remark-d2.mjs';
 import { firstFig } from './remark-fig.mjs';
 
-export type Post = CollectionEntry<'posts'> & { minutes: number; href: string; cover?: string };
+export type Post = CollectionEntry<'posts'> & { minutes: number; href: string; cover?: string; issue?: number };
 
 export async function getPosts(): Promise<Post[]> {
   const all = await getCollection('posts', (p) => import.meta.env.DEV || !p.data.draft);
@@ -20,8 +21,20 @@ export async function getPosts(): Promise<Post[]> {
       });
     }),
   );
-  return withTime.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+  const sorted: Post[] = withTime;
+  sorted.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+  // issue numbers: position inside the series, oldest first
+  for (const s of SERIES) sorted.filter((p) => p.data.series === s.slug).reverse().forEach((p, i) => (p.issue = i + 1));
+  return sorted;
 }
+
+/** Series that have posts, each with its issues newest first. */
+export function seriesGroups(posts: Post[]) {
+  return SERIES.map((s) => ({ ...s, posts: posts.filter((p) => p.data.series === s.slug) })).filter((g) => g.posts.length);
+}
+
+/** "CP Weekly #3" for a post in a series. */
+export const issueLabel = (p: Post) => (p.data.series && p.issue ? `${seriesOf(p.data.series).name} #${p.issue}` : undefined);
 
 export const problemLabel = (pr: Post['data']['problems'][number]) =>
   `${pr.platform} ${pr.id}${pr.difficulty ? `, ${pr.difficulty}` : ''}`;
@@ -43,7 +56,7 @@ export function tagCounts(posts: Post[]) {
 export function postCard(p: Post, scale: number) {
   const t = TOPICS.find((x) => x.slug === p.data.topic)!;
   return {
-    href: p.href, mark: { icon: t.icon }, hue: t.hue, context: `In ${t.name}`, by: 'Samadeep', date: p.data.date,
+    href: p.href, mark: { icon: t.icon }, hue: t.hue, context: issueLabel(p) ?? `In ${t.name}`, by: 'Samadeep', date: p.data.date,
     title: p.data.title, subtitle: p.data.description, thumb: p.cover, thumbAlt: `Diagram from ${p.data.title}`,
     minutes: p.minutes, scale, badges: p.data.problems.map(problemLabel), tags: p.data.tags, morph: `post-${p.id}`,
   };
