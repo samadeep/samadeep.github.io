@@ -151,6 +151,19 @@ const jsonLd = {
       h.prepend(a);
     }
 
+    // folded solution steps: one button opens or closes all of them
+    for (const b of document.querySelectorAll<HTMLButtonElement>('[data-reveal-all]')) {
+      const steps = [...document.querySelectorAll<HTMLDetailsElement>('.prose details.step')];
+      b.addEventListener('click', () => {
+        const open = !steps.every((d) => d.open);
+        steps.forEach((d) => (d.open = open));
+        b.textContent = open ? 'Fold every step' : 'Open every step';
+      });
+    }
+    // a link to something inside a folded step opens it
+    const openTarget = () => { const t = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null; t?.closest('details')?.setAttribute('open', ''); };
+    addEventListener('hashchange', openTarget); openTarget();
+
     // back to top: appears after the first screen, its ring fills as you read
     const top = document.querySelector<HTMLAnchorElement>('.to-top');
     if (top) {
