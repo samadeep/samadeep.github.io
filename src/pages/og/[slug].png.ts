@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
-import { getPosts } from '../../lib/posts';
+import { getPosts, issueLabel } from '../../lib/posts';
 import { SITE } from '../../lib/site';
 import { LOGO_SVG } from '../../lib/logo';
 
@@ -59,7 +59,7 @@ export async function getStaticPaths() {
   const max = Math.max(...posts.map((p) => p.minutes), 10);
   return [
     { params: { slug: 'site' }, props: { title: SITE.name, sub: SITE.description, foot: 'samadeep.github.io', bars: posts.slice(0, 3).map((p) => (p.minutes / max) * 100) } },
-    ...posts.map((p) => ({ params: { slug: p.id }, props: { title: clip(p.data.title, 95), sub: clip(p.data.description, 140), foot: p.data.vm ? 'runs in your browser' : `${p.minutes} min read`, bars: [(p.minutes / max) * 100], hook: p.data.hook } })),
+    ...posts.map((p) => ({ params: { slug: p.id }, props: { title: clip(p.data.title, 95), sub: clip(p.data.description, 140), foot: [issueLabel(p), p.data.vm ? 'runs in your browser' : `${p.minutes} min read`].filter(Boolean).join(' · '), bars: [(p.minutes / max) * 100], hook: p.data.hook } })),
   ];
 }
 
