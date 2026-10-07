@@ -8,6 +8,8 @@ import { remarkD2 } from './src/lib/remark-d2.mjs';
 import { remarkFig } from './src/lib/remark-fig.mjs';
 import { remarkReadingTime } from './src/lib/remark-reading-time.mjs';
 import { rehypeHeadingAnchors } from './src/lib/rehype-heading-anchors.mjs';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 
 export default defineConfig({
   site: 'https://samadeep.github.io',
@@ -20,8 +22,11 @@ export default defineConfig({
     '/topics/': '/posts/',
   },
   markdown: {
-    remarkPlugins: [remarkFig, remarkD2, remarkPlantuml, remarkReadingTime],
-    rehypePlugins: [rehypeHeadingAnchors],
+    // math: $$...$$ inline or as a block (single $ stays plain text, so prices and shell vars are safe);
+    // KaTeX renders at build time (HTML for looks, MathML for screen readers), no client JS; posts with
+    // math load public/vendor/katex/katex.min.css (copied from node_modules/katex/dist, version in VERSION)
+    remarkPlugins: [[remarkMath, { singleDollarTextMath: false }], remarkFig, remarkD2, remarkPlantuml, remarkReadingTime],
+    rehypePlugins: [rehypeKatex, rehypeHeadingAnchors],
   },
   integrations: [
     expressiveCode({
