@@ -10,6 +10,8 @@ self.onmessage = async ({ data: { base, code, argv } }) => {
       const { loadPyodide } = await import(base + 'pyodide.mjs');
       py = await loadPyodide({ indexURL: base });
     }
+    // packages the lab imports (numpy, ...) come from the same Pyodide distribution, once per page
+    await py.loadPackagesFromImports(code, { messageCallback: (m) => postMessage({ status: m }) });
     py.setStdout({ batched: (s) => postMessage({ out: s }) });
     py.setStderr({ batched: (s) => postMessage({ err: s }) });
     py.globals.set('LAB_ARGV', argv);

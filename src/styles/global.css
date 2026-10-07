@@ -715,3 +715,7 @@ figure.fig figcaption { margin-top: 1rem; color: var(--ink-3); font-size: .8rem;
 @media print { .prose details.step > :not(summary) { display: block; } }
 /* long problem lists (a weekly issue covers a whole contest): two columns */
 @media (min-width: 700px) { .problems:has(> li:nth-child(5)) { grid-template-columns: 1fr 1fr; } .problems:has(> li:nth-child(5)) a { height: 100%; } }
+
+/* KaTeX (build-time math): wide equations scroll inside the column instead of widening the page */
+.katex-display { overflow-x: auto; overflow-y: hidden; padding: 0.25em 0; }
+.katex { font-size: 1.08em; }
