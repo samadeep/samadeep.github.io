@@ -16,6 +16,15 @@
 #   status: to-read                       # to-read | read   (default to-read)
 #   added: 2026-10-03                     # yyyy-mm-dd, newest shows first
 
+- url: https://planetscale.com/blog/leaky-buckets-in-software-explained
+  title: What today's software owes to Bronze Age clocks
+  author: Simeon Griggs
+  source: PlanetScale
+  tags: [rate-limiting, admission-control, databases, systems]
+  note: Leaky buckets from Babylonian water clocks to API limits, with a bucket you can poke
+  status: read
+  added: 2026-10-08
+
 - url: https://news.ycombinator.com/item?id=49494301
   title: The Rise and Fall of Agent Civilizations | Hacker News
   tags: [ai, agents, agent, civilisation]

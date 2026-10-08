@@ -747,3 +747,12 @@ figure.fig figcaption { margin-top: 1rem; color: var(--ink-3); font-size: .8rem;
 .sh-foot svg { width: 14px; height: 14px; }
 @media (max-width: 560px) { .sh-posts time { display: none; } .sh-posts li { grid-template-columns: 1.6rem 1fr; } }
 a.topic-link { text-decoration: none; } a.topic-link:hover { color: var(--trace); }
+
+/* rate limiter lab (src/scripts/ratelimit.ts) */
+.lab-ratelimit .rl-svg { display: block; width: 100%; max-width: 760px; height: auto; margin: .6rem auto 0; }
+.lab-ratelimit .rl-svg text { font-family: var(--mono); }
+.lab-ratelimit .rl-lane { display: flex; justify-content: space-between; max-width: 760px; margin: 0 auto; padding: 0 .9rem; color: var(--lab-dim); font-size: .72rem; }
+.lab-ratelimit .rl-meter { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .4rem .8rem; padding: .7rem .9rem 0; color: var(--lab-dim); font-size: .75rem; }
+.lab-ratelimit .rl-track { width: 9rem; height: .55rem; border-radius: 3px; background: var(--lab-rule); overflow: hidden; }
+.lab-ratelimit .rl-fill { display: block; height: 100%; width: 0; background: #00aebb; }
+.lab-ratelimit .rl-val { min-width: 11rem; text-align: center; font-size: .75rem; }

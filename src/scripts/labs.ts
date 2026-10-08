@@ -184,4 +184,5 @@ for (const el of document.querySelectorAll<HTMLElement>('[data-lab]')) {
   if (el.dataset.lab === 'py') pyLab(el);
   else if (el.dataset.lab === 'stream') streamLab(el);
   else if (el.dataset.lab === 'icecube') import('./icecube').then((m) => m.icecubeLab(el));
+  else if (el.dataset.lab === 'ratelimit') import('./ratelimit').then((m) => m.rateLimitLab(el));
 }
