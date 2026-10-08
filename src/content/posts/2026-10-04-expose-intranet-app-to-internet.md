@@ -6,6 +6,7 @@ hook:
   caption: 'packets DNAT translated → packets FORWARD let through'
 date: '2026-10-04'
 topic: systems
+series: system-design
 vm:
   setup: 'cd /root && cp site/labs/intranet-to-internet/lab.sh . && (ip netns list | grep -q lab-fw || ./lab.sh up)'
 tags: [intranet, networking, security, reverse-proxy, nat, port-forwarding, firewall, conntrack]

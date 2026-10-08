@@ -6,6 +6,7 @@ hook:
   caption: 'cosine to the true gradient, same 192 forward passes → Dust vs weight-space ES'
 date: '2026-10-07'
 topic: ai
+series: papers-rebuilt
 tags: [backpropagation, evolution-strategies, zeroth-order-optimization, transformers, pretraining, node-perturbation]
 vm:
   setup: 'cd /root'

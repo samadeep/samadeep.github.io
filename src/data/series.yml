@@ -1,0 +1,44 @@
+# Series: shelves of posts that share a format. A topic says what a post is about; a series says what
+# kind of post it is, so a reader who liked one knows where the next one is.
+#
+# To add a series: add an entry here, then put `series: <slug>` in each post's front matter.
+# Pages, the Series tab, feeds and prev/next all follow from that. A series with no posts stays hidden.
+#
+#   kind: weekly      numbered issues in date order ("CP Weekly #3", "Issue 3 of 7")
+#   kind: collection  parts of a shelf, read in any order ("Part 2 of 4")
+#   icon: a name from src/components/Icon.astro    hue: 0 to 360, the series' accent colour
+
+- slug: cp-weekly
+  name: CP Weekly
+  kind: weekly
+  icon: braces
+  hue: 285
+  blurb: One mathematical idea from the week in competitive programming, from its smallest example and research roots to the contest problem it cracks, with code tested against brute force.
+
+- slug: cp-deep-dives
+  name: CP Deep Dives
+  kind: collection
+  icon: sigma
+  hue: 310
+  blurb: Classic problems taken apart slowly. The intuition, the recurrence, why it works, and the code.
+
+- slug: papers-rebuilt
+  name: Papers, Rebuilt
+  kind: collection
+  icon: flask-conical
+  hue: 350
+  blurb: New research and big results explained from first principles, then rebuilt small enough to run in your browser.
+
+- slug: system-design
+  name: System Design
+  kind: collection
+  icon: network
+  hue: 195
+  blurb: Real systems designed end to end. Requirements with numbers, the design, the failure modes, and commands you can run.
+
+- slug: build-logs
+  name: Build Logs
+  kind: collection
+  icon: hammer
+  hue: 65
+  blurb: How a real system got built, from the first naive version to one that holds up, with the numbers along the way.
