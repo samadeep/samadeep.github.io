@@ -6,6 +6,7 @@ hook:
   caption: 'first token generated → first token the user saw'
 date: '2026-10-04'
 topic: ai
+series: system-design
 vm:
   setup: 'cd /root/site/labs/llm-streaming'
 tags: [system-design, llm-serving, sse, websockets, kv-cache, load-balancing, gpu]

@@ -1,20 +1,19 @@
 ---
-// Writing: "where do I start?" first, then a filterable list grouped by year.
-//   Start here   up to two posts whose commands run in the browser, led by their hook number
+// Writing: every post, filterable, grouped by year. ("Start here" lives on the home page.)
 //   Filters      topic, "runs in your browser", "under 10 min" (client-side, mirrored in the URL)
-//   List         one line per post: date, title, its one-line hook, topic, minutes, runnable count
+//   List         one line per post: date, title, its one-line hook, series, topic, minutes, runnable count
 import Icon from '../../components/Icon.astro';
 import Sidebar from '../../components/Sidebar.astro';
 import Base from '../../layouts/Base.astro';
 import { getPosts, topicGroups } from '../../lib/posts';
 import { TOPICS } from '../../lib/topics';
+import { seriesOf, seriesWords } from '../../lib/series';
 
 const posts = await getPosts();
 const groups = topicGroups(posts);
 const runs = (p: { body?: string; data: { vm?: unknown } }) => (p.data.vm ? (p.body?.match(/^```(bash|python)\b/gm) ?? []).length : 0); // Run buttons exist only on posts with a VM
 const topicOf = (slug: string) => TOPICS.find((t) => t.slug === slug)!;
 const fmt = (d: Date) => d.toLocaleDateString('en', { month: 'short', day: 'numeric', timeZone: 'UTC' });
-const featured = posts.filter((p) => p.data.vm).slice(0, 2);
 const years = [...new Set(posts.map((p) => p.data.date.getUTCFullYear()))];
 const QUICK = 10;
 ---
@@ -23,28 +22,8 @@ const QUICK = 10;
   <div class="main-col writing">
     <header class="page-head">
       <h1>Writing</h1>
-      <p>{posts.length} posts. New here? Start with one you can run.</p>
+      <p>{posts.length} posts, newest first. Filter by topic, or browse <a href="/series/">the series</a>.</p>
     </header>
-
-    {featured.length > 0 && (
-      <section class="start" aria-labelledby="h-start">
-        <h2 id="h-start" class="eyebrow">Start here</h2>
-        <ul class="start-grid">
-          {featured.map((p) => {
-            const t = topicOf(p.data.topic);
-            return (
-              <li><a class="start-card" href={p.href}>
-                <span class="sc-topic"><Icon name={t.icon} />{t.name}</span>
-                {p.data.hook && <span class="sc-stat">{p.data.hook.stat}</span>}
-                {p.data.hook && <span class="sc-cap">{p.data.hook.caption}</span>}
-                <span class="sc-title" style={`view-transition-name:post-${p.id}`}>{p.data.title}</span>
-                <span class="sc-meta"><span class="run"><Icon name="zap" />{runs(p)} runnable</span><span>{p.minutes} min</span></span>
-              </a></li>
-            );
-          })}
-        </ul>
-      </section>
-    )}
 
     <div class="wfilter" role="group" aria-label="Filter posts">
       <div class="wf-topics">
@@ -65,6 +44,7 @@ const QUICK = 10;
           {posts.filter((p) => p.data.date.getUTCFullYear() === y).map((p) => {
             const t = topicOf(p.data.topic);
             const n = runs(p);
+            const s = p.data.series ? seriesOf(p.data.series) : undefined;
             return (
               <li class="wl" data-topic={t.slug} data-run={n > 0 ? '1' : '0'} data-quick={p.minutes < QUICK ? '1' : '0'}>
                 <time datetime={p.data.date.toISOString().slice(0, 10)}>{fmt(p.data.date)}</time>
@@ -72,7 +52,8 @@ const QUICK = 10;
                   <a class="wl-title" href={p.href}>{p.data.title}</a>
                   <p class="wl-why">{p.data.hook ? <><b>{p.data.hook.stat}</b> {p.data.hook.caption}</> : p.data.description}</p>
                   <p class="wl-meta">
-                    <span class="wl-topic"><Icon name={t.icon} />{t.name}</span>
+                    {s && <a class="wl-series" href={`/series/${s.slug}/`}><Icon name={s.icon} />{seriesWords(s).label(p.issue!)}</a>}
+                    <span class="wl-topic">{t.name}</span>
                     <span>{p.minutes} min</span>
                     {n > 0 && <span class="run"><Icon name="zap" />{n} runnable</span>}
                   </p>

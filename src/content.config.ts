@@ -17,7 +17,7 @@ const posts = defineCollection({
     date: z.coerce.date(),
     updated: z.coerce.date().optional(),
     topic: z.enum(topicSlugs),
-    // optional series (src/lib/series.ts); the issue number comes from the date order
+    // optional series, one of the slugs in src/data/series.yml; its number comes from the date order
     series: z.enum(seriesSlugs).optional(),
     // the one surprising number, shown huge on the share card (X, LinkedIn, Slack unfurls)
     hook: z.object({ stat: z.string(), caption: z.string() }).optional(),

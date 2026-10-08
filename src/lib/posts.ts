@@ -1,6 +1,6 @@
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import { TOPICS } from './topics';
-import { SERIES, seriesOf } from './series';
+import { SERIES, seriesOf, seriesWords } from './series';
 // @ts-ignore: plain .mjs helper shared with the markdown pipeline
 import { firstDiagram } from './remark-plantuml.mjs';
 // @ts-ignore: plain .mjs helper shared with the markdown pipeline
@@ -33,8 +33,8 @@ export function seriesGroups(posts: Post[]) {
   return SERIES.map((s) => ({ ...s, posts: posts.filter((p) => p.data.series === s.slug) })).filter((g) => g.posts.length);
 }
 
-/** "CP Weekly #3" for a post in a series. */
-export const issueLabel = (p: Post) => (p.data.series && p.issue ? `${seriesOf(p.data.series).name} #${p.issue}` : undefined);
+/** "CP Weekly #3" (weekly) or "System Design · Part 2" (collection) for a post in a series. */
+export const issueLabel = (p: Post) => (p.data.series && p.issue ? seriesWords(seriesOf(p.data.series)).label(p.issue) : undefined);
 
 export const problemLabel = (pr: Post['data']['problems'][number]) =>
   `${pr.platform} ${pr.id}${pr.difficulty ? `, ${pr.difficulty}` : ''}`;

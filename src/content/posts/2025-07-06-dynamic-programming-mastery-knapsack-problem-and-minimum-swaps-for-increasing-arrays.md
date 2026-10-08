@@ -3,6 +3,7 @@ title: 'Dynamic Programming Mastery: Knapsack Problem and Minimum Swaps for Incr
 description: 'Master two classic dynamic programming problems: the 0/1 Knapsack Problem and Minimum Swaps to Make Arrays Increasing. Learn the intuition, implementation, and optimization techniques with detailed explanations and code examples.'
 date: '2025-07-06'
 topic: algorithms
+series: algorithm-deep-dives
 tags: [algorithms, dynamic-programming, knapsack, optimization, competitive-programming, data-structures]
 problems:
   - platform: LeetCode

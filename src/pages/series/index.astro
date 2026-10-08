@@ -1,0 +1,52 @@
+---
+// The Series tab: every series that has posts, as a shelf. A topic says what a post is about;
+// a series says what kind of post it is, so this page answers "what else is like the one I read?".
+// Shelves come from src/data/series.yml in its order; each shows its three newest posts.
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import { getPosts, seriesGroups } from '../../lib/posts';
+import { seriesWords } from '../../lib/series';
+
+const posts = await getPosts();
+const shelves = seriesGroups(posts);
+const inSeries = shelves.reduce((n, g) => n + g.posts.length, 0);
+const fmt = (d: Date) => d.toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+const SHOW = 3;
+---
+<Base title="Series" description="Posts grouped by format: CP Weekly, deep dives, papers rebuilt to run in your browser, system design and build logs.">
+  <div class="wrap wide">
+    <header class="page-head">
+      <h1>Series</h1>
+      <p>{shelves.length} series, {inSeries} posts. Topics say what a post is about; a series is the shelf to read next.</p>
+    </header>
+
+    <ul class="shelves">
+      {shelves.map((g) => {
+        const w = seriesWords(g);
+        return (
+          <li class="shelf">
+            <a class="sh-head" href={`/series/${g.slug}/`}>
+              <span class="mark"><Icon name={g.icon} /></span>
+              <span class="sh-name">{g.name}</span>
+              <span class="sh-meta">{w.cadence} · {g.posts.length} {g.posts.length === 1 ? 'post' : 'posts'}</span>
+            </a>
+            <p class="sh-blurb">{g.blurb}</p>
+            <ol class="sh-posts">
+              {g.posts.slice(0, SHOW).map((p) => (
+                <li>
+                  <span class="sh-n" aria-hidden="true">{w.short(p.issue!)}</span>
+                  <a href={p.href}>{p.data.title}</a>
+                  <time datetime={p.data.date.toISOString().slice(0, 10)}>{fmt(p.data.date)}</time>
+                </li>
+              ))}
+            </ol>
+            <p class="sh-foot">
+              <a href={`/series/${g.slug}/`}>{g.posts.length > SHOW ? `All ${g.posts.length} posts` : 'Open series'}<Icon name="arrow-right" /></a>
+              <a href={`/series/${g.slug}.xml`} aria-label={`${g.name} RSS feed`}><Icon name="rss" />RSS</a>
+            </p>
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+</Base>

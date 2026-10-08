@@ -1,10 +1,11 @@
 ---
-// One page per series: what it is, how to follow it, then every issue newest first.
+// One page per series: what it is, how to follow it, then every post newest first.
 // Each row: issue number, date, title, the one-line lede and the judge problems it covers.
 import Base from '../../../layouts/Base.astro';
 import Icon from '../../../components/Icon.astro';
 import Sidebar from '../../../components/Sidebar.astro';
 import { getPosts, seriesGroups, problemLabel } from '../../../lib/posts';
+import { seriesWords } from '../../../lib/series';
 
 export async function getStaticPaths() {
   return seriesGroups(await getPosts()).map((g) => ({ params: { series: g.slug }, props: { group: g } }));
@@ -12,17 +13,18 @@ export async function getStaticPaths() {
 const { group } = Astro.props;
 const fmt = (d: Date) => d.toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 const latest = group.posts[0];
+const words = seriesWords(group);
 ---
 <Base title={group.name} description={group.blurb}>
   <link slot="head" rel="alternate" type="application/rss+xml" title={group.name} href={`/series/${group.slug}.xml`} />
   <div class="wrap wide with-rail">
   <div class="main-col">
     <header class="page-head series-head" style={`--hue:${group.hue}`}>
-      <p class="kicker"><span class="topic-link"><Icon name={group.icon} />Series</span><span class="kick-tag">{group.cadence}</span></p>
+      <p class="kicker"><a class="topic-link" href="/series/"><Icon name={group.icon} />Series</a><span class="kick-tag">{words.cadence}</span><span class="kick-tag">{group.posts.length} {group.posts.length === 1 ? 'post' : 'posts'}</span></p>
       <h1>{group.name}</h1>
       <p>{group.blurb}</p>
       <p class="series-follow">
-        <a href={latest.href}>Read the latest, #{latest.issue}</a>
+        <a href={latest.href}>Read the latest: {latest.data.title}</a>
         <a href={`/series/${group.slug}.xml`}><Icon name="rss" />Subscribe to this series only</a>
       </p>
     </header>
@@ -30,7 +32,7 @@ const latest = group.posts[0];
     <ol class="issues" reversed>
       {group.posts.map((p) => (
         <li>
-          <span class="is-n" aria-hidden="true">#{p.issue}</span>
+          <span class="is-n" aria-hidden="true">{words.short(p.issue!)}</span>
           <div class="is-body">
             <a class="is-t" href={p.href}>{p.data.title}</a>
             <p class="is-d">{p.data.description}</p>

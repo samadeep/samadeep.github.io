@@ -3,7 +3,7 @@ import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import { getPosts } from '../../lib/posts';
 import { topicOf } from '../../lib/topics';
-import { seriesOf } from '../../lib/series';
+import { seriesOf, seriesWords } from '../../lib/series';
 import { SITE, fmtDate } from '../../lib/site';
 import Icon from '../../components/Icon.astro';
 import AuthorCard from '../../components/AuthorCard.astro';
@@ -26,8 +26,9 @@ const { title, description, date, updated, tags, problems } = post.data;
 const hasMath = post.body?.includes('$$') ?? false; // KaTeX's stylesheet only where there is math
 const topic = topicOf(post.data.topic);
 const series = post.data.series ? seriesOf(post.data.series) : undefined;
-const olderLabel = series ? 'Previous issue' : `Older in ${topic.name}`;
-const newerLabel = series ? 'Next issue' : `Newer in ${topic.name}`;
+const words = series ? seriesWords(series) : undefined;
+const olderLabel = words ? words.prev : `Older in ${topic.name}`;
+const newerLabel = words ? words.next : `Newer in ${topic.name}`;
 const runnable = post.data.vm ? (post.body?.match(/^```(bash|python)\b/gm) ?? []).length : 0; // Run buttons need the VM
 const source = `${SITE.repo}/blob/main/src/content/posts/${post.filePath?.split('/').pop()}`;
 const jsonLd = {
@@ -67,9 +68,9 @@ const jsonLd = {
         </header>
 
         {series && (
-          <nav class="series-strip" aria-label={`${series.name} issues`} data-pagefind-ignore>
+          <nav class="series-strip" style={`--hue:${series.hue}`} aria-label={`${series.name}, all posts`} data-pagefind-ignore>
             <a class="ss-name" href={`/series/${series.slug}/`}><span class="ss-kick">Series</span>{series.name}</a>
-            <span class="ss-of">Issue {post.issue} of {issues.length}</span>
+            <span class="ss-of">{words!.unit} {post.issue} of {issues.length}</span>
             <ol class="ss-issues">
               {[...issues].reverse().map((p) => (
                 <li><a href={p.href} title={p.data.title} aria-current={p === post ? 'page' : undefined}>{p.issue}</a></li>

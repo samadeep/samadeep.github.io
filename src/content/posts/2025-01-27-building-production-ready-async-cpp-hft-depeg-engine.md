@@ -3,6 +3,7 @@ title: 'Building a Production-Ready Async C++ HFT Depeg Engine: From Sync to Ent
 description: A complete transformation journey from a basic synchronous C++ system to a professional, production-ready async HFT architecture with 500x performance improvements
 date: '2025-01-27'
 topic: low-latency
+series: build-logs
 tags: [cpp, high-frequency-trading, async-programming, financial-technology, hft, async, stablecoin, trading, performance, architecture]
 ---
 

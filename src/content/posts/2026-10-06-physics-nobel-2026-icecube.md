@@ -6,6 +6,7 @@ hook:
   caption: 'neutrinos IceCube records a year → from the distant universe'
 date: '2026-10-06'
 topic: science
+series: papers-rebuilt
 tags: [nobel-prize, neutrinos, icecube, astrophysics, signal-processing, reconstruction]
 ---
 
