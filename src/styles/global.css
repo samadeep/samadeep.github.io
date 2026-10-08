@@ -90,10 +90,13 @@ hr { border: 0; border-top: 1px solid var(--rule); margin: 3rem 0; }
 .icon-btn svg { width: 17px; height: 17px; }
 .kbd { font: 500 0.72rem var(--mono); color: var(--ink-3); border: 1px solid var(--rule); border-radius: 4px; padding: 0.1rem 0.35rem; }
 .search-btn { width: auto; padding: 0 0.6rem; gap: 0.5rem; display: inline-flex; align-items: center; }
+/* below 900px everything can't share one row: brand, search and theme stay on the first row and the
+   tabs get a row of their own (instead of the buttons wrapping alone, or tabs jumping while the name types) */
+@media (max-width: 900px) {
+  .site-head .nav { order: 3; width: 100%; justify-content: space-between; }
+}
 @media (max-width: 560px) {
   .search-btn .kbd { display: none; }
-  /* phones: brand, search and theme on the first row; the tabs share the second row evenly */
-  .site-head .nav { order: 3; width: 100%; justify-content: space-between; }
   .nav a { padding: 0.5rem 0.4rem; }
 }
 
@@ -524,6 +527,8 @@ figure.d2 .d2-dark { display: none; }
 .sh-desc { font-size: .85rem; color: var(--ink-2); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
 /* ---------- small things that make it easier on the eyes ---------- */
+/* reserve the typed name's final width (mono: every character is 1ch) plus the cursor, so the tabs never move while it types */
+.brand-name { display: inline-block; min-width: calc(var(--chars, 0) * 1ch + .62em); white-space: nowrap; }
 .brand-name.typing::after { content: ''; display: inline-block; width: .5em; height: 1em; margin-left: .12em; vertical-align: -.12em; background: var(--trace-fill); animation: blink 1s steps(1) infinite; }
 ::selection { background: var(--trace-soft); color: inherit; }
 a { text-underline-offset: .2em; text-decoration-thickness: 1px; }
