@@ -15,8 +15,8 @@
   hue: 285
   blurb: One mathematical idea from the week in competitive programming, from its smallest example and research roots to the contest problem it cracks, with code tested against brute force.
 
-- slug: cp-deep-dives
-  name: CP Deep Dives
+- slug: algorithm-deep-dives
+  name: Algorithm Deep Dives
   kind: collection
   icon: sigma
   hue: 310
