@@ -1,10 +1,14 @@
 ---
-title: 'Dynamic Programming Mastery: Knapsack Problem and Minimum Swaps for Increasing Arrays'
-description: 'Master two classic dynamic programming problems: the 0/1 Knapsack Problem and Minimum Swaps to Make Arrays Increasing. Learn the intuition, implementation, and optimization techniques with detailed explanations and code examples.'
+title: 'Dynamic Programming: Knapsack and Minimum Swaps, Explained'
+description: 'The 0/1 knapsack and LeetCode 801 Minimum Swaps, explained through one question: what does a DP need to remember? With a lab checked against brute force.'
+hook:
+  stat: '220 → 300'
+  caption: 'knapsack answer when one loop runs forwards instead of backwards'
 date: '2025-07-06'
+updated: '2026-10-08'
 topic: algorithms
 series: algorithm-deep-dives
-tags: [algorithms, dynamic-programming, knapsack, optimization, competitive-programming, data-structures]
+tags: [dynamic-programming, knapsack, competitive-programming, leetcode]
 problems:
   - platform: LeetCode
     id: '801'
@@ -13,321 +17,142 @@ problems:
     difficulty: Hard
 ---
 
-Dynamic Programming (DP) is one of the most powerful algorithmic techniques for solving optimization problems. Today, we'll dive deep into two classic DP problems that showcase different aspects of this technique: the **0/1 Knapsack Problem** and **Minimum Swaps to Make Arrays Increasing**.
-
-## The 0/1 Knapsack Problem
-
-### Problem Statement
-
-Given **N items** with weights and values, and a knapsack with capacity **W**, determine the maximum value that can be obtained by selecting a subset of items such that their total weight doesn't exceed W.
-
-**Key Constraint**: Each item can be taken at most once (0/1 property).
-
-### Core Intuition
-
-The beauty of the knapsack problem lies in its recursive nature. For each item, we have two choices:
-1. **Include it**: If current weight allows, add its value to the optimal solution of remaining capacity
-2. **Exclude it**: Take the optimal solution without this item
-
-### Dynamic Programming Approach
-
-The recurrence relation is:
-```
-dp[i][w] = max(dp[i-1][w], dp[i-1][w-weight[i]] + value[i])
-```
-
-Where:
-- `dp[i][w]` = maximum value using first i items with weight capacity w
-- First term = don't take item i
-- Second term = take item i (if weight allows)
-
-### Space-Optimized Implementation
+Here's a knapsack solution with a bug in it. Can you spot it?
 
 ```cpp
-#include <vector>
-#include <algorithm>
-using namespace std;
+for (int i = 0; i < n; i++)
+    for (int w = weights[i]; w <= W; w++)
+        dp[w] = max(dp[w], dp[w - weights[i]] + values[i]);
+```
 
+It compiles. It runs. On the classic example (items of 10, 20 and 30 kg worth 60, 100 and 120, in a 50 kg bag) it confidently answers **300**. The right answer is **220**.
+
+The whole bug is the direction of one loop. And understanding *why* the direction matters is the best way into dynamic programming, because it comes down to the one question every DP has to answer: **what do I need to remember?** Let's take two classic problems through it. The lab below runs both, checked against brute force.
+
+<div data-lab="py" data-src="/labs/dp-deep-dive/dp_lab.py" data-presets="--knapsack|--swaps|--stress"></div>
+
+## The knapsack: take it or leave it
+
+You have **N items**, each with a weight and a value, and a bag that holds **W**. Pick items to maximise the value without going over. Each item can be taken **at most once**: that's the "0/1".
+
+Look at one item at a time and there are only two choices. **Leave it**, and the best you can do is whatever the other items manage. **Take it**, and you get its value plus the best the other items can do in the capacity that's left. That gives the recurrence:
+
+```text
+dp[i][w] = max( dp[i-1][w],                          leave item i
+                dp[i-1][w - weight[i]] + value[i] )  take item i
+```
+
+`dp[i][w]` is the best value using the first `i` items with capacity `w`. What does it need to remember about the past? Only **how much capacity is left**. Not which items you took, not in what order. That's why a whole exponential search collapses into a table of size N × W.
+
+```fig title="Each cell only looks one row up: leave the item (straight up) or take it (up and left)"
+row
+up: box "dp[i-1][w - wt]\nrow above, less capacity"
+_
+above: box "dp[i-1][w]\nrow above, same capacity"
+row
+_
+cell: main "dp[i][w]" span 2
+up -> cell "take: + value"
+above -> cell "leave"
+```
+
+## The one-character bug
+
+You don't need the whole table. Each row only reads the row above it, so one array is enough, *if* you're careful:
+
+```cpp
 int knapsack(vector<int>& weights, vector<int>& values, int W) {
-    int n = weights.size();
     vector<int> dp(W + 1, 0);
-    
-    // For each item
-    for (int i = 0; i < n; i++) {
-        // Traverse from right to left to avoid using updated values
-        for (int w = W; w >= weights[i]; w--) {
+    for (int i = 0; i < weights.size(); i++)
+        for (int w = W; w >= weights[i]; w--)      // backwards!
             dp[w] = max(dp[w], dp[w - weights[i]] + values[i]);
-        }
-    }
-    
     return dp[W];
 }
 ```
 
-### Why Reverse Traversal?
+Now the bug makes sense. When you update `dp[w]`, you need `dp[w - weight]` from the *previous* row: the world before this item existed. Go **backwards**, and `dp[w - weight]` hasn't been touched yet in this pass, so it's still the old value. Go **forwards**, and you've *already* updated it to include this item, so you take the item again. And again.
 
-The key insight is that we're simulating a 2D table with a 1D array. When we update `dp[w]`, we need the "previous row" value at `dp[w - weights[i]]`. By traversing right to left, we ensure we're using the old values (previous row) rather than the updated values (current row).
-
-### Complete Implementation with Tracking
-
-```cpp
-#include <iostream>
-#include <vector>
-#include <algorithm>
-using namespace std;
-
-struct KnapsackSolution {
-    int maxValue;
-    vector<int> selectedItems;
-};
-
-KnapsackSolution knapsackWithTracking(vector<int>& weights, vector<int>& values, int W) {
-    int n = weights.size();
-    vector<vector<int>> dp(n + 1, vector<int>(W + 1, 0));
-    
-    // Build the DP table
-    for (int i = 1; i <= n; i++) {
-        for (int w = 0; w <= W; w++) {
-            // Don't take item i-1
-            dp[i][w] = dp[i-1][w];
-            
-            // Take item i-1 if possible
-            if (weights[i-1] <= w) {
-                dp[i][w] = max(dp[i][w], dp[i-1][w - weights[i-1]] + values[i-1]);
-            }
-        }
-    }
-    
-    // Backtrack to find selected items
-    vector<int> selectedItems;
-    int w = W;
-    for (int i = n; i > 0; i--) {
-        if (dp[i][w] != dp[i-1][w]) {
-            selectedItems.push_back(i-1);
-            w -= weights[i-1];
-        }
-    }
-    
-    return {dp[n][W], selectedItems};
-}
+```text
+items (weight, value): [(10, 60), (20, 100), (30, 120)], capacity 50
+backwards loop:  220
+forwards loop:   300   <- five copies of the 10 kg item
+brute force:     220
 ```
 
-## Minimum Swaps for Increasing Arrays
+Five copies of the 10 kg item: 5 × 60 = 300. The forwards loop isn't wrong so much as answering a different question. It's the **unbounded** knapsack, where you can take each item as often as you like. One character of loop direction picks which problem you're solving.
 
-### Problem Statement
+> **Insight:** When you squash a DP table into one array, the loop direction decides whether you read the old row or the new one. Backwards reads the past (each item once); forwards reads the present (items reused).
 
-Given two arrays A and B of equal length, find the minimum number of swaps between A[i] and B[i] to make both arrays strictly increasing.
+## Minimum swaps: remember one bit
 
-### Key Insight
+Now a problem that looks completely different. [LeetCode 801](https://leetcode.com/problems/minimum-swaps-to-make-sequences-increasing/): two arrays of equal length. At any position you may swap `A[i]` with `B[i]`. What's the fewest swaps to make **both** strictly increasing? (The problem promises it's always possible.)
 
-At each position i, we have two states:
-1. **swap[i]**: Minimum swaps to make arrays increasing up to position i, with A[i] and B[i] swapped
-2. **not_swap[i]**: Minimum swaps to make arrays increasing up to position i, without swapping A[i] and B[i]
+```text
+A = [1, 3, 5, 4]
+B = [1, 2, 3, 7]
+```
 
-### State Transitions
+Brute force tries all 2ⁿ swap patterns. But ask the DP question: to decide position `i`, what do you need to remember about everything before it? Only **one bit**: whether position `i-1` was swapped. Nothing earlier matters, because "strictly increasing" only ever compares neighbours.
 
-### Implementation
+So keep two numbers as you walk left to right: `keep`, the fewest swaps so far if position `i` stays as it is, and `swap`, the fewest if it's swapped. At each step, check which pairings of neighbours are increasing:
+
+- **Same order works** (`A[i-1] < A[i]` and `B[i-1] < B[i]`): copy the previous choice. Kept stays kept; swapped stays swapped (one more swap).
+- **Crossed order works** (`A[i-1] < B[i]` and `B[i-1] < A[i]`): flip the previous choice. If the last one was kept, swap this one; if it was swapped, keep this one.
+
+Often both are true, and you take the better of the two. Here's the whole thing:
 
 ```cpp
-#include <vector>
-#include <algorithm>
-#include <climits>
-using namespace std;
-
 int minSwap(vector<int>& A, vector<int>& B) {
-    int n = A.size();
-    vector<int> swap(n, INT_MAX);
-    vector<int> not_swap(n, INT_MAX);
-    
-    // Base case
-    swap[0] = 1;      // We swap at position 0
-    not_swap[0] = 0;  // We don't swap at position 0
-    
-    for (int i = 1; i < n; i++) {
-        // Case 1: Natural increasing order
-        if (A[i-1] < A[i] && B[i-1] < B[i]) {
-            swap[i] = swap[i-1] + 1;        // Swap both positions
-            not_swap[i] = not_swap[i-1];    // Don't swap both positions
-        }
-        
-        // Case 2: Cross increasing order
-        if (A[i-1] < B[i] && B[i-1] < A[i]) {
-            swap[i] = min(swap[i], not_swap[i-1] + 1);  // Swap current, not previous
-            not_swap[i] = min(not_swap[i], swap[i-1]);  // Don't swap current, swap previous
-        }
+    int swap = 1, keep = 0;
+    for (int i = 1; i < A.size(); i++) {
+        int s = INT_MAX, k = INT_MAX;
+        if (A[i-1] < A[i] && B[i-1] < B[i]) { s = swap + 1; k = keep; }                    // same choice
+        if (A[i-1] < B[i] && B[i-1] < A[i]) { s = min(s, keep + 1); k = min(k, swap); }   // flipped choice
+        swap = s; keep = k;
     }
-    
-    return min(swap[n-1], not_swap[n-1]);
+    return min(swap, keep);
 }
 ```
 
-### Detailed Case Analysis
+Watch it walk the example (run the `--swaps` preset):
 
-#### Case 1: Natural Order (A[i-1] < A[i] && B[i-1] < B[i])
-```
-A: [1, 3, ...]  B: [2, 4, ...]
-      ↑            ↑
-   A[i-1] < A[i]  B[i-1] < B[i]
-```
-Both arrays are naturally increasing. We have consistent choices:
-- If we didn't swap at i-1, don't swap at i
-- If we swapped at i-1, swap at i
-
-#### Case 2: Cross Order (A[i-1] < B[i] && B[i-1] < A[i])
-```
-A: [1, 4, ...]  B: [3, 2, ...]
-      ↑            ↑
-   A[i-1] < B[i]  B[i-1] < A[i]
-```
-We need alternating choices:
-- If we didn't swap at i-1, we must swap at i
-- If we swapped at i-1, we must not swap at i
-
-### Space-Optimized Version
-
-```cpp
-int minSwapOptimized(vector<int>& A, vector<int>& B) {
-    int n = A.size();
-    int swap = 1, not_swap = 0;
-    
-    for (int i = 1; i < n; i++) {
-        int temp_swap = INT_MAX, temp_not_swap = INT_MAX;
-        
-        if (A[i-1] < A[i] && B[i-1] < B[i]) {
-            temp_swap = swap + 1;
-            temp_not_swap = not_swap;
-        }
-        
-        if (A[i-1] < B[i] && B[i-1] < A[i]) {
-            temp_swap = min(temp_swap, not_swap + 1);
-            temp_not_swap = min(temp_not_swap, swap);
-        }
-        
-        swap = temp_swap;
-        not_swap = temp_not_swap;
-    }
-    
-    return min(swap, not_swap);
-}
+```text
+  i=0  A,B=(1,1)  keep=0 swap=1
+  i=1  A,B=(3,2)  keep=0 swap=1
+  i=2  A,B=(5,3)  keep=0 swap=2
+  i=3  A,B=(4,7)  keep=2 swap=1
+minimum swaps: 1   (brute force over all 2^4 choices: 1)
 ```
 
-## Implementation Comparison
+At the last position, swapping 4 and 7 gives `A = [1, 3, 5, 7]` and `B = [1, 2, 3, 4]`. One swap. O(n) time, two integers of memory.
 
-### Time and Space Complexity
+## The same question, twice
 
-| Algorithm | Time Complexity | Space Complexity | Optimized Space |
-|-----------|----------------|------------------|-----------------|
-| **Knapsack** | O(n × W) | O(n × W) | O(W) |
-| **Min Swaps** | O(n) | O(n) | O(1) |
+Two problems that look nothing alike, solved the same way. For the knapsack, the past boils down to *how much room is left*. For the swaps, it boils down to *one bit*. Get that right and the rest is bookkeeping. Get it wrong (remember too little, or read the wrong row) and you get a confident 300 when the answer is 220.
 
-### Key Differences
+Next time you're stuck on a DP, don't start with the recurrence. Start by asking what you'd need to remember to make the next decision, and nothing more.
 
-1. **Problem Nature**:
-   - Knapsack: Combinatorial optimization
-   - Min Swaps: Sequential decision making
+## Try it
 
-2. **State Space**:
-   - Knapsack: 2D (items × weight)
-   - Min Swaps: 1D with binary choice
+The lab above runs in your browser. On your own machine (standard library only):
 
-3. **Optimization**:
-   - Knapsack: Maximize value under constraint
-   - Min Swaps: Minimize operations to satisfy constraint
-
-## Performance Analysis
-
-### Knapsack Performance
-
-```cpp
-// Benchmark different approaches
-#include <chrono>
-
-void benchmarkKnapsack() {
-    vector<int> weights = {10, 20, 30};
-    vector<int> values = {60, 100, 120};
-    int W = 50;
-    
-    auto start = chrono::high_resolution_clock::now();
-    int result = knapsack(weights, values, W);
-    auto end = chrono::high_resolution_clock::now();
-    
-    auto duration = chrono::duration_cast<chrono::microseconds>(end - start);
-    cout << "Knapsack result: " << result << " (Time: " << duration.count() << " μs)" << endl;
-}
+```zsh
+curl -O https://samadeep.github.io/labs/dp-deep-dive/dp_lab.py
+python3 dp_lab.py --stress     # both DPs vs brute force, 2,000 random cases each
 ```
 
-### Min Swaps Performance
+To practise: change the knapsack to the unbounded version on purpose (it's one loop direction), then try [0/1 knapsack on AtCoder DP Contest D](https://atcoder.jp/contests/dp/tasks/dp_d) and [LeetCode 801](https://leetcode.com/problems/minimum-swaps-to-make-sequences-increasing/) itself.
 
-```cpp
-void benchmarkMinSwaps() {
-    vector<int> A = {1, 3, 5, 4};
-    vector<int> B = {1, 2, 3, 7};
-    
-    auto start = chrono::high_resolution_clock::now();
-    int result = minSwap(A, B);
-    auto end = chrono::high_resolution_clock::now();
-    
-    auto duration = chrono::duration_cast<chrono::microseconds>(end - start);
-    cout << "Min swaps result: " << result << " (Time: " << duration.count() << " μs)" << endl;
-}
-```
+<details>
+<summary>Complexity and what was checked</summary>
 
-## Real-World Applications
+| Problem | Time | Space (table) | Space (squashed) |
+|---|---|---|---|
+| 0/1 knapsack | O(n × W) | O(n × W) | O(W) |
+| Minimum swaps | O(n) | O(n) | O(1) |
 
-### Knapsack Problem Applications
+- `dp_lab.py --stress` checks the backwards knapsack against brute force on 2,000 random cases (up to 8 items, capacity up to 30) and the minimum-swaps DP on 2,000 random solvable cases (length up to 8). All match.
+- If you need *which* items the knapsack took, keep the full N × W table and walk back from `dp[n][W]`: wherever `dp[i][w] != dp[i-1][w]`, item `i` was taken.
+- This post was rewritten in October 2026 from a July 2025 write-up, with the runnable lab added.
 
-1. **Resource Allocation**: Budget allocation across projects
-2. **Portfolio Optimization**: Investment selection with capital constraints
-3. **Cargo Loading**: Optimizing cargo in transportation
-4. **Memory Management**: Selecting processes to load in limited memory
-
-### Min Swaps Applications
-
-1. **Database Optimization**: Reordering records for better query performance
-2. **Task Scheduling**: Arranging tasks to meet dependency constraints
-3. **Array Sorting**: Minimizing swaps for specific sorting requirements
-4. **Network Routing**: Optimizing path selection with minimal changes
-
-## Complete Working Example
-
-```cpp
-#include <iostream>
-#include <vector>
-#include <algorithm>
-using namespace std;
-
-int main() {
-    // Knapsack example
-    cout << "=== Knapsack Problem ===" << endl;
-    vector<int> weights = {10, 20, 30};
-    vector<int> values = {60, 100, 120};
-    int W = 50;
-    
-    int maxValue = knapsack(weights, values, W);
-    cout << "Maximum value: " << maxValue << endl;
-    
-    // Min swaps example
-    cout << "\n=== Minimum Swaps Problem ===" << endl;
-    vector<int> A = {1, 3, 5, 4};
-    vector<int> B = {1, 2, 3, 7};
-    
-    int minSwaps = minSwap(A, B);
-    cout << "Minimum swaps needed: " << minSwaps << endl;
-    
-    return 0;
-}
-```
-
-## Conclusion
-
-Both the Knapsack Problem and Minimum Swaps algorithm demonstrate the power of dynamic programming in solving optimization problems. 
-
-The key insights are:
-
-1. **Identify the State**: What information do we need to track?
-2. **Define Transitions**: How do we move between states?
-3. **Optimize Space**: Can we reduce memory usage?
-4. **Handle Edge Cases**: What are the boundary conditions?
----
-
-*Want to practice these algorithms? Try implementing variations like the Unbounded Knapsack or exploring other DP problems like Longest Common Subsequence!* 
+</details>
