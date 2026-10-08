@@ -3,7 +3,9 @@
 //     -> editable Python + terminal, run in the reader's browser with Pyodide (in a Web Worker)
 //   <div data-lab="stream"></div>
 //     -> token streaming demo: direct vs a gzip proxy, per-token vs batched writes, drop and resume
-const PYODIDE = 'https://cdn.jsdelivr.net/npm/pyodide@314.0.7/';
+// The "full" distribution, not the npm package: npm ships the Python core only, so imported packages
+// (numpy, ...) 404 there. Same version either way.
+const PYODIDE = 'https://cdn.jsdelivr.net/pyodide/v314.0.7/full/';
 const h = (tag: string, attrs: Record<string, string> = {}, text = '') => {
   const el = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
