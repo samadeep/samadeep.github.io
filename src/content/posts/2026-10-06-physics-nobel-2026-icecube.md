@@ -10,15 +10,15 @@ series: papers-rebuilt
 tags: [nobel-prize, neutrinos, icecube, astrophysics, signal-processing, reconstruction]
 ---
 
-Every year about **100,000 neutrinos** leave a flash of light in a cubic kilometre of Antarctic ice. Roughly **100** of them come from the distant universe. Everything else (including about 3,000 muons a second raining down from our own atmosphere) is noise. Today's Physics Nobel goes to the person who built the filter that tells them apart.
+Up to two and a half kilometres under the South Pole, in ice so clear that light travels 200 metres through it before fading, 5,160 glass spheres sit in the dark, waiting.
 
-**Short answer:** the 2026 Nobel Prize in Physics goes to **Francis Halzen** (University of Wisconsin–Madison) "for decisive contributions to the IceCube Neutrino Observatory and the discovery of high-energy neutrinos of astrophysical origin." In 1988 he proposed turning the South Pole's ice into a neutrino detector. As IceCube's Principal Investigator from the beginning, he led it from that idea to 5,160 light sensors buried 1.5 to 2.5 km deep, and to the 2013 detection of neutrinos from outside our solar system.
+Every year about **100,000 neutrinos** leave a faint flash of light somewhere in that cubic kilometre. About **100** of them come from the distant universe: messengers from some of its most violent places. Everything else is noise, including roughly 3,000 muons *a second* raining down from our own atmosphere.
 
-The rest of this post covers why neutrinos are worth that trouble, why the detector has to be a cubic kilometre, how a direction comes out of a few dozen flashes (you'll do it yourself below), and how about 100 needles a year are pulled out of the haystack.
+Finding those 100 is why **Francis Halzen** (University of Wisconsin–Madison) won the 2026 Nobel Prize in Physics, "for decisive contributions to the IceCube Neutrino Observatory and the discovery of high-energy neutrinos of astrophysical origin." He proposed the idea in 1988 and led IceCube from it to its 2013 discovery. Here's how a block of ice became a telescope, and you can reconstruct a neutrino yourself on the way.
 
-## Neutrinos are the only messenger that arrives straight
+## The only messenger that arrives straight
 
-The universe has particle accelerators far stronger than ours: cosmic rays reach about 10²⁰ eV, against 7 × 10¹² eV at the LHC. Where they're accelerated has been one of astronomy's best-kept secrets, because the messengers get scrambled on the way.
+The universe runs particle accelerators that make ours look like toys: cosmic rays reach about 10²⁰ eV, against 7 × 10¹² eV at the LHC. *Where* they're accelerated has been one of astronomy's oldest mysteries, because almost every messenger gets scrambled on the way to us.
 
 ```fig title="Only the neutrino arrives straight and intact"
 row
@@ -41,48 +41,37 @@ s3 -> p3
 p3 -> e3 "straight, untouched" good
 ```
 
-When protons crash into gas or light near a source, they make pions. Neutral pions decay into gamma rays and charged pions into neutrinos, so **wherever cosmic rays are made, neutrinos should be too.** A proton's path is bent by magnetic fields, and a gamma ray can be absorbed by dust or background light. A neutrino has no charge and almost never interacts, so it points straight back to where it was born.
+A proton is charged, so magnetic fields bend its path until it points nowhere useful. A gamma ray can be swallowed by dust or background light. But when protons smash into gas near their source, they make pions, and charged pions decay into **neutrinos**: no charge, almost no interactions. A neutrino flies dead straight from where it was born, straight through anything in its way.
 
-> **Insight:** The property that makes neutrinos useful is the same one that makes them nearly impossible to catch: they ignore almost everything, including the detector.
+Which is also the problem. Something that ignores everything ignores your detector too.
 
-## Why the detector is a cubic kilometre
+## How big does a detector need to be?
 
-How rare is a catch? At petaelectronvolt energies a neutrino's cross-section with a nucleon is about 10⁻³³ cm², and the expected cosmic spectrum falls steeply with energy. Here's the arithmetic, running in your browser:
+At petaelectronvolt energies, a neutrino's chance of hitting a nucleon is tiny: a cross-section of about 10⁻³³ cm². Run the arithmetic yourself:
 
 <div data-lab="py" data-src="/labs/icecube/why_km3.py" data-presets="--km 1|--km 0.1|--cross 50"></div>
 
-A PeV neutrino crossing a full kilometre of ice interacts **about once in 18,000 tries**. Only a gigatonne of target gives a useful rate. Shrink the ice tenfold (`--km 0.1`) and the odds get ten times worse.
+A PeV neutrino crossing a full kilometre of ice interacts **about once in 18,000 tries**. Try `--km 0.1` and the odds get ten times worse. Only a gigatonne of target gives you a usable number of catches, so the size of IceCube wasn't a design choice. It was the answer to a calculation.
 
-The design came in steps:
+Getting there took two decades of steps. In 1991, sensors lowered into Greenland boreholes showed glacier ice was clear enough. From 1993 to 2000, the AMANDA prototype at the Pole showed the idea worked. IceCube itself was built from 2004 and finished in 2011.
 
-- **1991:** sensors lowered into Greenland boreholes showed that glacier ice is clear enough.
-- **1993 to 2000:** the AMANDA prototype at the Pole showed the approach works.
-- **2004 to 2010:** IceCube was built, finishing in 2011.
+## The ice is the instrument
 
-> **Insight:** When the event is rare, detector size isn't a design choice, it's a calculation: probability per neutrino times flux sets the volume, and everything else follows from that.
+IceCube is 86 strings, each carrying 60 sensors spaced 17 m apart between 1,450 m and 2,450 m deep, standing 125 m apart on a triangular grid. The holes were melted with a hot-water drill, essentially a very serious shower head. Each sensor is, in Halzen's phrase, a lightbulb in reverse.
 
-## Ice is the detector, not just the place
+When a neutrino does hit a nucleus, the charged particles it makes travel *faster than light moves through ice* (whose refractive index is about 1.31). They shed **Cherenkov light** in a cone at about 40°, an optical sonic boom.
 
-IceCube's 86 strings each carry 60 sensors, spaced every 17 m between 1450 m and 2450 m deep. The strings stand 125 m apart on a triangular grid. The holes were melted with a hot-water drill, essentially a sophisticated shower head. A sensor is, in Halzen's phrase, a lightbulb in reverse.
+AMANDA's first strings hit a snag nobody had planned for. At 800 to 1,000 m, air bubbles scattered light within half a metre and smeared every image into fog. Go deeper and the pressure squeezes the bubbles out: below about 2,100 m, light travels ~200 m before it's absorbed and ~50 m before it scatters. The experiment ended up having to map its own ice, layer by layer, because the ice is as much a part of the instrument as the glass spheres.
 
-When a neutrino hits a nucleus, the charged particles it makes outrun light in ice (refractive index ~1.31). They give off **Cherenkov light** in a cone at about 40°, much like the sonic boom of a supersonic jet.
+## Reconstruct one yourself
 
-AMANDA's first strings, at 800 to 1000 m, found a problem: air bubbles scattered the light within half a metre and smeared every image. Deeper down, the bubbles are squeezed out. Below about 2100 m, light travels ~200 m before it's absorbed and ~50 m before it scatters. The experiment had to measure its own ice, layer by layer, and taught researchers a great deal about how ice behaves at depth.
-
-> **Insight:** In big physics, the medium is part of the instrument. IceCube's precision depends as much on mapping the ice as on building the sensors.
-
-## A direction from a few dozen flashes
-
-A muon from a neutrino crosses the detector at nearly the speed of light, faster than light itself moves through ice. Sensors near the start of its path flash first, those downstream later, so **the arrival times draw the direction.** Below is a slice of the real geometry: 8 strings, 125 m apart, with 60 sensors each. Make an event, then reconstruct it from the timing alone.
+A muon from a neutrino crosses the detector faster than light can follow it through ice. Sensors near the start of its path flash first and those downstream later, so **the arrival times draw the direction**. Below is a slice of the real geometry: 8 strings, 125 m apart, 60 sensors each. Make an event, then reconstruct it from timing alone.
 
 <div data-lab="icecube"></div>
 
-The fit runs in two stages, a miniature of IceCube's own pipeline:
+The fit is a miniature of IceCube's own pipeline, in two stages. **LineFit** is the fast first guess: treat the hits as points moving at constant speed and solve position against time by least squares. It takes milliseconds and lands within about a degree. Then a **full timing fit** uses the real Cherenkov geometry, and punishes early hits harshly but late ones gently, because scattering can only ever *delay* a photon, never speed it up. In this 2D toy that gets the median error to about 0.3° in realistic ice. With every sensor in 3D, IceCube reaches 0.3° at 100 TeV.
 
-1. **LineFit**, the fast first guess, treats the hits as points moving at constant speed and solves position against time by least squares. It takes milliseconds and lands within about a degree.
-2. **A full timing fit** uses the actual Cherenkov geometry. It scores early hits harshly and late ones gently, because scattering can only ever *delay* a photon, never speed it up. In this 2D toy that gets the median error down to about 0.3° in realistic ice. In 3D with every sensor, IceCube reaches 0.3° at 100 TeV.
-
-Now switch to **Cascade**. An electron or tau neutrino, or any neutrino that just knocks a nucleus apart, makes a ball of light under ~10 m across. Its timing is nearly symmetric, so LineFit points almost anywhere.
+Now switch to **Cascade**. An electron or tau neutrino, or any neutrino that just shatters a nucleus, makes a ball of light under ~10 m across. Its timing is nearly symmetric, so LineFit points almost anywhere.
 
 ```fig title="The same detector, two trade-offs: tracks point well, cascades weigh well"
 panel Muon track
@@ -109,11 +98,11 @@ t2 -> r2 "timing"
 t2 -> e2 "light seen"
 ```
 
-> **Insight:** The information sits in the timing differences. A track writes its direction across hundreds of metres of sensors, while a cascade writes its energy into one compact ball. Neither event type gives both, so IceCube uses both.
+A track writes its direction across hundreds of metres of sensors. A cascade writes its energy into one compact ball. Neither gives you both, so IceCube uses both.
 
-## Finding about 100 needles a year
+## Finding 100 needles in a haystack of millions
 
-The real engineering problem is background. Cosmic rays hitting the atmosphere above the Pole send about **3,000 muons a second** into the detector. They also make neutrinos of their own, and those dominate the ~100,000 neutrinos IceCube records each year.
+Here's the real engineering problem. Cosmic rays hitting the atmosphere above the Pole send about **3,000 muons a second** into the detector, and they make neutrinos of their own, which dominate the ~100,000 IceCube records each year. How do you find the cosmic ones?
 
 ```fig title="Three cuts take you from the atmosphere's noise to the cosmos"
 row
@@ -126,15 +115,13 @@ a -> b "look up through the Earth, or veto the outer shell"
 b -> c "keep energies above a few tens of TeV"
 ```
 
-Three cuts do the work:
+1. **Use the whole planet as a shield.** Atmospheric muons can't cross the Earth; neutrinos can. Keep only tracks coming *up* through the planet, and the muon background drops from 3 kHz to the microhertz level.
+2. **Use the detector's own skin.** For events from any direction, the outer layer of sensors acts as a veto: an event that *starts inside*, with nothing coming in, wasn't a muon from outside. This "starting event" trick found the first two PeV neutrinos in 2013, while the team was searching for something else entirely.
+3. **Use energy.** The atmospheric neutrino spectrum falls as ~E⁻³·⁷ and the cosmic one as ~E⁻²·⁵, so above a few tens of TeV the cosmos wins. Section 3 of the calculator above prints the ratio: about 67 to 1 at 1 PeV, under its default crossover.
 
-1. **Use the Earth as a shield.** Atmospheric muons can't cross the planet, but neutrinos can. Keeping only tracks that come *up* through the Earth cuts the muon background from 3 kHz to the microhertz level.
-2. **Use the detector's own skin.** For events from any direction, the outer layer of sensors acts as a veto. An event that starts inside, with nothing coming in, wasn't a muon from outside. This "starting event" trick found the first two PeV neutrinos in 2013, while the team was searching for something else.
-3. **Use energy.** The atmospheric neutrino spectrum falls as ~E⁻³·⁷ and the cosmic one as ~E⁻²·⁵, so above a few tens of TeV the cosmic flux wins. Section 3 of the calculator above prints the ratio: at 1 PeV, about 67 to 1 under its default crossover.
+> **Insight:** None of these cuts is a statistical threshold the noise could sneak under. Each one uses something the noise physically can't fake: it can't cross the Earth, it can't start inside, and it doesn't reach that energy.
 
-> **Insight:** This is a classic false-positive problem. Each cut uses a physical asymmetry the noise can't fake (it can't cross the Earth, it can't start inside, it doesn't reach that energy), rather than a statistical threshold it could slip under.
-
-## What it found
+## What the ice saw
 
 | When | What | Evidence |
 |---|---|---|
@@ -146,9 +133,11 @@ Three cuts do the work:
 | 2024 | seven astrophysical tau neutrinos | 5σ |
 | 2026 | the Milky Way established as a source of high-energy neutrinos | 5.7σ, 12 years of data |
 
-Two things are still open. Most of the flux has **no identified individual source**, and NGC 1068 isn't yet conclusive. The next generation (IceCube-Gen2 at the Pole, KM3NeT in the Mediterranean, P-ONE, TRIDENT, Baikal-GVD) aims to build bigger telescopes to find out.
+And the mystery isn't solved. Most of the flux still has **no identified source**, and NGC 1068 isn't conclusive yet. That's why the next generation is already being built: IceCube-Gen2 at the Pole, KM3NeT in the Mediterranean, P-ONE, TRIDENT and Baikal-GVD.
 
-> **Insight:** The prize is for opening a window, not for one source. The first result of a new kind of telescope is usually "there is something there", and naming what it is takes the next decade.
+> **Insight:** The prize is for opening a window, not for naming what's on the other side. A new kind of telescope's first result is usually "there's something there", and working out what takes the next decade.
+
+Those 5,160 spheres are still down there in the dark, waiting for the next flash.
 
 ## Try it
 

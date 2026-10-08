@@ -1,0 +1,38 @@
+<svg style="font-family:'Aptos Mono','JetBrains Mono',ui-monospace,monospace" class="fig-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 276" width="750" height="276" role="img" aria-label="Under SJF a steady stream of short jobs can starve a long one forever"><style>/* ```fig diagrams (src/lib/remark-fig.mjs). Palette from the Claude Code docs Subagents / Agent Teams figure. */
+.fig-svg {
+  --f-panel: #e9ecef; --f-panel-edge: #ffffff; --f-ink: #1e1e1e; --f-body: #495057; --f-life: #ced4da;
+  --f-main: #ffc9c9; --f-worker: #ffd8a8; --f-peer: #d0bfff; --f-shared: #a5d8ff; --f-box: #ffffff;
+  --f-allow: #b2f2bb; --f-deny: #ffa8a8; --f-ask: #ffec99;
+  --f-muted: #868e96; --f-lost: #e03131; --f-good: #2f9e44;
+  font-family: 'Aptos Mono', 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace;
+}
+[data-theme='dark'] .fig-svg {
+  --f-panel: #202225; --f-panel-edge: #2b2e33; --f-ink: #d3d3d3; --f-body: #adb5bd; --f-life: #45494f;
+  --f-main: #5b2c2c; --f-worker: #4c2a01; --f-peer: #483a71; --f-shared: #154163; --f-box: #2c2f33;
+  --f-allow: #1f4a2a; --f-deny: #6b2121; --f-ask: #4d4111;
+  --f-muted: #6f757c; --f-lost: #ff6b6b; --f-good: #51cf66;
+}
+.fig-svg .fpanel { fill: var(--f-panel); stroke: var(--f-panel-edge); stroke-width: 2; }
+.fig-svg .ftitle { fill: var(--f-ink); font-weight: 500; }
+.fig-svg .ftitle-in { fill: var(--f-body); font-weight: 700; letter-spacing: .02em; }
+.fig-svg .fn { stroke: var(--f-ink); stroke-width: 1.6; }
+.fig-svg .fn-main { fill: var(--f-main); } .fig-svg .fn-worker { fill: var(--f-worker); } .fig-svg .fn-peer { fill: var(--f-peer); }
+.fig-svg .fn-shared { fill: var(--f-shared); stroke-dasharray: 2 3; stroke-linecap: round; }
+.fig-svg .fn-box { fill: var(--f-box); } .fig-svg .fn-allow { fill: var(--f-allow); } .fig-svg .fn-deny { fill: var(--f-deny); } .fig-svg .fn-ask { fill: var(--f-ask); }
+.fig-svg .fn-result { fill: none; stroke-width: 2; stroke-dasharray: 1.5 4; stroke-linecap: round; }
+.fig-svg .ft { fill: var(--f-ink); font-weight: 500; }
+.fig-svg .ft-card { font-weight: 700; }
+.fig-svg .fb { fill: var(--f-body); font-weight: 400; }
+.fig-svg .fi { color: var(--f-body); }
+.fig-svg .fe { fill: none; stroke: var(--f-ink); stroke-width: 1.8; }
+.fig-svg .fa { fill: var(--f-ink); stroke: none; }
+.fig-svg .fl { fill: var(--f-ink); font-weight: 400; }
+.fig-svg .fp { fill: var(--f-panel); }
+.fig-svg .fe-muted { stroke: var(--f-muted); stroke-width: 1.6; } .fig-svg .tone-muted { fill: var(--f-muted); }
+.fig-svg .fe-lost { stroke: var(--f-lost); stroke-dasharray: 6 4; } .fig-svg .tone-lost { fill: var(--f-lost); }
+.fig-svg .fe-good { stroke: var(--f-good); } .fig-svg .tone-good { fill: var(--f-good); }
+.fig-svg .fe-dashed { stroke-dasharray: 5 4; }
+.fig-svg .flife { stroke: var(--f-life); stroke-width: 1.5; fill: none; }
+.fig-svg .fnote { fill: var(--f-panel); stroke-width: 1.2; }
+.fig-svg .fnote { stroke: var(--f-ink); } .fig-svg .fnote.tone-lost { stroke: var(--f-lost); fill: var(--f-panel); }
+</style><rect class="fpanel" x="1" y="1" width="748" height="274" rx="16"/><path class="fe" d="M375 67V93"/><path class="fa " d="M375 101L370.6 93L379.3 93Z"/><path class="fe" d="M131 142V182"/><path class="fa " d="M131 190L126.7 182L135.3 182Z"/><path class="fe" d="M236 220H262"/><path class="fa " d="M270 220L261.9 224.3L261.9 215.7Z"/><path class="fe fe-lost" d="M619 142V182"/><path class="fa tone-lost" d="M619 190L614.6 182L623.3 182Z"/><rect class="fp" x="573.8" y="158" width="90.4" height="16"/><text class="fl tone-lost" x="619" y="166" text-anchor="middle" dominant-baseline="central" font-size="11"><tspan x="619" y="166">never picked</tspan></text><rect class="fn fn-shared" x="26" y="26" width="698" height="41" rx="8"/><text class="ft" x="375" y="46.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="375" y="46.5">queue: report (30 s) + 1 email</tspan></text><rect class="fn fn-main" x="26" y="101" width="698" height="41" rx="8"/><text class="ft" x="375" y="121.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="375" y="121.5">worker: always picks the shortest</tspan></text><rect class="fn fn-allow" x="26" y="190" width="210" height="60" rx="8"/><text class="ft" x="131" y="210.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="131" y="210.5">email runs</tspan><tspan x="131" y="229.5">(1 s)</tspan></text><rect class="fn fn-peer" x="270" y="190" width="210" height="60" rx="8"/><text class="ft" x="375" y="210.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="375" y="210.5">a new email arrives</tspan><tspan x="375" y="229.5">(1 s later)</tspan></text><rect class="fn fn-deny" x="514" y="190" width="210" height="60" rx="8"/><text class="ft" x="619" y="210.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="619" y="210.5">report waits</tspan><tspan x="619" y="229.5">...forever</tspan></text></svg>

@@ -12,11 +12,11 @@ vm:
 tags: [system-design, llm-serving, sse, websockets, kv-cache, load-balancing, gpu]
 ---
 
-A fake model produced its first token in **85 ms**. Behind nginx with gzip on, the user saw nothing for **5.1 seconds**, then all 200 tokens at once. Nothing was slow. One hop was holding the stream.
+A fake model produced its first token in **85 ms**. Behind nginx with gzip on, the user saw nothing for **5.1 seconds**, then all 200 tokens at once.
 
-**Short answer:** stream tokens over **SSE on HTTP/2**. Let the answer outlive the connection (a stream ID plus replay on reconnect). Batch tokens into ~50 ms writes, and make sure no proxy buffers or compresses the stream. On the GPU side, **send each turn to the GPU that already holds the conversation's cache, unless it's busy.** When the fleet is full, say no early.
+Nothing was slow. The model was fine, the network was fine. One hop in the middle was quietly holding the whole answer hostage.
 
-That's the interview answer. The rest of the post is why each clause is there: a demo of the bug that motivates it, the requirements and numbers, the design, five deep dives with evidence, and the mistakes most diagrams make. Every command has a **▶ Run** button that runs it on a real Linux machine inside your browser.
+That bug is a good place to start designing a ChatGPT-style streaming API, because almost every decision in the design is about making sure something like it can't happen: not at one connection, and not at a million. Every command below has a **▶ Run** button that runs it on a real Linux machine inside your browser, so you can break things yourself.
 
 ## Same answer, 5 seconds late
 
@@ -35,15 +35,13 @@ first token after 84 ms, 200 tokens in 200 chunks, last at 5101 ms
 content-encoding: gzip; first token after 5107 ms, 200 tokens in 1 chunks, last at 5107 ms
 ```
 
-**Every token was made on time. The user saw nothing for 5 seconds, then everything at once.** The model was fine; the thing in between wasn't. Try it:
+Every token was made on time. The user saw nothing for 5 seconds, then everything at once. Users feel the time to the *first* token, not the total, and anything that batches whole responses quietly turns one into the other. Try it yourself:
 
 <div data-lab="stream"></div>
 
-> **Insight:** Users feel time to first token, not total time. Anything that batches whole responses for efficiency silently turns one into the other.
+## What are we building? A million chats, first token in a second
 
-## Requirements: a million chats, first token in a second
-
-Assumptions for this design (an interview would set its own):
+Here are the assumptions (an interview would set its own):
 
 | Functional | Non-functional |
 |---|---|
@@ -52,7 +50,7 @@ Assumptions for this design (an interview would set its own):
 | stop generating; resume after a dropped connection | no lost or duplicated tokens on reconnect |
 | per-user quotas and rate limits | degrade by saying "busy", never by stalling |
 
-## API: the stream is a resource, not a connection
+## The API: the stream is a thing, not a connection
 
 ```text
 POST /v1/chats/{chat_id}/turns        {"message": "..."}      -> 202 {"stream_id": "s_81f2"}
@@ -63,9 +61,9 @@ POST /v1/streams/{stream_id}/cancel   -> 204
 
 **Creating the turn and streaming it are separate calls.** That one choice is what makes resume, a second tab and "stop" simple: the stream is a resource with an ID, not a property of a connection.
 
-## Capacity, back of the envelope
+## How big is this? Back of the envelope
 
-Run it and change the numbers:
+Run it, then change the numbers and see what moves:
 
 ```python
 chats, active, tps = 1_000_000, 0.10, 40         # open chats, share mid-answer, tokens/s
@@ -79,11 +77,9 @@ print(f"writes, batched    {streaming * 1000 / batch_ms:,.0f} /s")
 print(f"live KV state      {streaming * kv_gib_8k / 1024:,.0f} TiB")
 ```
 
-Two numbers shape everything: **millions of writes a second at the edge**, and **hundreds of TiB of KV state that can't all stay on GPUs**.
+Two numbers shape everything: **millions of writes a second at the edge**, and **hundreds of TiB of KV state that can't all stay on GPUs**. The edge scales with tokens per second; the GPU fleet scales with bytes of cache. Different bottlenecks, so different tiers.
 
-> **Insight:** The edge scales with tokens per second; the GPU fleet scales with bytes of KV state. Different bottlenecks deserve different tiers.
-
-## The design
+## The whole design on one page
 
 ```fig title="Ten components, one rule: the stream is a resource, and state lives where it's cheapest to keep warm"
 layout stack
@@ -129,9 +125,9 @@ stream -> gw "fan out" via right
 7. The gateway batches new tokens into ~50 ms writes to every subscriber of that stream.
 8. On reconnect, the gateway replays from `Last-Event-ID`; on cancel, decode stops at the next step.
 
-The deep dives below are where each of those choices comes from.
+Each of those choices is there because something breaks without it. Let's break them.
 
-## Deep dive 1: pick SSE
+## SSE or WebSockets?
 
 | | SSE | WebSocket |
 |---|---|---|
@@ -140,11 +136,9 @@ The deep dives below are where each of those choices comes from.
 | Resume | built in (`Last-Event-ID`) | build it yourself |
 | Proxies, auth, logs | work like any request | need upgrade support everywhere |
 
-A chat answer is one request followed by a one-way stream, which is exactly SSE, and it's what [OpenAI](https://developers.openai.com/api/docs/guides/streaming-responses) and [Anthropic](https://platform.claude.com/docs/en/build-with-claude/streaming) ship. Serve it over HTTP/2: on HTTP/1.1 a browser allows only [6 SSE connections per domain](https://developer.mozilla.org/en-US/docs/Web/API/EventSource) across all tabs. **Reach for WebSockets when the client talks back mid-stream**, as agents with many tool calls do.
+A chat answer is one request followed by a one-way stream, which is exactly SSE, and it's what [OpenAI](https://developers.openai.com/api/docs/guides/streaming-responses) and [Anthropic](https://platform.claude.com/docs/en/build-with-claude/streaming) ship. Serve it over HTTP/2: on HTTP/1.1 a browser allows only [6 SSE connections per domain](https://developer.mozilla.org/en-US/docs/Web/API/EventSource) across all tabs. **Reach for WebSockets when the client talks back mid-stream**, as agents with many tool calls do. Otherwise SSE gets you HTTP's whole toolchain (proxies, auth, logs, HTTP/2) for free.
 
-> **Insight:** Pick the transport that matches the shape of the traffic. A chat answer is a one-way stream, and SSE gets HTTP's whole toolchain (proxies, auth, logs, HTTP/2) for free.
-
-## Deep dive 2: connections are cheap, token writes are not
+## What actually falls over at 10,000 chats?
 
 10,000 chats against one server, first with one write per token, then with tokens batched into 50 ms writes:
 
@@ -153,13 +147,11 @@ A chat answer is one request followed by a one-way stream, which is exactly SSE,
 | one per token | ~5,200 | 106 | 4.4 s |
 | 50 ms batches | 10,000 | 0 | 353 ms |
 
-Memory was ~15 KB per open stream, so a million streams is ~15 GB across a fleet. The killer was 400,000 writes a second. SSE and WebSockets failed and recovered the same way. **Size the streaming tier in token writes per second, not connections.** (Measured on a 2-core Linux box; 10,000 streams is too heavy for the machine in your browser.)
+Memory was ~15 KB per open stream, so a million streams is ~15 GB across a fleet. The killer was 400,000 writes a second. SSE and WebSockets failed and recovered the same way. **Size the streaming tier in token writes per second, not connections.** A 50 ms batch trades latency nobody can perceive for an order of magnitude of headroom. (Measured on a 2-core Linux box; 10,000 streams is too heavy for the machine in your browser.)
 
-> **Insight:** Connection count is a memory problem and cheap; write rate is a CPU problem and expensive. A 50 ms batch trades latency nobody perceives for an order of magnitude of headroom.
+## So who swallowed the 5 seconds?
 
-## Deep dive 3: never let a hop buffer the stream
-
-That 5-second stall was **compression**, not the usual suspect. nginx's `proxy_buffering` alone didn't delay anything; `gzip` held the whole answer until it ended. One response header fixed it, even with gzip on:
+The usual suspect is proxy buffering. It wasn't. It was **compression**. nginx's `proxy_buffering` alone didn't delay anything; `gzip` held the whole answer until it ended. One response header fixed it, even with gzip on:
 
 ```text
 == nginx + gzip, upstream sends X-Accel-Buffering: no
@@ -183,9 +175,9 @@ n -> c "all 200 at once" lost
 
 > **Insight:** A streaming system is only as streaming as its least streaming hop, and that hop is usually one nobody on the team thinks of as part of the product.
 
-## Deep dive 4: the answer has to outlive the connection
+## What happens when the phone switches networks?
 
-Phones switch networks and tabs reload. Generate per **stream ID**, keep the tokens, tag each event with `id:`, and the browser sends `Last-Event-ID` on reconnect:
+Phones switch networks and tabs reload, mid-answer, all the time. The answer has to outlive the connection. Generate per **stream ID**, keep the tokens, tag each event with `id:`, and the browser sends `Last-Event-ID` on reconnect:
 
 ```bash
 ./lab.sh resume
@@ -210,11 +202,9 @@ c -> s "Last-Event-ID: 19"
 s -> c "20..199" good
 ```
 
-OpenAI's API does this with [background mode](https://developers.openai.com/api/docs/guides/background) (`starting_after`), the Vercel AI SDK with [resumable streams](https://ai-sdk.dev/docs/ai-sdk-ui/chatbot-resume-streams). One catch: **"Stop generating" now needs its own endpoint**, because a closed tab looks like a network blip.
+OpenAI's API does this with [background mode](https://developers.openai.com/api/docs/guides/background) (`starting_after`), the Vercel AI SDK with [resumable streams](https://ai-sdk.dev/docs/ai-sdk-ui/chatbot-resume-streams). One catch: **"Stop generating" now needs its own endpoint**, because a closed tab looks just like a network blip. If losing the connection loses the work, the connection has become part of your storage layer by accident. Give the work an ID and the connection becomes disposable.
 
-> **Insight:** If losing the connection loses the work, the connection has become part of your storage layer by accident. Give the work an ID and the connection becomes disposable.
-
-## Deep dive 5: where a request lands decides its latency
+## Which GPU should answer?
 
 A conversation's KV cache (the attention state for every token so far) lives on one GPU, and it's big. For Llama 3 70B ([80 layers, 8 KV heads, head dim 128](https://arxiv.org/html/2407.21783)):
 
@@ -261,7 +251,8 @@ Press `--users 8000` above: **every policy collapses to ~30 s.** Past capacity t
 
 > **Insight:** LLM serving is a cache-placement problem disguised as load balancing. The cheapest GPU is the one with the least *new* work, not the shortest queue.
 
-## Data model: four records, four lifetimes
+<details>
+<summary>The data model: four records, four lifetimes</summary>
 
 | Record | Key | Lives in | Lifetime |
 |---|---|---|---|
@@ -272,7 +263,9 @@ Press `--users 8000` above: **every policy collapses to ~30 s.** Past capacity t
 
 **Keep the stable part of every prompt first and byte-identical** (system prompt, tools, documents): KV blocks are keyed by prefix, and so are the [providers' prompt caches](https://platform.claude.com/docs/en/build-with-claude/prompt-caching).
 
-## Failure modes: each one already has an answer
+</details>
+
+## What breaks, and what the user sees
 
 | What breaks | What the user sees | Design answer |
 |---|---|---|
@@ -283,20 +276,15 @@ Press `--users 8000` above: **every policy collapses to ~30 s.** Past capacity t
 | Whole fleet saturated | "busy, retry in N s" | admission control before prefill, not after |
 | A proxy buffers or compresses | answer appears all at once | `X-Accel-Buffering: no`; TTFT checks through the real edge |
 
-## What most system design diagrams get wrong
+## Three things most design diagrams get wrong
 
 - **"KV cache in Redis."** The KV cache is GPU memory (with CPU and SSD tiers behind it); a network round trip per token step would be far too slow. Redis-style stores are right for the *stream store* and sessions.
 - **Sticky sessions at the load balancer.** That pins a TCP connection, not a cache. Cache affinity belongs in the router, keyed by conversation and prefix, with a load cap.
 - **Streaming as a box after inference.** If tokens flow straight from GPU to socket, a dropped connection loses the answer. Put a stream store between them and the reconnect, multi-tab and cancel stories fall out for free.
 
-## Takeaways
+## Back to those 5 seconds
 
-1. **Make the stream a resource** (create turn, then stream by id) and serve it over **SSE on HTTP/2**.
-2. **Size the edge in token writes per second.** Batch into ~50 ms writes.
-3. **Test time to first token through the real edge.** One compressing hop hides the whole answer.
-4. **Give every stream an ID and replay**, plus a separate stop endpoint.
-5. **Route by cache, capped by load.** Hashing the first tokens makes hot spots.
-6. **Past capacity, reject early and split prefill from decode.**
+The stall at the top was one gzip setting. But follow the question it raises (where can a stream get stuck?) and it walks you through the whole design. Make the stream a resource with an ID and serve it over SSE on HTTP/2. Size the edge in token writes, batched every 50 ms. Test time to first token through the real edge, because that's the only test that catches a hop like gzip. Replay on reconnect, with a separate stop button. Route each turn to the GPU that already holds its cache, unless that GPU is busy. And when the whole fleet is full, say no early, before you spend a GPU on prefill.
 
 ## Try it
 

@@ -13,13 +13,15 @@ problems:
   - { platform: AtCoder, id: 'ARC231 D', title: Choose Your Role, url: 'https://atcoder.jp/contests/arc231/tasks/arc231_d' }
 ---
 
-**Welcome to CP Weekly.** Each issue takes one idea from mathematics, follows it from where it was born to where it turned up in that week's contests, and ends with a way of thinking you can carry to the next problem. No problem lists: one idea, explored properly.
+Try this by hand: multiply out (1 − q)(1 − q²)(1 − q³)(1 − q⁴)… and watch the terms. Something strange happens. Almost every term you create gets destroyed by another one, and what survives is
 
-This first issue is about **cancellation**. Expand (1 − q)(1 − q²)(1 − q³)(1 − q⁴)… and almost every term destroys another one. What survives is 1 − q − q² + q⁵ + q⁷ − q¹² − q¹⁵ + …, only the pentagonal numbers. Euler noticed this around 1740 and needed about ten years to prove it. More than a century later, in 1881, Fabian Franklin explained it with a picture: pair the terms up so each pair cancels, then look at who has no partner.
+1 − q − q² + q⁵ + q⁷ − q¹² − q¹⁵ + …
 
-That picture, called a **sign-reversing involution**, is one of the most reusable ideas in combinatorics. It also cracked a problem from AtCoder Regular Contest 231 this week. We'll build it up from the smallest example, watch it prove Euler's identity, see it hiding inside inclusion-exclusion and determinants, and only then turn to the contest.
+Only 1, 2, 5, 7, 12, 15: the pentagonal numbers. Euler noticed this around 1740 and needed about ten years to prove it. Then in 1881 Fabian Franklin explained it with a picture: pair the terms up so each pair cancels, and look at who's left without a partner.
 
-**Prerequisites:** inversions of a sequence, and the idea of a bijection. Everything else is built here.
+That picture, a **sign-reversing involution**, is one of the most reusable ideas in combinatorics. And this week it cracked a problem in AtCoder Regular Contest 231.
+
+**Welcome to CP Weekly.** Each issue takes one idea from mathematics, follows it from where it was born to where it turned up in that week's contests, and leaves you a way of thinking for the next problem. No problem lists: one idea, explored properly. All you need for this one is what an inversion is and what a bijection is.
 
 ## Half of all permutations are odd, and the proof is one swap
 
@@ -93,11 +95,9 @@ $ python3 cancellation.py --partitions
 p(n) for n <= 1000: Euler's recurrence matches the DP everywhere; p(100) = 190569292
 ```
 
-> **Insight:** An identity full of cancellation is a free speed-up. When the signed version of a count collapses to a few terms, the unsigned count often satisfies a short recurrence through it.
-
 ## Inclusion-exclusion is the same trick in disguise
 
-Every competitive programmer uses inclusion-exclusion. Here's why it works. Its heart is one fact: for a non-empty set T, the subsets of T with even size and with odd size are equally many,
+You've used inclusion-exclusion a hundred times. Ever wondered why it works? Its heart is one fact: for a non-empty set T, the subsets of T with even size and with odd size are equally many,
 
 Σ<sub>S ⊆ T</sub> (−1)<sup>|S|</sup> = 0 when T ≠ ∅.
 
@@ -122,9 +122,10 @@ g <-> h
 
 So when you write "count the objects avoiding every bad property" as Σ (−1)<sup>|S|</sup> · (objects with at least the properties in S), each object with a non-empty set T of bad properties is counted Σ<sub>S⊆T</sub> (−1)<sup>|S|</sup> = 0 times, and the good objects (T = ∅) once. Inclusion-exclusion is a sign-reversing involution, applied one object at a time.
 
-> **Insight:** Alternating sums like Σ(−1)<sup>k</sup> are rarely random. Behind almost every one there is a pairing; finding it tells you what the sum really counts.
+So the next time you meet an alternating sum, Σ(−1)<sup>k</sup>, go looking for the pairing behind it. There almost always is one, and it tells you what the sum really counts.
 
-## At research level: determinants and crossing paths
+<details>
+<summary>Going deeper: the same move at research level (determinants, crossing paths)</summary>
 
 The same move runs through modern combinatorics. Two well-known results:
 
@@ -162,15 +163,17 @@ w -> d2 "tail 1"
   In contests this appears as "count pairs of paths that never touch". The classic example is Codeforces 348D *Turtles*, where a 2×2 determinant replaces a search over path pairs.
 - **The Garsia-Milne involution principle** (1981). It combines two involutions with a bijection to manufacture a bijection between sets of the same size. It produced the first bijective proof of the Rogers-Ramanujan identities. Doron Zeilberger and his computer co-author Shalosh B. Ekhad revisited it in 2025, and they note its limit: the bijection it builds is correct but explains little about why the two sets match.
 
-> **Insight:** The research-level versions keep the same three steps: sign the objects, find a sign-flipping move that undoes itself, and identify the fixed points. Only the objects get fancier (paths, tableaux, partitions).
+The research versions keep the same three steps: sign the objects, find a sign-flipping move that undoes itself, and identify the fixed points. Only the objects get fancier.
+
+</details>
 
 ## This week: when the coin flip lies
 
-Now the contest. ARC231 (October 4) asked for this:
+Now the contest. ARC231 (October 4) asked:
 
 > A is non-decreasing. Count sequences B with 1 ≤ B<sub>i</sub> ≤ A<sub>i</sub> that have an **odd** number of inversions, modulo 998244353, with N up to 200,000 and A<sub>i</sub> up to 10<sup>9</sup>.
 
-The first section says "half". Try A = (2, 2, 3): there are 12 sequences, and only **3** are odd. The swap that worked for permutations breaks here in two ways. Two equal values don't change the inversion count when swapped, and a swap can push a value above its bound A<sub>i</sub>. So the question becomes: **which reversible, sign-flipping move survives these constraints, and what can't it touch?**
+Your instinct from the first section says "half". Try A = (2, 2, 3): there are 12 sequences, and only **3** are odd. Not 6. The swap that worked for permutations breaks here in two ways. Two equal values don't change the inversion count when swapped, and a swap can push a value above its bound A<sub>i</sub>. So the question becomes: **which reversible, sign-flipping move survives these constraints, and what can't it touch?**
 
 Choose the move that disturbs as little as possible: look only at the **last two positions**. If B<sub>n−1</sub> ≠ B<sub>n</sub> and both are at most A<sub>n−1</sub>, swap them. The inversion count changes by exactly one. The result stays valid because A is non-decreasing (both values ≤ A<sub>n−1</sub> ≤ A<sub>n</sub>), and swapping twice undoes it.
 
@@ -273,11 +276,9 @@ g3: allow "pile 3" body "{2}"
 
 Exhaustive search over every small game agrees: `also_this_week.py --game` reports "Second wins" for all 14 pairs with 2 ≤ N ≤ 5 and 1 ≤ K ≤ N. The mirror strategy is the game version of an involution: every move has a partner, and the side that always has a partner can't run out first. The colours aren't in the problem. You invent them so the pairing becomes visible.
 
-> **Insight:** Pairing works on moves as well as objects. If the start and the end are symmetric, look for labels that turn each opponent move into one you can copy.
-
 ## How to recognise a cancellation problem
 
-Both problems were solved the same way, and so were Euler's identity and inclusion-exclusion. The method, as a loop you can run on a new problem:
+Look back: Euler's identity, inclusion-exclusion, this week's counting problem and the game all fell to the same move. Here it is as a loop you can run on the next problem:
 
 ```fig title="Figure 8: The cancellation method: list a tiny case, sign it, find a move that flips the sign and undoes itself, then study what the move can't touch"
 row
@@ -303,7 +304,7 @@ And the signals in a statement that suggest it:
 | a game whose start and end positions are symmetric | A mirror strategy; invent labels that make the symmetry visible |
 | "half" feels right but samples disagree | Something breaks the pairing; the answer lives in the fixed points |
 
-> **Insight:** When a count is hard but a *difference* of two counts might be easy, compute the difference first. Cancellation reduces the problem to whatever the pairing cannot reach.
+When a count is hard but a *difference* of two counts might be easy, compute the difference first. Cancellation shrinks the problem to whatever the pairing can't reach.
 
 ## Try it
 

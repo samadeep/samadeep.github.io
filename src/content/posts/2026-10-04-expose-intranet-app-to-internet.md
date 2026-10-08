@@ -12,13 +12,11 @@ vm:
 tags: [intranet, networking, security, reverse-proxy, nat, port-forwarding, firewall, conntrack]
 ---
 
-Port-forward an internal app and write the obvious rule, *allow traffic to the public IP*, and it never fires: **3 packets translated, 0 let through.** Linux rewrites the destination before the filter looks. That's the first of five silent ways exposing an intranet app goes wrong, and every one runs below on a real Linux machine in your browser.
-
-**Short answer:** don't publish the app. Put an identity-aware proxy in front, forward only 443, allow only traffic that came through that forward, and replace "trusted because it's on our network" with SSO. Then test from *outside*.
-
 This post started with an incident I kept coming back to: an internal service that had been exposed to the outside, and an external attack that came for it. The road there is usually ordinary. Someone needs outside access, a port gets opened, and a service built for "only our people" now answers everyone.
 
-A port forward is one line. The ways it goes wrong are silent. Below: the one idea that explains every failure, the five failures in the order you'll hit them, and the ruleset that survives all five. **Every command below has a ▶ Run button**: it runs on a real Linux machine inside your browser, with a client, a firewall and an app wired together.
+A port forward is one line. The ways it goes wrong are silent. Try the very first one: forward a port, write the obvious rule, *allow traffic to the public IP*, and it never fires. **3 packets translated, 0 let through.**
+
+There are five of these, and you can hit every one of them yourself. Each command below has a **▶ Run** button that runs it on a real Linux machine inside your browser, with a client, a firewall and an app wired together.
 
 ```fig title="The whole path, and the five places it breaks"
 row
@@ -30,7 +28,7 @@ fw -> app "2 side door"
 app -> client "3 reply path" lost via below
 ```
 
-## The one idea: the firewall decides once
+## Why they're all silent: the firewall decides once
 
 ```fig title="You picture rules judging every packet. Linux judges the first, then remembers."
 panel What you picture
@@ -57,9 +55,9 @@ r2 -> t "remembered"
 rest -> t "just matched"
 ```
 
-**Rules run once per connection.** The verdict and the address rewrite are saved in a table entry, and every later packet, both ways, just matches it. All five breaks below come from that.
+**Rules run once per connection.** The verdict and the address rewrite are saved in a table entry, and every later packet, both ways, just matches it. Hold on to that; all five breaks come from it.
 
-See one entry being born, used and retired:
+Watch one entry being born, used and retired:
 
 ```bash
 sudo ./lab.sh entry
@@ -76,7 +74,7 @@ The entry holds what the client sent (`dst=203.0.113.10:80`) and what the reply 
 
 > **Insight:** A firewall rule is checked per connection, not per packet. So most firewall bugs aren't about a wrong rule; they're about which packets never get checked at all.
 
-## Pick the pattern before the port
+## Before you open a port: do you need to?
 
 | Pattern | Open to the internet | Use for |
 |---|---|---|
@@ -84,9 +82,7 @@ The entry holds what the client sent (`dst=203.0.113.10:80`) and what the reply 
 | **Reverse proxy in a DMZ** + port forward | the proxy on :443 | partners, customers, public traffic |
 | **Outbound tunnel** | nothing inbound | no public IP, "can't open ports" |
 
-**If the audience is still "our people", don't make the app public at all.** An access proxy gives you SSO without a port forward. The five breaks below are what you meet when you do forward a port.
-
-> **Insight:** Exposing an app isn't a port setting, it's a change in what the app trusts. If identity doesn't move to the proxy, opening a port only moves the attack surface.
+**If the audience is still "our people", don't make the app public at all.** An access proxy gives you SSO without a port forward. Exposing an app isn't a port setting, it's a change in what the app trusts. But if you do forward a port, here's what's waiting.
 
 ## 1. The port forward that never forwards
 
@@ -114,9 +110,7 @@ DNAT:     3 pkts  DNAT   ... 203.0.113.10 tcp dpt:80 to:10.0.1.5:8080
 hello from 10.0.1.5                                   # rule fixed to match 10.0.1.5
 ```
 
-**3 packets translated, 0 let through.** The climbing DNAT counter looks like progress; the FORWARD counter tells the truth.
-
-> **Insight:** Debug from the counter of the rule that *should* have matched. Counters on the rules before it always look healthy.
+**3 packets translated, 0 let through.** Linux rewrote the destination *before* the filter looked, so a rule for the public IP can never match. The climbing DNAT counter looks like progress; the FORWARD counter tells the truth. Always debug from the counter of the rule that *should* have matched.
 
 ## 2. The fix opened a side door
 
@@ -162,9 +156,7 @@ C  --ctorigdst 203.0.113.10 --ctorigdstport 80   open              dropped
 D  A + drop 10.0.0.0/8 arriving on the WAN       open              dropped
 ```
 
-**Use B and D together:** allow only forwarded flows, and drop private destinations at the edge. "Internal IPs aren't routable" isn't true for your upstream network, and scans of only the public IP will never see this.
-
-> **Insight:** A rule written against a destination can't know how a packet got there. Only conntrack remembers the front door, so match on how the flow started (`--ctstate DNAT`), not where it's going.
+**Use B and D together:** allow only forwarded flows, and drop private destinations at the edge. "Internal IPs aren't routable" isn't true for your upstream network, and scans of only the public IP will never see this. A rule about a destination can't know how a packet got there; only conntrack remembers the front door.
 
 ## 3. Replies take a different way home
 
@@ -189,9 +181,7 @@ c-wan Out 198.51.100.23.33322 > 203.0.113.10.80: Flags [S]
 c-alt In  10.0.1.5.8080 > 198.51.100.23.33322:   Flags [S.]   <- other interface, untranslated
 ```
 
-**Fix:** symmetric routing, or have the proxy open its own connection to the app (SNAT) and pass the client IP in `X-Forwarded-For`.
-
-> **Insight:** NAT is stateful, so it's also *located*: the reply has to come back through the box that holds the entry, or there's nothing to translate it.
+NAT is stateful, so it's also *located*: the reply has to come back through the box that holds the entry, or nothing translates it back. **Fix:** symmetric routing, or have the proxy open its own connection to the app (SNAT) and pass the client IP in `X-Forwarded-For`.
 
 ## 4. Quiet connections die, and nobody is told
 
@@ -245,9 +235,7 @@ ESTABLISHED only:      /      200 20 bytes
 ESTABLISHED,RELATED:   /big   200 200000 bytes
 ```
 
-**`200 0 bytes` is what an MTU problem looks like from outside:** the server said yes and the body vanished. Health checks fetch small pages, so they pass. Fix: accept `ESTABLISHED,RELATED`, and don't "block ICMP for security".
-
-> **Insight:** When failures scale with response size, suspect MTU first. Dropping "unneeded" ICMP cuts the feedback loop TCP depends on.
+**`200 0 bytes` is what an MTU problem looks like from outside:** the server said yes and the body vanished. Health checks fetch small pages, so they pass. When failures grow with response size, suspect MTU first. Fix: accept `ESTABLISHED,RELATED`, and don't "block ICMP for security"; TCP needs that feedback.
 
 ## The ruleset that survives all five
 
@@ -274,14 +262,6 @@ iptables -t raw -A PREROUTING -i f-wan -d 10.0.0.0/8 -j DROP
 | hidden admin pages | block admin routes at the proxy |
 
 Roll out in steps (internal users through the proxy, then a few outside IPs, then everyone), and at every step **scan from outside: the public address *and* the internal one.**
-
-## Takeaways
-
-1. **A stateful firewall decides once per flow.** Every break follows from it.
-2. **Location stops being a credential.** Identity at the proxy comes first.
-3. **Allow the front door, not the destination** (`--ctstate DNAT`).
-4. **Failures are silent.** Watch rule counters and `conntrack -E`, not app logs.
-5. **Test from where attackers and users are.**
 
 ## Try it
 
