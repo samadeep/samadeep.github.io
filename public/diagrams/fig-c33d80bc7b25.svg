@@ -1,0 +1,38 @@
+<svg style="font-family:'Aptos Mono','JetBrains Mono',ui-monospace,monospace" class="fig-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 698 372" width="698" height="372" role="img" aria-label="One panel, three rows. Top row: HBM3 memory, 3,350 GB/s. An arrow labelled 7x narrower leads to the middle row: NVLink to GPUs in the same server, 450 GB/s each way. An arrow labelled 9x narrower leads to the bottom row, which has three boxes: the network port at 50 GB/s each way, then a switch (packet or optical), then any other server."><style>/* ```fig diagrams (src/lib/remark-fig.mjs). Palette from the Claude Code docs Subagents / Agent Teams figure. */
+.fig-svg {
+  --f-panel: #e9ecef; --f-panel-edge: #ffffff; --f-ink: #1e1e1e; --f-body: #495057; --f-life: #ced4da;
+  --f-main: #ffc9c9; --f-worker: #ffd8a8; --f-peer: #d0bfff; --f-shared: #a5d8ff; --f-box: #ffffff;
+  --f-allow: #b2f2bb; --f-deny: #ffa8a8; --f-ask: #ffec99;
+  --f-muted: #868e96; --f-lost: #e03131; --f-good: #2f9e44;
+  font-family: 'Aptos Mono', 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace;
+}
+[data-theme='dark'] .fig-svg {
+  --f-panel: #202225; --f-panel-edge: #2b2e33; --f-ink: #d3d3d3; --f-body: #adb5bd; --f-life: #45494f;
+  --f-main: #5b2c2c; --f-worker: #4c2a01; --f-peer: #483a71; --f-shared: #154163; --f-box: #2c2f33;
+  --f-allow: #1f4a2a; --f-deny: #6b2121; --f-ask: #4d4111;
+  --f-muted: #6f757c; --f-lost: #ff6b6b; --f-good: #51cf66;
+}
+.fig-svg .fpanel { fill: var(--f-panel); stroke: var(--f-panel-edge); stroke-width: 2; }
+.fig-svg .ftitle { fill: var(--f-ink); font-weight: 500; }
+.fig-svg .ftitle-in { fill: var(--f-body); font-weight: 700; letter-spacing: .02em; }
+.fig-svg .fn { stroke: var(--f-ink); stroke-width: 1.6; }
+.fig-svg .fn-main { fill: var(--f-main); } .fig-svg .fn-worker { fill: var(--f-worker); } .fig-svg .fn-peer { fill: var(--f-peer); }
+.fig-svg .fn-shared { fill: var(--f-shared); stroke-dasharray: 2 3; stroke-linecap: round; }
+.fig-svg .fn-box { fill: var(--f-box); } .fig-svg .fn-allow { fill: var(--f-allow); } .fig-svg .fn-deny { fill: var(--f-deny); } .fig-svg .fn-ask { fill: var(--f-ask); }
+.fig-svg .fn-result { fill: none; stroke-width: 2; stroke-dasharray: 1.5 4; stroke-linecap: round; }
+.fig-svg .ft { fill: var(--f-ink); font-weight: 500; }
+.fig-svg .ft-card { font-weight: 700; }
+.fig-svg .fb { fill: var(--f-body); font-weight: 400; }
+.fig-svg .fi { color: var(--f-body); }
+.fig-svg .fe { fill: none; stroke: var(--f-ink); stroke-width: 1.8; }
+.fig-svg .fa { fill: var(--f-ink); stroke: none; }
+.fig-svg .fl { fill: var(--f-ink); font-weight: 400; }
+.fig-svg .fp { fill: var(--f-panel); }
+.fig-svg .fe-muted { stroke: var(--f-muted); stroke-width: 1.6; } .fig-svg .tone-muted { fill: var(--f-muted); }
+.fig-svg .fe-lost { stroke: var(--f-lost); stroke-dasharray: 6 4; } .fig-svg .tone-lost { fill: var(--f-lost); }
+.fig-svg .fe-good { stroke: var(--f-good); } .fig-svg .tone-good { fill: var(--f-good); }
+.fig-svg .fe-dashed { stroke-dasharray: 5 4; }
+.fig-svg .flife { stroke: var(--f-life); stroke-width: 1.5; fill: none; }
+.fig-svg .fnote { fill: var(--f-panel); stroke-width: 1.2; }
+.fig-svg .fnote { stroke: var(--f-ink); } .fig-svg .fnote.tone-lost { stroke: var(--f-lost); fill: var(--f-panel); }
+</style><rect class="fpanel" x="1" y="45" width="695.5" height="326" rx="16"/><text class="ftitle" x="348.8" y="24" text-anchor="middle" dominant-baseline="central" font-size="22"><tspan x="348.8" y="24">one GPU's way out</tspan></text><path class="fe" d="M348.8 130V170"/><path class="fa " d="M348.8 178L344.4 170L353.1 170Z"/><rect class="fp" x="307" y="146" width="83.5" height="16"/><text class="fl " x="348.8" y="154" text-anchor="middle" dominant-baseline="central" font-size="11"><tspan x="348.8" y="154">7x narrower</tspan></text><path class="fe" d="M122.3 238V278"/><path class="fa " d="M122.3 286L117.9 278L126.6 278Z"/><rect class="fp" x="80.5" y="254" width="83.5" height="16"/><text class="fl " x="122.3" y="262" text-anchor="middle" dominant-baseline="central" font-size="11"><tspan x="122.3" y="262">9x narrower</tspan></text><path class="fe" d="M218.5 316H244.5"/><path class="fa " d="M252.5 316L244.5 320.3L244.5 311.7Z"/><path class="fe" d="M445 316H471"/><path class="fa " d="M479 316L471 320.3L471 311.7Z"/><rect class="fn fn-main" x="26" y="70" width="645.5" height="60" rx="8"/><text class="ft" x="348.8" y="90.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="348.8" y="90.5">HBM3 memory</tspan><tspan x="348.8" y="109.5">3,350 GB/s</tspan></text><rect class="fn fn-worker" x="26" y="178" width="645.5" height="60" rx="8"/><text class="ft" x="348.8" y="198.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="348.8" y="198.5">NVLink, same server</tspan><tspan x="348.8" y="217.5">450 GB/s each way</tspan></text><rect class="fn fn-peer" x="26" y="286" width="192.5" height="60" rx="8"/><text class="ft" x="122.3" y="306.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="122.3" y="306.5">network port</tspan><tspan x="122.3" y="325.5">50 GB/s each way</tspan></text><rect class="fn fn-ask" x="252.5" y="286" width="192.5" height="60" rx="8"/><text class="ft" x="348.8" y="306.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="348.8" y="306.5">switch</tspan><tspan x="348.8" y="325.5">packet or optical</tspan></text><rect class="fn fn-peer" x="479" y="295.5" width="192.5" height="41" rx="8"/><text class="ft" x="575.3" y="316" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="575.3" y="316">any other server</tspan></text></svg>

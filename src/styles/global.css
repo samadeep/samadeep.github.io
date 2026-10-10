@@ -758,6 +758,14 @@ a.topic-link { text-decoration: none; } a.topic-link:hover { color: var(--trace)
 .lab-ratelimit .rl-track { width: 9rem; height: .55rem; border-radius: 3px; background: var(--lab-rule); overflow: hidden; }
 .lab-ratelimit .rl-fill { display: block; height: 100%; width: 0; background: #00aebb; }
 .lab-ratelimit .rl-val { min-width: 11rem; text-align: center; font-size: .75rem; }
+.lab-ocs .oc-svg { display: block; width: 100%; max-width: 760px; height: auto; margin: .6rem auto 0; }
+.lab-ocs .oc-svg text { font-family: var(--mono); }
+.lab-ocs .oc-lane { display: flex; justify-content: space-between; max-width: 760px; margin: 0 auto; padding: 0 .9rem; color: var(--lab-dim); font-size: .72rem; }
+.lab-ocs .oc-meter { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .4rem .8rem; padding: .7rem .9rem 0; color: var(--lab-dim); font-size: .75rem; }
+.lab-ocs .oc-track { width: 9rem; height: .55rem; border-radius: 3px; background: var(--lab-rule); overflow: hidden; }
+.lab-ocs .oc-fill { display: block; height: 100%; width: 0; background: #00aebb; }
+.lab-ocs .oc-status { text-align: center; padding: .4rem .9rem 0; font-size: .78rem; }
+.lab-ocs .oc-val { min-width: 14rem; text-align: center; font-size: .75rem; }
 
 /* numbered references: GFM footnotes shown as [1], with a visible list at the end */
 .prose sup:has(> a[data-footnote-ref]) { font-size: .72em; vertical-align: .35em; line-height: 0; }
