@@ -16,6 +16,15 @@
 #   status: to-read                       # to-read | read   (default to-read)
 #   added: 2026-10-03                     # yyyy-mm-dd, newest shows first
 
+- url: https://lesleychou.github.io/blog/2026-10-07-making-agents-more-reliable-with-constrained-creativity.html
+  title: Making Agents More Reliable with Constrained Creativity
+  author: Lesley (Yajie) Zhou et al.
+  source: lesleychou.github.io
+  tags: [ai, agents, reliability]
+  note: Give agents less freedom, not more, and they get cheaper and more reliable; a clean research write-up with numbered figures and references
+  status: read
+  added: 2026-10-10
+
 - url: https://planetscale.com/blog/leaky-buckets-in-software-explained
   title: What today's software owes to Bronze Age clocks
   author: Simeon Griggs

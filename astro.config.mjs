@@ -27,6 +27,9 @@ export default defineConfig({
     // math load public/vendor/katex/katex.min.css (copied from node_modules/katex/dist, version in VERSION)
     remarkPlugins: [[remarkMath, { singleDollarTextMath: false }], remarkFig, remarkD2, remarkPlantuml, remarkReadingTime],
     rehypePlugins: [rehypeKatex, rehypeHeadingAnchors],
+    // GFM footnotes are the post's numbered references: [^1] in the text renders as [1] (global.css),
+    // and the notes become a visible "References" list at the end
+    remarkRehype: { footnoteLabel: 'References', footnoteLabelProperties: { className: ['refs-title'] }, footnoteBackLabel: 'Back to the text' },
   },
   integrations: [
     expressiveCode({
