@@ -596,6 +596,8 @@ figure.diagram.fig { background: #f8f9fa; border: 1px solid #e9ecef; border-radi
 figure.fig .fig-scroll { margin: 0 auto; }
 figure.fig .fig-svg { display: block; width: 100%; height: auto; }
 figure.fig figcaption { margin-top: 1rem; color: var(--ink-3); font-size: .8rem; text-align: center; }
+figure.fig figcaption b { color: var(--ink-2); font-weight: 600; }
+figure.fig[id] { scroll-margin-top: 5rem; }
 /* the old .diagram svg rules (PlantUML era) must not reach into fig figures */
 .diagram .fig-svg text { font-family: inherit; }
 .diagram .fig-svg svg.fi { display: inline; margin: 0; max-width: none; width: 22px; height: 22px; }
@@ -756,3 +758,20 @@ a.topic-link { text-decoration: none; } a.topic-link:hover { color: var(--trace)
 .lab-ratelimit .rl-track { width: 9rem; height: .55rem; border-radius: 3px; background: var(--lab-rule); overflow: hidden; }
 .lab-ratelimit .rl-fill { display: block; height: 100%; width: 0; background: #00aebb; }
 .lab-ratelimit .rl-val { min-width: 11rem; text-align: center; font-size: .75rem; }
+
+/* numbered references: GFM footnotes shown as [1], with a visible list at the end */
+.prose sup:has(> a[data-footnote-ref]) { font-size: .72em; vertical-align: .35em; line-height: 0; }
+a[data-footnote-ref] { text-decoration: none; color: var(--trace); font-variant-numeric: tabular-nums; }
+a[data-footnote-ref]::before { content: '['; }
+a[data-footnote-ref]::after { content: ']'; }
+section.footnotes { margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); font-size: .86rem; color: var(--ink-2); }
+section.footnotes .refs-title { font-size: 1rem; margin: 0 0 .75rem; }
+section.footnotes ol { padding-left: 1.6rem; }
+section.footnotes li { margin: .35rem 0; }
+section.footnotes li:target { background: color-mix(in oklch, var(--trace) 12%, transparent); border-radius: 4px; }
+[id^='user-content-fn'] { scroll-margin-top: 5rem; }
+a[data-footnote-backref] { text-decoration: none; margin-left: .25rem; }
+/* TL;DR: a quirky one-paragraph promise at the top of a post, not a dry answer box */
+.prose aside.tldr { position: relative; margin: 0 0 2rem; padding: 1rem 1.1rem .9rem; border: 1.5px dashed var(--trace-fill); border-radius: 10px; font-size: .95rem; color: var(--ink); }
+.prose aside.tldr p { margin: 0; }
+.prose aside.tldr strong:first-child { position: absolute; top: -.7em; left: .9rem; padding: 0 .45rem; background: var(--paper); color: var(--trace); font-size: .78rem; letter-spacing: .06em; }

@@ -10,6 +10,12 @@ series: system-design
 tags: [rate-limiting, token-bucket, gcra, api-design, redis]
 ---
 
+<aside class="tldr">
+
+**TL;DR** "100 a minute" is a promise about *every* 60 seconds, but the easy limiter only checks the 60 seconds that start on the minute. A client with a watch gets 200. The fix fits in one number per client. Yes, one.
+
+</aside>
+
 Your API promises **100 requests a minute** per client. You count requests per minute, block anything past 100, and ship it.
 
 Then a client sends 100 requests at **0:59**. All allowed: this minute's count was zero. The clock ticks over, the counter resets, and they send 100 more at **1:00**. All allowed again.
@@ -62,7 +68,7 @@ Nearly 8 GiB for ten million API keys, and it grows with the limit: a "10,000 an
 
 ## Cloudflare's shortcut: the sliding counter
 
-Cloudflare needed something nearly as accurate at a fraction of the memory. In 2017 they [described](https://blog.cloudflare.com/counting-things-a-lot-of-different-things/) the trick they use: keep only two counts per client, this window's and the last one's, and *estimate* the rolling count by assuming last window's requests were spread evenly:
+Cloudflare needed something nearly as accurate at a fraction of the memory. In 2017 they described the trick they use[^cf]: keep only two counts per client, this window's and the last one's, and *estimate* the rolling count by assuming last window's requests were spread evenly:
 
 ```text
 rate = previous_count × (window − elapsed) / window + current_count
@@ -84,13 +90,13 @@ The counter thinks the 100 requests from 0:59 are fading out smoothly through mi
 
 Every limiter so far *counts* inside windows. Buckets drop the windows entirely.
 
-A **token bucket** holds up to *B* tokens and refills at a steady rate *r*. Each request spends one token; no token, no entry. A full bucket lets a burst of *B* through at once, and after that you get *r* per second. Stripe [uses one](https://stripe.com/blog/rate-limiters) for its request limiter.
+A **token bucket** holds up to *B* tokens and refills at a steady rate *r*. Each request spends one token; no token, no entry. A full bucket lets a burst of *B* through at once, and after that you get *r* per second. Stripe uses one for its request limiter[^stripe].
 
-A **leaky bucket** is the mirror image. Each request pours one unit *in*, and the bucket drains at rate *r*; if a request would overflow it, it's refused. NGINX's `limit_req` [says so in its docs](https://nginx.org/en/docs/http/ngx_http_limit_req_module.html): "The limitation is done using the 'leaky bucket' method." (For where the name comes from, PlanetScale's [history of leaky buckets](https://planetscale.com/blog/leaky-buckets-in-software-explained) goes all the way back to Bronze Age water clocks.)
+A **leaky bucket** is the mirror image. Each request pours one unit *in*, and the bucket drains at rate *r*; if a request would overflow it, it's refused. NGINX's `limit_req` says so in its docs: "The limitation is done using the 'leaky bucket' method."[^nginx] (For where the name comes from, PlanetScale's history of leaky buckets goes all the way back to Bronze Age water clocks[^ps].)
 
 Look closely and they're the same bucket. The leaky bucket's water level is just *B minus* the token bucket's tokens. One counts what you may still spend; the other counts what you've already spent.
 
-```fig title="Three descriptions of one algorithm: they admit exactly the same requests"
+```fig title="Three descriptions of one algorithm: they admit exactly the same requests" alt="Three panels side by side. Token bucket: tokens up to B, refilled at r per second, and a request takes a token. Leaky bucket: a level up to B, draining at r per second, and a request adds water. GCRA: one timestamp, TAT, and a request is allowed if TAT is at most now plus slack, then moves TAT forward by 1/r."
 panel Token bucket
 row
 tb: shared "tokens, up to B"
@@ -111,7 +117,7 @@ gr: allow "request moves TAT +1/r"
 g -> gr "allowed if TAT ≤ now + slack"
 ```
 
-Don't take the picture's word for it. The lab runs all three on random traffic, with random bucket sizes and rates:
+Don't take Fig. 1's word for it. The lab runs all three on random traffic, with random bucket sizes and rates:
 
 ```text
 300 random traffic patterns, 18,000 requests, random bucket sizes and rates:
@@ -122,7 +128,7 @@ token bucket, leaky bucket and GCRA made the same allow/deny call on every singl
 
 ## One number per client: GCRA
 
-That third panel is the cheapest version. The **Generic Cell Rate Algorithm** comes from ATM networks: ITU-T Recommendation I.371 and the ATM Forum's UNI specification define it "in two equivalent ways", as a virtual scheduling algorithm and as a continuous-state leaky bucket.
+That third panel of [Fig. 1](#fig-1) is the cheapest version. The **Generic Cell Rate Algorithm** comes from ATM networks: ITU-T Recommendation I.371 and the ATM Forum's UNI specification define it "in two equivalent ways"[^gcra], as a virtual scheduling algorithm and as a continuous-state leaky bucket.
 
 The scheduling form throws the bucket away. For each client it stores **one timestamp**, the *theoretical arrival time* (TAT): when the next request would be due if the client sent at exactly the allowed rate. A request is allowed if it isn't too far ahead of that schedule, and each allowed request pushes the schedule forward by one interval *T* = 1/*r*:
 
@@ -135,13 +141,29 @@ def allow(now):
     return False
 ```
 
-No refill loop, no background drip, nothing to update while a client is idle. It's 8 bytes a key, and an allowed request is one read and one write. That's why [redis-cell](https://github.com/brandur/redis-cell) implements GCRA as a single Redis command, `CL.THROTTLE`, and Brandur Leach's [write-up](https://brandur.org/rate-limiting) walks through it step by step.
+No refill loop, no background drip, nothing to update while a client is idle. It's 8 bytes a key, and an allowed request is one read and one write. That's why redis-cell implements GCRA as a single Redis command, `CL.THROTTLE`[^cell], and Brandur Leach's write-up walks through it step by step[^brandur].
+
+Put all five side by side and they line up on one axis: how much each one remembers.
+
+```fig title="Remember less, pay less: only the fixed window also pays in correctness" alt="Five limiters in a row, ordered by the state they keep per client. Sliding log: up to 100 timestamps, exact. Sliding counter: two counts, close on average but up to about 2x in the worst case. Token bucket: two numbers, exact for its rule. GCRA: one timestamp, exact for the same rule. Below, the fixed window: one counter, but it lets 2x through at every boundary."
+panel remembers more  →  remembers less
+row
+log: allow "sliding log\n100 timestamps\nexact"
+ctr: ask "sliding counter\n2 counts\n≤ 2× worst case"
+tb: allow "token bucket\n2 numbers\nexact"
+g: allow "GCRA\n1 timestamp\nexact"
+row
+fw: deny "fixed window\n1 counter\n2× at every boundary" span 4
+log -> ctr
+ctr -> tb
+tb -> g
+```
 
 ## What do you tell the client?
 
-A blocked request deserves a useful answer. HTTP has a status for it: [RFC 6585](https://www.rfc-editor.org/rfc/rfc6585#section-4) defines **429 Too Many Requests**, which "MAY include a Retry-After header" saying how long to wait. GCRA hands you that number for free: it's `TAT − tolerance − now`.
+A blocked request deserves a useful answer. HTTP has a status for it: RFC 6585 defines **429 Too Many Requests**[^rfc], which "MAY include a Retry-After header" saying how long to wait. GCRA hands you that number for free: it's `TAT − tolerance − now`.
 
-There's also an IETF draft, [RateLimit header fields](https://www.ietf.org/archive/id/draft-ietf-httpapi-ratelimit-headers-11.html) (version 11, May 2026, not yet an RFC), that standardises telling clients their quota *before* they hit it, with fields like `RateLimit: "default";r=50;t=30`.
+There's also an IETF draft, RateLimit header fields (version 11, May 2026, not yet an RFC)[^draft], that standardises telling clients their quota *before* they hit it, with fields like `RateLimit: "default";r=50;t=30`.
 
 One trap: NGINX's `limit_req` rejects with **503**, not 429, unless you set `limit_req_status 429;`. To a client, 503 means "the server is broken, retry", which is the opposite of what you want a client that's over its limit to do.
 
@@ -149,7 +171,7 @@ One trap: NGINX's `limit_req` rejects with **503**, not 429, unless you set `lim
 
 One server can keep counts in memory. A fleet can't: if each of 10 servers allows 100 a minute, a client that's spread across them gets 1,000. So the state moves to a shared store like Redis, and a new problem appears. Two servers read the same token count, both see one token left, and both let a request through.
 
-The fix is to make the check-and-update one atomic step. A fixed window gets that from `INCR`, which counts and returns in one operation. Buckets need a small Lua script, or a module like redis-cell. GCRA is the easiest to make atomic, because there's only one value to compare and move. Brandur's write-up also suggests taking `now` from the store's own clock (Redis `TIME`), so servers with drifting clocks don't disagree about the schedule.
+The fix is to make the check-and-update one atomic step. A fixed window gets that from `INCR`, which counts and returns in one operation. Buckets need a small Lua script, or a module like redis-cell. GCRA is the easiest to make atomic, because there's only one value to compare and move. Brandur's write-up also suggests[^brandur] taking `now` from the store's own clock (Redis `TIME`), so servers with drifting clocks don't disagree about the schedule.
 
 ## Back to the 200
 
@@ -166,11 +188,21 @@ python3 ratelimit_lab.py --same       # token bucket = leaky bucket = GCRA, chec
 ```
 
 <details>
-<summary>Limits and sources</summary>
+<summary>Limits of this post</summary>
 
 - The lab uses exact fractions, so the equivalence check can't be fooled by floating-point rounding. Its GCRA tests `now >= TAT - tolerance`; the ITU-T text uses a strict `>`, which makes the burst one smaller. With `>=` the burst is exactly *B*, matching the token bucket.
 - Memory figures count 8-byte fields only. Real stores add per-key overhead on top, which narrows the ratios but doesn't change their order.
 - The simulator uses a 5-second window so you can see it work; the lab uses 100 a minute.
-- Sources: Cloudflare, [How we built rate limiting capable of scaling to millions of domains](https://blog.cloudflare.com/counting-things-a-lot-of-different-things/) (Julien Desgats, 2017); Stripe, [Scaling your API with rate limiters](https://stripe.com/blog/rate-limiters) (Paul Tarjan, 2017); [NGINX limit_req](https://nginx.org/en/docs/http/ngx_http_limit_req_module.html); Brandur Leach, [Rate Limiting, Cells, and GCRA](https://brandur.org/rate-limiting) (2015); [redis-cell](https://github.com/brandur/redis-cell); [Generic cell rate algorithm](https://en.wikipedia.org/wiki/Generic_cell_rate_algorithm) (Wikipedia, citing ITU-T I.371 and the ATM Forum UNI); [RFC 6585 §4](https://www.rfc-editor.org/rfc/rfc6585#section-4); [draft-ietf-httpapi-ratelimit-headers-11](https://www.ietf.org/archive/id/draft-ietf-httpapi-ratelimit-headers-11.html); Simeon Griggs, [What today's software owes to Bronze Age clocks](https://planetscale.com/blog/leaky-buckets-in-software-explained) (PlanetScale, 2026).
+
 
 </details>
+
+[^cf]: Julien Desgats, [How we built rate limiting capable of scaling to millions of domains](https://blog.cloudflare.com/counting-things-a-lot-of-different-things/), Cloudflare, 2017.
+[^stripe]: Paul Tarjan, [Scaling your API with rate limiters](https://stripe.com/blog/rate-limiters), Stripe, 2017.
+[^nginx]: [Module ngx_http_limit_req_module](https://nginx.org/en/docs/http/ngx_http_limit_req_module.html), NGINX documentation.
+[^ps]: Simeon Griggs, [What today's software owes to Bronze Age clocks](https://planetscale.com/blog/leaky-buckets-in-software-explained), PlanetScale, 2026.
+[^gcra]: [Generic cell rate algorithm](https://en.wikipedia.org/wiki/Generic_cell_rate_algorithm), Wikipedia, citing ITU-T Recommendation I.371 and the ATM Forum UNI specification.
+[^cell]: Brandur Leach, [redis-cell](https://github.com/brandur/redis-cell), a Redis module implementing GCRA.
+[^brandur]: Brandur Leach, [Rate Limiting, Cells, and GCRA](https://brandur.org/rate-limiting), 2015.
+[^rfc]: M. Nottingham, R. Fielding, [RFC 6585 §4: 429 Too Many Requests](https://www.rfc-editor.org/rfc/rfc6585#section-4), IETF, 2012.
+[^draft]: [RateLimit header fields for HTTP, draft 11](https://www.ietf.org/archive/id/draft-ietf-httpapi-ratelimit-headers-11.html), IETF HTTPAPI working group, 2026.

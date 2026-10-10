@@ -347,11 +347,11 @@ function renderSeq(fig) {
 }
 
 // ---------- output ----------
-export function renderFig(src, title) {
+export function renderFig(src, title, alt = title) {
   const fig = parse(src);
   const { W, H, body } = fig.seq ? renderSeq(fig) : renderGrid(fig);
   const w = Math.ceil(W), h = Math.ceil(H);
-  return { w, h, svg: `<svg class="fig-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-label="${esc(title)}">${body}</svg>` };
+  return { w, h, svg: `<svg class="fig-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-label="${esc(alt)}">${body}</svg>` };
 }
 
 // standalone copy for post covers (light colours baked in)
@@ -365,16 +365,20 @@ export function firstFig(body = '') {
 export function remarkFig() {
   return (tree) => {
     let first = true; // only a post's first figure becomes its cover file
+    let n = 0;        // figures are numbered per post: "Fig. 2." in the caption, #fig-2 to link from prose
     visit(tree, 'code', (node, index, parent) => {
       if (node.lang !== 'fig' || !parent) return;
-      const title = (node.meta ?? '').replace(/^title=/, '').replace(/^"|"$/g, '') || 'Diagram';
-      const { w, svg } = renderFig(node.value, title);
+      const meta = Object.fromEntries([...(node.meta ?? '').matchAll(/(\w+)="([^"]*)"/g)].map((m) => [m[1], m[2]]));
+      const title = meta.title || 'Diagram';
+      // alt="..." describes the whole picture for screen readers and search; the caption states the conclusion
+      const { w, svg } = renderFig(node.value, title, meta.alt || title);
+      n += 1;
       mkdirSync(OUT, { recursive: true });
       if (first) writeFileSync(join(process.cwd(), 'public', figCover(node.value)), svg.replace('<svg ', `<svg style="font-family:'Aptos Mono','JetBrains Mono',ui-monospace,monospace" `).replace(/(<svg[^>]*>)/, `$1<style>${COVER_CSS}</style>`));
       first = false;
       parent.children[index] = {
         type: 'html',
-        value: `<figure class="diagram fig"><div class="fig-scroll" style="max-width:${w}px;--fig-min:${Math.min(w, 620)}px">${svg}</div><figcaption>${esc(title)}</figcaption></figure>`,
+        value: `<figure class="diagram fig" id="fig-${n}"><div class="fig-scroll" style="max-width:${w}px;--fig-min:${Math.min(w, 620)}px">${svg}</div><figcaption><b>Fig. ${n}.</b> ${esc(title)}</figcaption></figure>`,
       };
     });
   };
