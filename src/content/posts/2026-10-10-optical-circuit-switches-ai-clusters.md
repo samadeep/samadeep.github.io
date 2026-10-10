@@ -1,9 +1,9 @@
 ---
-title: 'How Optical Circuit Switches Work in AI Clusters'
-description: 'Why AI GPUs wait on the network, how optical circuit switches keep data as light, and why Dipole Labs bets on sub-microsecond switching.'
+title: 'AI GPUs Sit Idle Half the Time. Can Mirrors Fix That?'
+description: 'How optical circuit switches work in AI clusters: why GPUs wait on the network, how mirrors keep data as light, and Dipole Labs'' sub-microsecond bet.'
 hook:
   stat: '500 MB → 50 KB'
-  caption: 'what one circuit must carry to stay lit half the time: a 10 ms mirror → a 1 µs one'
+  caption: 'what one circuit must carry to stay lit half the time, with a 10 ms switch vs a 1 µs one'
 date: '2026-10-10'
 topic: ai
 series: under-the-hood
