@@ -1,9 +1,9 @@
 ---
-title: 'How Optical Circuit Switches Work in AI Clusters'
-description: 'Why AI GPUs wait on the network, how optical circuit switches keep data as light, and why Dipole Labs bets on sub-microsecond switching.'
+title: 'Can Light Be the Best Bet for Faster AI Inference?'
+description: 'How optical circuit switches work in AI clusters: why GPUs wait on the network, how mirrors keep data as light, and Dipole Labs'' sub-microsecond bet.'
 hook:
   stat: '500 MB → 50 KB'
-  caption: 'what one circuit must carry to stay lit half the time: a 10 ms mirror → a 1 µs one'
+  caption: 'what one circuit must carry to stay lit half the time, with a 10 ms switch vs a 1 µs one'
 date: '2026-10-10'
 topic: ai
 series: under-the-hood
@@ -54,7 +54,7 @@ nic -> sw
 sw -> far
 ```
 
-Training a big model means thousands of GPUs swapping gradients and activations every step, and almost all of that crosses the bottom rung of [Fig. 1](#fig-1). That's where a GPU sits idle: it finished its math and is waiting for bytes from a server down the row. Everything else in this post happens on that rung.
+Training a big model means thousands of GPUs swapping gradients and activations every step. Serving a mixture-of-experts model means GPUs passing every token to experts that live on other GPUs, every layer. Either way, almost all of that traffic crosses the bottom rung of [Fig. 1](#fig-1). That's where a GPU sits idle: it finished its math and is waiting for bytes from a server down the row. Everything else in this post happens on that rung.
 
 ## What a switch does to light
 
