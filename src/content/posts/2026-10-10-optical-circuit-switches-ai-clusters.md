@@ -1,5 +1,5 @@
 ---
-title: 'AI GPUs Sit Idle Half the Time. Can Mirrors Fix That?'
+title: 'Can Light Be the Best Bet for Faster AI Inference?'
 description: 'How optical circuit switches work in AI clusters: why GPUs wait on the network, how mirrors keep data as light, and Dipole Labs'' sub-microsecond bet.'
 hook:
   stat: '500 MB → 50 KB'
@@ -54,7 +54,7 @@ nic -> sw
 sw -> far
 ```
 
-Training a big model means thousands of GPUs swapping gradients and activations every step, and almost all of that crosses the bottom rung of [Fig. 1](#fig-1). That's where a GPU sits idle: it finished its math and is waiting for bytes from a server down the row. Everything else in this post happens on that rung.
+Training a big model means thousands of GPUs swapping gradients and activations every step. Serving a mixture-of-experts model means GPUs passing every token to experts that live on other GPUs, every layer. Either way, almost all of that traffic crosses the bottom rung of [Fig. 1](#fig-1). That's where a GPU sits idle: it finished its math and is waiting for bytes from a server down the row. Everything else in this post happens on that rung.
 
 ## What a switch does to light
 
