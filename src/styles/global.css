@@ -765,6 +765,14 @@ a.topic-link { text-decoration: none; } a.topic-link:hover { color: var(--trace)
 .lab-ocs .oc-track { width: 9rem; height: .55rem; border-radius: 3px; background: var(--lab-rule); overflow: hidden; }
 .lab-ocs .oc-fill { display: block; height: 100%; width: 0; background: #00aebb; }
 .lab-ocs .oc-status { text-align: center; padding: .4rem .9rem 0; font-size: .78rem; }
+.lab-evict .ev-svg { display: block; width: 100%; max-width: 380px; height: auto; margin: .8rem auto 0; }
+.lab-evict .ev-axis { display: flex; justify-content: space-between; max-width: 380px; margin: .2rem auto 0; padding: 0 .4rem; color: var(--lab-dim); font-size: .72rem; }
+.lab-evict .ev-val { min-width: 14rem; text-align: center; font-size: .75rem; }
+.lab-evict .ev-pool-l { text-align: center; color: var(--lab-dim); font-size: .72rem; padding: .8rem .9rem .3rem; }
+.lab-evict .ev-pool { display: grid; grid-template-columns: repeat(16, 1fr); gap: 3px; max-width: 520px; margin: 0 auto; padding: 0 .9rem; }
+.lab-evict .ev-pool span { height: 1.6rem; display: grid; place-items: center; border: 1px solid var(--lab-rule); border-radius: 4px; font-size: .68rem; color: var(--lab-dim); }
+.lab-evict .ev-pool span.on { color: var(--lab-ink); border-color: #ffd166; }
+.lab-evict .ev-pool span.ghost { text-decoration: line-through; }
 .lab-ocs .oc-val { min-width: 14rem; text-align: center; font-size: .75rem; }
 
 /* numbered references: GFM footnotes shown as [1], with a visible list at the end */

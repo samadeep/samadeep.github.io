@@ -3,7 +3,7 @@
 FROM docker.io/i386/alpine:3.21.0
 ENV KERNEL=virt
 RUN apk add --no-cache openrc alpine-base agetty alpine-conf linux-$KERNEL linux-firmware-none \
-      bash coreutils grep sed iptables iproute2 conntrack-tools curl socat python3 tcpdump procps less nodejs npm nginx
+      bash coreutils grep sed iptables iproute2 conntrack-tools curl socat python3 tcpdump procps less nodejs npm nginx redis
 RUN sed -i 's/getty 38400 tty1/agetty --autologin root tty1 linux/' /etc/inittab \
  && echo 'ttyS0::respawn:/sbin/agetty --autologin root -s ttyS0 115200 vt100' >> /etc/inittab \
  && echo "root:" | chpasswd && setup-hostname lab

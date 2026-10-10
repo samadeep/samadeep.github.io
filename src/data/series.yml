@@ -49,3 +49,10 @@
   icon: layers
   hue: 150
   blurb: An announcement taken apart layer by layer. What sits beneath it, the numbers it rests on, and what is still unproven.
+
+- slug: redis-inside-out
+  name: Redis, Inside Out
+  kind: collection
+  icon: server
+  hue: 12
+  blurb: Redis taken apart with a real server and its source code. The shortcuts it takes, measured, and what each one costs you.
