@@ -64,11 +64,11 @@ export function evictLab(root: HTMLElement) {
   root.append(bar, knob, actions, svg, axis, poolLabel, poolRow, stats);
 
   // state: key i lives in column floor(i / ROWS); idle = 10 - column. Evicted keys are gone (new keys live off-grid).
-  let alive: boolean[], pool: number[], evicted: number, wrong: number, writes: number;
+  let alive: boolean[], pool: number[], evicted: number, writes: number;
   let queue = 0, busy = false, gen = 0;
   function reset() {
     gen++; busy = false;
-    alive = Array(COLS * ROWS).fill(true); pool = []; evicted = wrong = writes = 0; queue = 0;
+    alive = Array(COLS * ROWS).fill(true); pool = []; evicted = writes = 0; queue = 0;
     paint(); render();
   }
   const idle = (k: number) => 10 - Math.floor(k / ROWS);
@@ -85,9 +85,10 @@ export function evictLab(root: HTMLElement) {
   }
   function render() {
     const left = alive.filter(Boolean).length;
-    const oldestAlive = alive.findIndex(Boolean);
+    // perfect LRU would have evicted keys 0 .. evicted-1 by now (oldest first); count the ones still here
+    const missed = alive.slice(0, evicted).filter(Boolean).length;
     stats.textContent = `writes ${writes}   evictions ${evicted}   keys left ${left}/100\n`
-      + `evicted while an older key stayed: ${wrong}${oldestAlive >= 0 ? `   oldest survivor idle ${idle(oldestAlive)} s` : ''}`;
+      + `old keys perfect LRU would have evicted, still here: ${missed}`;
   }
   // one eviction, exactly as evict.c: sample, merge into the pool, evict the idlest live entry
   function evictOne(): { sampled: number[]; chosen: number } {
@@ -117,7 +118,6 @@ export function evictLab(root: HTMLElement) {
       if (g !== gen) return;
       if (chosen >= 0) {
         alive[chosen] = false; evicted++;
-        if (alive.slice(0, Math.floor(chosen / ROWS) * ROWS).some(Boolean)) wrong++;
       }
       paint(); render();
       reduce ? step() : setTimeout(step, 60);
