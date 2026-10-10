@@ -42,3 +42,10 @@
   icon: hammer
   hue: 65
   blurb: How a real system got built, from the first naive version to one that holds up, with the numbers along the way.
+
+- slug: under-the-hood
+  name: Under the Hood
+  kind: collection
+  icon: layers
+  hue: 150
+  blurb: An announcement taken apart layer by layer. What sits beneath it, the numbers it rests on, and what is still unproven.
