@@ -1,0 +1,104 @@
+---
+// First Principles: the study path. Everything here is read from src/data/study/*.yml and the study
+// collection, so publishing a chapter or ticking a module is a data change, never a page edit.
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import { getChapters, MODULES, SOURCES, CANON, sourcesFor, progress } from '../../lib/study';
+import { getPosts } from '../../lib/posts';
+
+const chapters = await getChapters();
+const posts = await getPosts();
+const p = progress();
+const chapterOf = (id: string) => chapters.find((c) => c.data.module === id);
+const postOf = (slug?: string) => (slug ? posts.find((x) => x.id === slug) : undefined);
+const works = CANON.reduce((n, t) => n + t.works.length, 0);
+const STATUS = { written: 'Written', next: 'Up next', planned: 'Planned' } as const;
+const MODE = { full: 'Full chapter', companion: 'Companion to an external text' } as const;
+const PDFS = [
+  ['/study/pdf/ch1-before-the-transformer.pdf', 'Chapter 1: Before the Transformer', '32 pages'],
+  ['/study/pdf/roadmap.pdf', 'The full roadmap, with checkpoints', '27 pages'],
+  ['/study/pdf/sources.pdf', 'Sources, best resource per module', '1 page'],
+  ['/study/pdf/canon.pdf', 'The Foundations Canon', '1 page'],
+];
+const LOOP = [
+  ['Read the original paper', 'Summaries drop the assumptions, and the assumptions are where the understanding is.'],
+  ['Derive it by hand', 'If you can’t derive it, you don’t own it.'],
+  ['Compute real numbers', '“Memory bound” means nothing until you’ve divided bytes by bandwidth yourself.'],
+  ['Run the lab', 'Every chapter has one, and most run right in the chapter, in your browser.'],
+  ['Pass the checkpoint', 'From memory. A miss sends you back to step 2.'],
+];
+---
+<Base title="First Principles: How LLMs Really Work" description="A free study path through how LLMs really work: the math, transformers, GPUs, inference serving, mixture of experts and datacenter networks, built from the original papers.">
+  <div class="wrap wide study">
+    <header class="page-head study-head">
+      <p class="kicker"><span class="topic-link"><Icon name="graduation-cap" />First Principles</span></p>
+      <h1>How do LLMs really work, all the way down?</h1>
+      <p>A study path in {MODULES.length} modules, from the math to the datacenter. Each chapter is built from the original papers, with every number checked against its source and a simulator you can poke.</p>
+      <div class="sp-meter" role="img" aria-label={`${p.written} of ${p.total} modules written`}>
+        <div class="sp-track">{MODULES.map((m) => <span data-status={m.status} style={`flex:${m.weeks}`} title={`${m.id}: ${m.title}`}></span>)}</div>
+        <p><b>{p.written} of {p.total}</b> chapters written · about {p.weeks} weeks at 6 to 8 hours a week · {SOURCES.length} curated sources · {works} classic works</p>
+      </div>
+    </header>
+
+    <section aria-labelledby="path-h">
+      <div class="section-head"><h2 id="path-h">The path</h2><a href="#loop">How to study a module</a></div>
+      <ol class="sp-path">
+        {MODULES.map((m, i) => {
+          const ch = chapterOf(m.id);
+          const post = postOf(m.post);
+          const src = sourcesFor(m.id);
+          return (
+            <li id={m.id.toLowerCase()} class="sp-mod" data-status={m.status}>
+              <span class="sp-dot" aria-hidden="true">{m.id.slice(1)}</span>
+              <div class="sp-card">
+                <p class="sp-meta">
+                  <span class="sp-st">{STATUS[m.status]}</span>
+                  <span>{m.id} · {m.title}</span>
+                  <span>{m.weeks} wk</span>
+                  {m.needs.length > 0 && <span class="sp-needs">after {m.needs.join(', ')}</span>}
+                </p>
+                <h3>{ch ? <a href={ch.href}>{ch.data.title}</a> : m.question}</h3>
+                <p class="sp-goal">{m.goal}</p>
+                {ch && <p class="sp-go"><a href={ch.href}>Read chapter {m.id.slice(1)}<Icon name="arrow-right" /></a>{ch.data.pdf && <a href={ch.data.pdf} download><Icon name="download" />PDF</a>}<span>{ch.minutes} min</span></p>}
+                {post && <p class="sp-go sp-post">Already on the blog: <a href={post.href}>{post.data.title}</a></p>}
+                <details class="sp-more">
+                  <summary>Topics, lab, checkpoint{src.length > 0 && `, ${src.length} ${src.length === 1 ? "source" : "sources"}`}</summary>
+                  <p class="sp-mode">{MODE[m.mode]}</p>
+                  <ul class="sp-topics">{m.topics.map((t) => <li>{t}</li>)}</ul>
+                  <p><b>Lab.</b> {m.lab}</p>
+                  <p><b>Checkpoint.</b> Answer from memory before moving on:</p>
+                  <ol class="sp-check">{m.checkpoint.map((q) => <li>{q}</li>)}</ol>
+                  {src.length > 0 && (
+                    <>
+                      <p><b>Read alongside.</b></p>
+                      <ul class="sp-src">{src.map((s) => <li>{s.url ? <a href={s.url} rel="noopener">{s.title}</a> : <span>{s.title}</span>}<small> · {s.by}{s.role === 'primary' ? ' · main text' : ''}</small></li>)}</ul>
+                    </>
+                  )}
+                </details>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+
+    <section id="loop" aria-labelledby="loop-h">
+      <div class="section-head"><h2 id="loop-h">How to study a module</h2></div>
+      <ol class="sp-loop">
+        {LOOP.map(([t, d], i) => <li><span class="sp-n">{i + 1}</span><b>{t}</b><span>{d}</span></li>)}
+      </ol>
+      <p class="sp-note">At the start of each module, re-answer three checkpoint questions from older modules at random. That spaced review is what keeps Module 0 alive by Module 7.</p>
+    </section>
+
+    <section aria-labelledby="lib-h">
+      <div class="section-head"><h2 id="lib-h">The library</h2></div>
+      <div class="sp-lib">
+        <a class="sp-tile" href="/study/sources/"><Icon name="book-open" /><b>Sources</b><span>The best existing text for each module, every link opened and checked. {SOURCES.length} entries.</span></a>
+        <a class="sp-tile" href="/study/canon/"><Icon name="star" /><b>The Foundations Canon</b><span>{works} works from Shannon to Hamming that changed how we think about computation and learning.</span></a>
+      </div>
+      <ul class="sp-pdfs" aria-label="Typeset editions">
+        {PDFS.map(([href, t, n]) => <li><a href={href} download><Icon name="file-text" />{t}</a><small>{n}</small></li>)}
+      </ul>
+    </section>
+  </div>
+</Base>

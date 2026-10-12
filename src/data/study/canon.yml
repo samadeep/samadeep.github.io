@@ -1,0 +1,236 @@
+# The Foundations Canon: works that changed how we understand computation, learning and intelligence.
+# Each entry is the work and the one idea it opened. `star: true` marks the ten to start with.
+# Authors and years are from the works themselves; there are no links here, search by title.
+
+
+- theme: Information and computation
+  works:
+  - by: Claude Shannon
+    year: 1948
+    title: A Mathematical Theory of Communication
+    idea: Information is measurable; prediction and compression are the same problem.
+    star: true
+  - by: Alan Turing
+    year: 1936
+    title: On Computable Numbers
+    idea: One universal machine runs every algorithm, and some questions have no algorithm.
+    star: true
+  - by: Alan Turing
+    year: 1950
+    title: Computing Machinery and Intelligence
+    idea: Intelligence judged by behaviour; learning machines proposed.
+  - by: Ray Solomonoff; Andrey Kolmogorov
+    year: 1964
+    title: Algorithmic probability and complexity
+    idea: The shortest program that explains the data is the best predictor. Occam made precise.
+  - by: Rolf Landauer
+    year: 1961
+    title: Irreversibility and Heat Generation in the Computing Process
+    idea: Erasing a bit costs energy. Computation is physics.
+  - by: Richard Feynman
+    title: Lectures on Computation
+    idea: 'Computing from the physics up: reversibility and limits.'
+  - by: David MacKay
+    year: 2003
+    title: Information Theory, Inference, and Learning Algorithms
+    idea: Coding, inference and neural nets as one subject.
+    free: true
+- theme: Learning theory and statistics
+  works:
+  - by: Leslie Valiant
+    year: 1984
+    title: A Theory of the Learnable
+    idea: Learning becomes a precise computational question (PAC).
+  - by: Vladimir Vapnik
+    year: 1995
+    title: The Nature of Statistical Learning Theory
+    idea: Capacity and generalisation bounds.
+  - by: David Wolpert
+    year: 1996
+    title: The Lack of A Priori Distinctions Between Learning Algorithms
+    idea: No learner wins on every problem; assumptions are unavoidable.
+  - by: Leo Breiman
+    year: 2001
+    title: 'Statistical Modeling: The Two Cultures'
+    idea: Prediction vs explanation, and why algorithmic models won.
+    star: true
+  - by: Zhang et al.
+    year: 2017
+    title: Understanding Deep Learning Requires Rethinking Generalization
+    idea: Networks memorise random labels yet generalise on real ones.
+  - by: Belkin et al.
+    year: 2019
+    title: Reconciling Modern Machine-Learning Practice and the Bias-Variance Trade-off
+    idea: 'Double descent: past interpolation, bigger can be better.'
+  - by: E. T. Jaynes
+    year: 2003
+    title: 'Probability Theory: The Logic of Science'
+    idea: Probability as extended logic; maximum entropy.
+- theme: Neural networks and representation
+  works:
+  - by: Warren McCulloch, Walter Pitts
+    year: 1943
+    title: A Logical Calculus of the Ideas Immanent in Nervous Activity
+    idea: 'Neurons as logic gates: the first formal neural net.'
+  - by: Donald Hebb
+    year: 1949
+    title: The Organization of Behavior
+    idea: Cells that fire together wire together.
+  - by: Frank Rosenblatt
+    year: 1958
+    title: The Perceptron
+    idea: A machine that learns its weights from examples.
+  - by: Marvin Minsky, Seymour Papert
+    year: 1969
+    title: Perceptrons
+    idea: A proof of what one layer cannot do.
+  - by: Rumelhart, Hinton, Williams
+    year: 1986
+    title: Learning Representations by Back-propagating Errors
+    idea: Backpropagation learns internal representations.
+    star: true
+  - by: George Cybenko
+    year: 1989
+    title: Approximation by Superpositions of a Sigmoidal Function
+    idea: One hidden layer can approximate any continuous function. Existence is not learnability.
+  - by: Krizhevsky, Sutskever, Hinton
+    year: 2012
+    title: ImageNet Classification with Deep Convolutional Neural Networks
+    idea: Structure plus data plus GPUs.
+  - by: Rich Sutton
+    year: 2019
+    title: The Bitter Lesson
+    idea: Methods that scale with compute beat hand-built knowledge.
+    star: true
+  - by: Kaplan et al.
+    year: 2020
+    title: Scaling Laws for Neural Language Models
+    idea: Loss falls as a smooth power law in compute, data and parameters.
+  - by: Olah et al.
+    year: 2020
+    title: 'Zoom In: An Introduction to Circuits'
+    idea: Networks can be reverse-engineered into circuits.
+- theme: Optimisation and decisions
+  works:
+  - by: Herbert Robbins, Sutton Monro
+    year: 1951
+    title: A Stochastic Approximation Method
+    idea: 'Noisy steps still converge: the root of SGD.'
+  - by: Richard Bellman
+    year: 1957
+    title: Dynamic Programming
+    idea: Optimal decisions decompose recursively.
+  - by: Stephen Boyd, Lieven Vandenberghe
+    year: 2004
+    title: Convex Optimization
+    idea: When optimisation is easy, and why duality matters.
+    free: true
+  - by: Richard Sutton, Andrew Barto
+    title: 'Reinforcement Learning: An Introduction'
+    idea: Learning from reward; temporal-difference learning.
+    free: true
+  - by: Silver et al.
+    year: 2017
+    title: Mastering the Game of Go without Human Knowledge
+    idea: Superhuman play from self-play alone.
+- theme: Computers, systems and scale
+  works:
+  - by: Harold Abelson, Gerald Sussman
+    year: 1985
+    title: Structure and Interpretation of Computer Programs
+    idea: Programs as abstraction; interpreters all the way down.
+    star: true
+    free: true
+  - by: Gene Amdahl
+    year: 1967
+    title: Validity of the Single Processor Approach to Achieving Large Scale Computing Capabilities
+    idea: The serial fraction caps parallel speedup.
+  - by: Leslie Lamport
+    year: 1978
+    title: Time, Clocks, and the Ordering of Events in a Distributed System
+    idea: In a distributed system, "before" is only a partial order.
+  - by: Saltzer, Reed, Clark
+    year: 1984
+    title: End-to-End Arguments in System Design
+    idea: Put function at the ends; keep the middle simple.
+  - by: Jeffrey Dean, Sanjay Ghemawat
+    year: 2004
+    title: 'MapReduce: Simplified Data Processing on Large Clusters'
+    idea: A cluster of commodity machines as one computer.
+  - by: Jeffrey Dean, Luiz Barroso
+    year: 2013
+    title: The Tail at Scale
+    idea: At scale the slowest 1% sets the latency.
+    star: true
+  - by: Jouppi et al.
+    year: 2017
+    title: In-Datacenter Performance Analysis of a Tensor Processing Unit
+    idea: Domain-specific hardware for the dominant workload.
+  - by: John Hennessy, David Patterson
+    year: 2019
+    title: A New Golden Age for Computer Architecture
+    idea: With Moore and Dennard fading, specialisation is the path.
+- theme: Physics, complexity and emergence
+  works:
+  - by: Philip Anderson
+    year: 1972
+    title: More Is Different
+    idea: New laws emerge at each scale; reduction is not construction.
+    star: true
+  - by: Eugene Wigner
+    year: 1960
+    title: The Unreasonable Effectiveness of Mathematics in the Natural Sciences
+    idea: Why maths describes nature at all.
+  - by: E. T. Jaynes
+    year: 1957
+    title: Information Theory and Statistical Mechanics
+    idea: Thermodynamics as inference.
+  - by: John Hopfield
+    year: 1982
+    title: Neural Networks and Physical Systems with Emergent Collective Computational Abilities
+    idea: Memory as energy minimisation.
+  - by: Steven Strogatz
+    title: Nonlinear Dynamics and Chaos
+    idea: Attractors and bifurcations, the language of training dynamics.
+  - by: Richard Feynman
+    title: The Feynman Lectures on Physics
+    idea: Thinking from first principles, at its best.
+    free: true
+- theme: Brains and minds
+  works:
+  - by: David Hubel, Torsten Wiesel
+    year: 1962
+    title: Receptive Fields, Binocular Interaction and Functional Architecture in the Cat's Visual Cortex
+    idea: 'The visual cortex is a hierarchy of feature detectors: the blueprint for CNNs.'
+  - by: David Marr
+    year: 1982
+    title: Vision
+    idea: 'Understand a system at three levels: computation, algorithm, implementation.'
+    star: true
+  - by: Peter Dayan, Larry Abbott
+    year: 2001
+    title: Theoretical Neuroscience
+    idea: The brain in equations.
+- theme: How breakthroughs happen
+  works:
+  - by: Richard Hamming
+    year: 1986
+    title: You and Your Research
+    idea: Work on important problems, with the door open.
+    star: true
+  - by: Richard Hamming
+    year: 1997
+    title: The Art of Doing Science and Engineering
+    idea: Learning to learn.
+  - by: Thomas Kuhn
+    year: 1962
+    title: The Structure of Scientific Revolutions
+    idea: Paradigms, anomalies and shifts.
+  - by: George Pólya
+    year: 1945
+    title: How to Solve It
+    idea: 'Heuristics: specialise, generalise, work backwards.'
+  - by: Richard Feynman
+    year: 1974
+    title: Cargo Cult Science
+    idea: The first principle is that you must not fool yourself.

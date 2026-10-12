@@ -1,0 +1,61 @@
+---
+// The Foundations Canon, from src/data/study/canon.yml: works that changed how we understand
+// computation, learning and intelligence, each with the one idea it opened.
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import { CANON } from '../../lib/study';
+
+const works = CANON.reduce((n, t) => n + t.works.length, 0);
+const stars = CANON.reduce((n, t) => n + t.works.filter((w) => w.star).length, 0);
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+---
+<Base title="The Foundations Canon" description="The classic papers and books behind computing and AI, from Shannon and Turing to Hamming, each with the one idea it opened and where to start.">
+  <div class="wrap wide study">
+    <header class="page-head">
+      <p class="kicker"><a class="topic-link" href="/study/"><Icon name="graduation-cap" />First Principles</a></p>
+      <h1>The Foundations Canon</h1>
+      <p>{works} works that changed how we understand computation, learning and intelligence, beyond LLMs. Each line is the work, then the idea it opened. Read one theme a month, and for each work ask: what did it make possible, what did it assume, and where does that assumption break today? Breakthroughs live in the third answer.</p>
+    </header>
+
+    <div class="chips sp-filter" role="toolbar" aria-label="Filter the canon">
+      <button class="chip" type="button" data-star aria-pressed="false"><Icon name="star" />Start here <span class="n">{stars}</span></button>
+      <button class="chip" type="button" data-free aria-pressed="false">Free to read</button>
+    </div>
+    <nav class="cn-themes" aria-label="Themes">
+      {CANON.map((t) => <a href={`#${slug(t.theme)}`}>{t.theme}</a>)}
+    </nav>
+
+    {CANON.map((t) => (
+      <section class="cn-theme" id={slug(t.theme)}>
+        <h2>{t.theme}</h2>
+        <ol class="cn-works">
+          {t.works.map((w) => (
+            <li data-star={w.star ? '1' : '0'} data-free={w.free ? '1' : '0'}>
+              <span class="cn-year">{w.year ?? ''}</span>
+              <div>
+                <p class="cn-t">{w.star && <span class="cn-star" title="Start here"><Icon name="star" /></span>}<i>{w.title}</i>{w.free && <span class="ss-free">free</span>}</p>
+                <p class="cn-by">{w.by}</p>
+                <p class="cn-idea">{w.idea}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+    ))}
+  </div>
+
+  <script>
+    const items = [...document.querySelectorAll<HTMLLIElement>('.cn-works > li')];
+    const starBtn = document.querySelector<HTMLButtonElement>('[data-star]')!;
+    const freeBtn = document.querySelector<HTMLButtonElement>('.sp-filter [data-free]')!;
+    let star = new URLSearchParams(location.search).has('start'), free = false;
+    const apply = () => {
+      starBtn.setAttribute('aria-pressed', String(star)); freeBtn.setAttribute('aria-pressed', String(free));
+      for (const li of items) li.hidden = (star && li.dataset.star !== '1') || (free && li.dataset.free !== '1');
+      for (const s of document.querySelectorAll<HTMLElement>('.cn-theme')) s.hidden = ![...s.querySelectorAll('li')].some((li) => !li.hidden);
+    };
+    starBtn.onclick = () => { star = !star; apply(); };
+    freeBtn.onclick = () => { free = !free; apply(); };
+    apply();
+  </script>
+</Base>

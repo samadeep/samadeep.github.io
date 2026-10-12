@@ -1,0 +1,137 @@
+# The best existing material per module. `role: primary` means read it as the main text for that module,
+# `companion` means read it next to our chapter. Every url was opened on the date in `checked`;
+# leave url out rather than guess one.
+
+- title: Mathematics for Machine Learning
+  by: Deisenroth, Faisal, Ong
+  url: https://mml-book.github.io/
+  modules: [M0]
+  role: primary
+  free: true
+  note: Linear algebra, vector calculus, probability and optimisation, written for ML.
+  checked: 2026-10-11
+- title: Deep Learning
+  by: Goodfellow, Bengio, Courville
+  url: https://www.deeplearningbook.org/
+  modules: [M0]
+  role: primary
+  free: true
+  note: Chapters 2 to 8 are the math and optimisation background.
+  checked: 2026-10-11
+- title: Information Theory, Inference, and Learning Algorithms
+  by: David MacKay
+  modules: [M0]
+  role: companion
+  free: true
+  note: Free on the author's site. Coding, inference and neural nets as one subject.
+- title: What Every Computer Scientist Should Know About Floating-Point Arithmetic
+  by: David Goldberg, 1991
+  modules: [M0]
+  role: companion
+  free: true
+  note: The classic on rounding error. Read before FP8.
+- title: Speech and Language Processing, 3rd ed. draft
+  by: Jurafsky, Martin
+  url: https://web.stanford.edu/~jurafsky/slp3/
+  modules: [M1]
+  role: companion
+  free: true
+  note: Textbook chapters on n-grams, RNNs and attention.
+  checked: 2026-10-11
+- title: 'Neural Networks: Zero to Hero'
+  by: Andrej Karpathy
+  url: https://karpathy.ai/zero-to-hero.html
+  modules: [M2]
+  role: primary
+  free: true
+  note: Build backprop, then a GPT, from an empty file.
+  checked: 2026-10-11
+- title: The Annotated Transformer
+  by: Harvard NLP
+  url: https://nlp.seas.harvard.edu/annotated-transformer/
+  modules: [M2]
+  role: primary
+  free: true
+  note: The 2017 paper, line by line, as runnable code.
+  checked: 2026-10-11
+- title: Understanding Deep Learning
+  by: Simon Prince
+  url: https://udlbook.github.io/udlbook/
+  modules: [M2]
+  role: companion
+  free: true
+  note: Modern textbook; the transformer chapter is a clean derivation.
+  checked: 2026-10-11
+- title: 'CS336: Language Modeling from Scratch'
+  by: Stanford
+  url: http://cs336.stanford.edu/
+  modules: [M2b, M3, M5]
+  role: primary
+  free: true
+  note: Tokenizer, Triton kernels, parallelism, scaling laws, data, SFT and RL, as five assignments.
+  checked: 2026-10-11
+- title: Making Deep Learning Go Brrrr From First Principles
+  by: Horace He
+  url: https://horace.io/brrr_intro.html
+  modules: [M3]
+  role: primary
+  free: true
+  note: Compute, memory bandwidth and overhead, the three things that make a model slow.
+  checked: 2026-10-11
+- title: How to Optimize a CUDA Matmul Kernel for cuBLAS-like Performance
+  by: Simon Boehm
+  url: https://siboehm.com/articles/22/CUDA-MMM
+  modules: [M3]
+  role: primary
+  free: true
+  note: A matmul kernel rewritten ten times, each step measured.
+  checked: 2026-10-11
+- title: Programming Massively Parallel Processors
+  by: Hwu, Kirk, El Hajj
+  modules: [M3]
+  role: companion
+  free: false
+  note: The CUDA textbook.
+- title: How to Scale Your Model
+  by: Google DeepMind
+  url: https://jax-ml.github.io/scaling-book/
+  modules: [M3, M4, M5, M8]
+  role: primary
+  free: true
+  note: Rooflines, sharded matmuls, training, inference and serving, with a GPU part. The closest thing to this path.
+  checked: 2026-10-11
+- title: The Ultra-Scale Playbook
+  by: Hugging Face
+  url: https://huggingface.co/spaces/nanotron/ultrascale-playbook
+  modules: [M5]
+  role: primary
+  free: true
+  note: Training LLMs on large GPU clusters, with interactive plots.
+  checked: 2026-10-11
+- title: Machine Learning Engineering
+  by: Stas Bekman
+  url: https://github.com/stas00/ml-engineering
+  modules: [M5, M7]
+  role: companion
+  free: true
+  note: Hardware, network, training and inference from someone who ran it.
+  checked: 2026-10-11
+- title: A Review of Sparse Expert Models in Deep Learning
+  by: Fedus, Dean, Zoph, 2022
+  url: https://arxiv.org/abs/2209.01667
+  modules: [M6]
+  role: companion
+  free: true
+  note: The survey to read before the DeepSeek papers.
+  checked: 2026-10-11
+- title: The Datacenter as a Computer
+  by: Barroso, Hölzle, Ranganathan
+  modules: [M7]
+  role: companion
+  note: Warehouse-scale computing from the people who built it.
+- title: Principles and Practices of Interconnection Networks
+  by: Dally, Towles
+  modules: [M7]
+  role: companion
+  free: false
+  note: Topologies, routing and flow control, rigorously.
