@@ -1,0 +1,120 @@
+---
+// A First Principles chapter. Same reading layout as a post (contents rail, labs, KaTeX, giscus), plus the
+// module strip: where this chapter sits on the path, and what is written so far.
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import AuthorCard from '../../components/AuthorCard.astro';
+import Reactions from '../../components/Reactions.astro';
+import { getChapters, MODULES } from '../../lib/study';
+import { SITE, fmtDate } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const chapters = await getChapters();
+  return chapters.map((c) => ({ params: { slug: c.id }, props: { chapter: c, chapters } }));
+}
+
+const { chapter, chapters } = Astro.props;
+const { Content, headings } = await render(chapter);
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+const { title, description, date, updated, tags, pdf } = chapter.data;
+const mod = chapter.module;
+const hasMath = chapter.body?.includes('$$') ?? false;
+const hrefOf = (id: string) => chapters.find((c) => c.data.module === id)?.href;
+const at = MODULES.findIndex((m) => m.id === mod.id);
+const next = MODULES[at + 1];
+const source = `${SITE.repo}/blob/main/src/content/study/${chapter.filePath?.split('/').pop()}`;
+const jsonLd = {
+  '@context': 'https://schema.org', '@type': 'Article', headline: title, description,
+  isPartOf: { '@type': 'Course', name: 'First Principles', url: new URL('/study/', SITE.url).href },
+  datePublished: date.toISOString(), dateModified: (updated ?? date).toISOString(),
+  author: { '@type': 'Person', name: SITE.name, url: SITE.url },
+  image: new URL(`/og/study-${chapter.id}.png`, SITE.url).href, keywords: tags.join(', '),
+};
+---
+<Base title={title} description={description} type="article" published={date} image={`/og/study-${chapter.id}.png`}>
+  {hasMath && <link slot="head" rel="stylesheet" href="/vendor/katex/katex.min.css" />}
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <div class="read-progress" aria-hidden="true"></div>
+  <a class="to-top" href="#top" aria-label="Back to top" hidden>
+    <svg viewBox="0 0 44 44" aria-hidden="true"><circle class="ring-bg" cx="22" cy="22" r="20"/><circle class="ring" cx="22" cy="22" r="20" pathLength="100"/><path d="M22 29V15m-6 6 6-6 6 6"/></svg>
+  </a>
+  <div class="wrap wide">
+    <div class="post-layout">
+      <article data-pagefind-body data-pagefind-filter="kind:Study">
+        <header class="post-head">
+          <p class="kicker">
+            <a class="topic-link" href="/study/" data-pagefind-meta="topic:First Principles"><Icon name="graduation-cap" />First Principles</a>
+            <span class="kick-tag">Module {mod.id.slice(1)}: {mod.title}</span>
+          </p>
+          <h1>{title}</h1>
+          <p class="lede">{description}</p>
+          <div class="byline">
+            <span class="by-mark" aria-hidden="true">S</span>
+            <span class="by-name"><a href="/about/">{SITE.name}</a></span>
+            <span class="by-sep" aria-hidden="true">·</span>
+            <time datetime={fmtDate(date)} data-pagefind-meta="date">{date.toLocaleDateString('en', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}</time>
+            <span class="by-sep" aria-hidden="true">·</span>
+            <span data-pagefind-meta="minutes">{chapter.minutes} min read</span>
+            {pdf && <a class="by-run" href={pdf} download><Icon name="download" />PDF edition</a>}
+          </div>
+        </header>
+
+        <nav class="mod-strip" aria-label="First Principles, all modules" data-pagefind-ignore>
+          <a class="ms-name" href="/study/"><span class="ss-kick">Study path</span>{chapters.length} of {MODULES.length} written</a>
+          <ol class="ms-mods">
+            {MODULES.map((m) => {
+              const href = hrefOf(m.id);
+              return (
+                <li data-status={m.status}>
+                  {href
+                    ? <a href={href} title={`${m.id}: ${m.title}`} aria-current={m.id === mod.id ? 'page' : undefined}>{m.id.slice(1)}</a>
+                    : <span title={`${m.id}: ${m.title} (${m.status === 'next' ? 'up next' : 'planned'})`}>{m.id.slice(1)}</span>}
+                </li>
+              );
+            })}
+          </ol>
+        </nav>
+
+        {toc.length > 2 && (
+          <details class="toc-inline" data-pagefind-ignore>
+            <summary>Contents</summary>
+            <ol>{toc.map((h) => <li class={`d${h.depth}`}><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
+          </details>
+        )}
+
+        <div class="prose"><Content /></div>
+
+        {next && (
+          <aside class="next-mod" data-pagefind-ignore>
+            <p class="nm-kick">Next on the path: Module {next.id.slice(1)}</p>
+            <p class="nm-q">{next.question}</p>
+            <p class="nm-goal">{next.goal}</p>
+            {hrefOf(next.id)
+              ? <a class="nm-go" href={hrefOf(next.id)}>Read it<Icon name="arrow-right" /></a>
+              : <a class="nm-go" href={`/study/#${next.id.toLowerCase()}`}>What it will cover<Icon name="arrow-right" /></a>}
+          </aside>
+        )}
+
+        <AuthorCard title={title} />
+
+        <Reactions />
+
+        <p class="edit" data-pagefind-ignore>Spotted a mistake? <a href={source}>Suggest an edit on GitHub</a>.</p>
+      </article>
+
+      {toc.length > 2 && (
+        <aside class="toc-rail" data-pagefind-ignore>
+          <nav class="toc" aria-label="On this page">
+            <h2>On this page</h2>
+            <ol>{toc.map((h) => <li class={`d${h.depth}`}><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
+          </nav>
+        </aside>
+      )}
+    </div>
+  </div>
+
+  <script>
+    import '../../scripts/reader';
+  </script>
+</Base>

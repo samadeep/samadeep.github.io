@@ -3,6 +3,7 @@ import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 import { topicSlugs } from './lib/topics';
 import { seriesSlugs } from './lib/series';
+import { moduleIds } from './lib/study-data';
 
 // 2025-01-27-my-post.md -> my-post  (keeps the old /posts/<slug>/ URLs)
 const posts = defineCollection({
@@ -37,4 +38,20 @@ const posts = defineCollection({
   }),
 });
 
-export const collections = { posts };
+// First Principles chapters: long-form study chapters, one per module in src/data/study/modules.yml
+const study = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/study', generateId: ({ entry }) => entry.replace(/\.mdx?$/, '') }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    module: z.enum(moduleIds),
+    date: z.coerce.date(),
+    updated: z.coerce.date().optional(),
+    hook: z.object({ stat: z.string(), caption: z.string() }).optional(),
+    pdf: z.string().optional(), // /study/pdf/<file>.pdf, the typeset edition
+    tags: z.array(z.string()).default([]),
+    draft: z.boolean().default(false),
+  }),
+});
+
+export const collections = { posts, study };

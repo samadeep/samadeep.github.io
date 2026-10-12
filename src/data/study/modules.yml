@@ -1,0 +1,198 @@
+# First Principles: the study path, one entry per module. This file is the source of truth for the
+# /study/ hub, the module strip on every chapter and the progress meter. To publish a chapter, add
+# src/content/study/<slug>.md with `module: <id>`, then set `status: written` here.
+#
+#   status: written | next | planned
+#   mode:   full       we write the whole chapter (nothing good exists)
+#           companion  an external text is the main read; our chapter adds derivations and real numbers
+#   needs:  module ids that must come first (draws the dependency map)
+
+- id: M0
+  title: The math core
+  question: What math does an LLM actually use?
+  goal: Own exactly the mathematics later modules use, each topic tied to the place it pays off.
+  status: next
+  mode: full
+  weeks: 4
+  needs: []
+  topics:
+    - Linear algebra as LLMs use it: matmul costs 2mkn FLOPs, rank and low-rank factorisation, SVD, rotations (for RoPE)
+    - Calculus and autodiff: Jacobians, reverse mode, why backward costs about 2x forward (the 6N rule)
+    - Probability: variance of sums (the 1/sqrt(d) in attention), maximum likelihood, sampling, rejection sampling
+    - Information theory: entropy, cross-entropy, KL, perplexity, prediction as compression
+    - Optimisation: SGD, momentum, Adam and AdamW derived, schedules, critical batch size, clipping
+    - Numerics: FP32, BF16, FP16, FP8 and FP4 at the bit level, log-sum-exp, online softmax, quantisation
+    - Signal propagation: Xavier and He init, residual paths, LayerNorm vs RMSNorm
+  lab: A 150-line autodiff engine checked against finite differences, and a float-format explorer.
+  checkpoint:
+    - Derive the softmax cross-entropy gradient p - e_y.
+    - Why does the backward pass of a matmul cost about twice the forward pass?
+    - If q and k have d independent unit-variance entries, what is Var(q.k), and what follows for attention?
+    - Compute a softmax over a stream in one pass without overflow.
+
+- id: M1
+  title: Before the Transformer
+  question: Why did it take 66 years to get from Shannon to attention?
+  goal: Understand the problem each architecture solved, from n-grams to attention, with the papers' own numbers.
+  status: written
+  mode: full
+  weeks: 2
+  needs: [M0]
+  chapter: before-the-transformer
+  topics:
+    - Language models, cross-entropy and perplexity
+    - n-grams and Kneser-Ney smoothing
+    - Bengio's neural language model (2003) and the vocabulary-sharded softmax
+    - RNNs and the vanishing gradient, LSTM and GRU
+    - word2vec, sequence to sequence, Bahdanau and Luong attention, BPE
+  lab: The chapter's 13 exercises, with answers.
+  checkpoint:
+    - Count Sutskever et al.'s 384M parameters from the config.
+    - Derive the vanishing-gradient bound for an RNN.
+    - Map Bahdanau attention onto query, key and value.
+
+- id: M2
+  title: The Transformer
+  question: What exactly happens inside one transformer block?
+  goal: Derive every component of a modern decoder-only transformer and count its cost exactly.
+  status: planned
+  mode: companion
+  weeks: 3
+  needs: [M1]
+  topics:
+    - Scaled dot-product and multi-head attention, causal masking, residuals, pre-norm
+    - Positions: sinusoidal, learned, RoPE derived as rotation, ALiBi, YaRN
+    - SwiGLU, RMSNorm, MQA, GQA, MLA (three ways to shrink the KV cache)
+    - Counting parameters, FLOPs and KV bytes per token for real configs
+    - Scaling laws, Kaplan to Chinchilla
+  lab: A GPT from scratch, and a script that turns any config.json into params, FLOPs and KV bytes.
+  checkpoint:
+    - Show that RoPE makes q_m.k_n depend only on m - n.
+    - KV-cache bytes per token for MHA, GQA-8 and MLA at the same width.
+
+- id: M2b
+  title: Training and post-training
+  question: How does a text predictor become an assistant?
+  goal: Understand pretraining at scale and derive the objectives of SFT, RLHF, DPO and GRPO.
+  status: planned
+  mode: companion
+  weeks: 2
+  needs: [M2]
+  topics:
+    - Data pipelines, deduplication, mixtures, stability tricks
+    - SFT and LoRA
+    - RLHF with Bradley-Terry rewards and PPO, DPO in closed form
+    - RL with verifiable rewards, GRPO, distillation
+  lab: SFT then DPO on a small open model.
+  checkpoint:
+    - Derive the DPO loss from the KL-constrained reward objective.
+    - Why does PPO need a value function and GRPO not?
+
+- id: M3
+  title: GPUs and kernels
+  question: Why does a GPU sit idle while generating text?
+  goal: Predict how fast a kernel can run on real hardware, and explain why.
+  status: planned
+  mode: companion
+  weeks: 3
+  needs: [M2]
+  topics:
+    - SIMT, SMs, warps, tensor cores, occupancy
+    - The memory hierarchy from registers to HBM, with vendor numbers
+    - The roofline model; why decode is memory bound and prefill is compute bound
+    - Tiled GEMM, kernel fusion, FlashAttention v1 to v3
+  lab: Measure the roofline of your own machine, then plot a naive and a tiled matmul on it.
+  checkpoint:
+    - At what batch size does a BF16 matmul cross an H100's ridge point?
+    - Why is FlashAttention faster although it does more FLOPs?
+
+- id: M4
+  title: Inference serving
+  question: What does it take to serve a million tokens a second?
+  goal: Design an LLM serving system for a latency and cost target and predict its throughput.
+  status: planned
+  mode: full
+  weeks: 3
+  needs: [M3]
+  topics:
+    - Prefill vs decode; TTFT, TPOT, goodput
+    - Continuous batching, PagedAttention, prefix caching, chunked prefill
+    - Disaggregated prefill and decode
+    - Speculative decoding with a proof that it is exact
+    - Quantisation for serving, queueing theory, structured decoding
+  lab: A mini server with a paged KV cache and continuous batching, measured under load.
+  checkpoint:
+    - Does a 64-request, 8k-context KV cache for a GQA 70B model fit beside the weights on 8 GPUs?
+    - Prove that speculative decoding samples from the target distribution.
+
+- id: M5
+  title: Parallelism and collectives
+  question: How do you split one model across ten thousand GPUs?
+  goal: Choose a parallelism plan and predict the communication each split costs.
+  status: planned
+  mode: companion
+  weeks: 3
+  needs: [M4, M6]
+  topics:
+    - Collectives from first principles and the alpha-beta cost model
+    - Ring and tree all-reduce, derived
+    - Data parallel, ZeRO and FSDP; tensor, sequence, context and pipeline parallel
+    - Expert parallelism and 3-D layouts
+  lab: A collective-cost simulator that turns a model and layout into time per step.
+  checkpoint:
+    - Derive the ring all-reduce cost.
+    - Pipeline bubble fraction for 8 stages and 32 microbatches with 1F1B.
+
+- id: M6
+  title: Mixture of Experts
+  question: Why do the biggest models use only a sliver of their weights per token?
+  goal: Understand sparse models from 1991 to DeepSeek-V3, and what they cost to serve.
+  status: planned
+  mode: full
+  weeks: 2
+  needs: [M2]
+  topics:
+    - Adaptive mixtures of local experts (1991) and hierarchical mixtures
+    - Sparsely-gated MoE, GShard, Switch: routing, balancing loss, capacity
+    - ST-MoE, expert choice, MegaBlocks, Mixtral
+    - DeepSeekMoE and DeepSeek-V3: fine-grained and shared experts, balancing without an auxiliary loss
+    - All-to-all bytes per token and expert-parallel serving
+  lab: An MoE layer with the Switch balancing loss, and all-to-all traffic for a published config.
+  checkpoint:
+    - Show the Switch balancing loss is minimised by uniform routing.
+    - Bytes per token in the dispatch all-to-all for top-8 routing at width 7168 in FP8.
+
+- id: M7
+  title: Datacenter fabric and optics
+  question: Can light rewire a datacenter fast enough for AI?
+  goal: Reason about the network joining tens of thousands of accelerators, including optical switching.
+  status: planned
+  mode: full
+  weeks: 2
+  needs: [M5]
+  post: optical-circuit-switches-ai-clusters
+  topics:
+    - Clos networks, fat-trees, bisection bandwidth, oversubscription, rail-optimised clusters
+    - RDMA, InfiniBand vs RoCE, PFC and DCQCN
+    - Google's Jupiter fabric and the TPU v4 torus on optical circuit switches
+    - Optical switching physics; reconfiguration time vs burst length
+  lab: A fabric simulator replaying an all-to-all as reconfiguration time goes from ms to ns.
+  checkpoint:
+    - Switches, links and hosts in a 3-tier fat-tree of k-port switches.
+    - For a 20 us burst, what reconfiguration time keeps a circuit above 90% duty?
+
+- id: M8
+  title: The cost of a token
+  question: What does one generated token really cost?
+  goal: Tie compute, memory, network, power and money into one model of a production request.
+  status: planned
+  mode: full
+  weeks: 2
+  needs: [M7]
+  topics:
+    - One request end to end, from scheduler to the last decode step
+    - Compute, memory and bandwidth per token for a real model and cluster
+    - Power per token and dollars per million tokens
+  lab: A cost model you can tune, and the flagship write-up built on it.
+  checkpoint:
+    - Which single knob moves cost per token the most for your chosen setup, and why?

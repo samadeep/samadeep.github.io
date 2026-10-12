@@ -3,6 +3,7 @@ import { createRequire } from 'node:module';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
 import { getPosts, issueLabel } from '../../lib/posts';
+import { getChapters } from '../../lib/study';
 import { SITE } from '../../lib/site';
 import { LOGO_SVG } from '../../lib/logo';
 
@@ -56,8 +57,11 @@ const clip = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1).replace
 
 export async function getStaticPaths() {
   const posts = await getPosts();
+  const chapters = await getChapters();
   const max = Math.max(...posts.map((p) => p.minutes), 10);
   return [
+    // First Principles chapters: /og/study-<slug>.png
+    ...chapters.map((c) => ({ params: { slug: `study-${c.id}` }, props: { title: clip(c.data.title, 95), sub: clip(c.data.description, 140), foot: `First Principles · Module ${c.data.module.slice(1)}`, bars: [(c.minutes / Math.max(max, c.minutes)) * 100], hook: c.data.hook } })),
     { params: { slug: 'site' }, props: { title: SITE.name, sub: SITE.description, foot: 'samadeep.github.io', bars: posts.slice(0, 3).map((p) => (p.minutes / max) * 100) } },
     ...posts.map((p) => ({ params: { slug: p.id }, props: { title: clip(p.data.title, 95), sub: clip(p.data.description, 140), foot: [issueLabel(p), p.data.vm ? 'runs in your browser' : `${p.minutes} min read`].filter(Boolean).join(' · '), bars: [(p.minutes / max) * 100], hook: p.data.hook } })),
   ];

@@ -186,4 +186,5 @@ for (const el of document.querySelectorAll<HTMLElement>('[data-lab]')) {
   else if (el.dataset.lab === 'icecube') import('./icecube').then((m) => m.icecubeLab(el));
   else if (el.dataset.lab === 'ratelimit') import('./ratelimit').then((m) => m.rateLimitLab(el));
   else if (el.dataset.lab === 'ocs') import('./ocs').then((m) => m.ocsLab(el));
+  else if (el.dataset.lab === 'vanish') import('./vanish').then((m) => m.vanishLab(el));
 }

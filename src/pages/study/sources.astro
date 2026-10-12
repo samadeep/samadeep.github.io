@@ -1,0 +1,65 @@
+---
+// The best existing material per module, from src/data/study/sources.yml. Filters live in the URL
+// (?m=M3&free) so a filtered list can be shared.
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import { MODULES, SOURCES } from '../../lib/study';
+
+const used = MODULES.filter((m) => SOURCES.some((s) => s.modules.includes(m.id)));
+const count = (id: string) => SOURCES.filter((s) => s.modules.includes(id)).length;
+const checked = SOURCES.map((s) => s.checked).filter(Boolean).sort().pop();
+---
+<Base title="Sources for First Principles" description="The best free books, courses and papers for learning how LLMs work, chosen per module: math, transformers, GPUs, serving, parallelism, MoE and networks.">
+  <div class="wrap wide study">
+    <header class="page-head">
+      <p class="kicker"><a class="topic-link" href="/study/"><Icon name="graduation-cap" />First Principles</a></p>
+      <h1>Sources</h1>
+      <p>The best existing text for each module. <b>Main text</b> means read it first; the rest sit beside our chapters. Every link was opened{checked && ` on ${checked}`}; entries without one are books to search by title.</p>
+    </header>
+
+    <div class="chips sp-filter" role="toolbar" aria-label="Filter sources">
+      <button class="chip" type="button" data-m="" aria-pressed="true">All <span class="n">{SOURCES.length}</span></button>
+      {used.map((m) => <button class="chip" type="button" data-m={m.id} aria-pressed="false" title={m.title}>{m.id} <span class="n">{count(m.id)}</span></button>)}
+      <button class="chip" type="button" data-free aria-pressed="false">Free only</button>
+    </div>
+
+    <ul class="sp-sources">
+      {SOURCES.map((s) => (
+        <li data-mods={s.modules.join(' ')} data-free={s.free ? '1' : '0'}>
+          <p class="ss-t">{s.url ? <a href={s.url} rel="noopener">{s.title}<Icon name="arrow-up-right" /></a> : <span>{s.title}</span>}</p>
+          <p class="ss-by">{s.by}{s.role === 'primary' && <span class="ss-role">main text</span>}{s.free === true && <span class="ss-free">free</span>}{s.free === false && <span class="ss-paid">paid</span>}</p>
+          <p class="ss-note">{s.note}</p>
+          <p class="ss-mods">{s.modules.map((id) => <a href={`/study/#${id.toLowerCase()}`}>{id} {MODULES.find((m) => m.id === id)!.title}</a>)}</p>
+        </li>
+      ))}
+    </ul>
+    <p class="sp-note" data-empty hidden>Nothing matches. <button class="chip" type="button" data-reset>Clear filters</button></p>
+  </div>
+
+  <script>
+    const items = [...document.querySelectorAll<HTMLLIElement>('.sp-sources > li')];
+    const modBtns = [...document.querySelectorAll<HTMLButtonElement>('.sp-filter [data-m]')];
+    const freeBtn = document.querySelector<HTMLButtonElement>('.sp-filter [data-free]')!;
+    const empty = document.querySelector<HTMLElement>('[data-empty]')!;
+    const q = new URLSearchParams(location.search);
+    let mod = q.get('m') ?? '', free = q.has('free');
+    const apply = () => {
+      modBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.m === mod)));
+      freeBtn.setAttribute('aria-pressed', String(free));
+      let shown = 0;
+      for (const li of items) {
+        const ok = (!mod || li.dataset.mods!.split(' ').includes(mod)) && (!free || li.dataset.free === '1');
+        li.hidden = !ok; if (ok) shown++;
+      }
+      empty.hidden = shown > 0;
+      const u = new URL(location.href);
+      mod ? u.searchParams.set('m', mod) : u.searchParams.delete('m');
+      free ? u.searchParams.set('free', '') : u.searchParams.delete('free');
+      history.replaceState(null, '', u.pathname + (u.searchParams.toString() ? `?${u.searchParams.toString().replace('free=', 'free')}` : ''));
+    };
+    modBtns.forEach((b) => (b.onclick = () => { mod = b.dataset.m ?? ''; apply(); }));
+    freeBtn.onclick = () => { free = !free; apply(); };
+    document.querySelector<HTMLButtonElement>('[data-reset]')!.onclick = () => { mod = ''; free = false; apply(); };
+    apply();
+  </script>
+</Base>
