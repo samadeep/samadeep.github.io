@@ -99,6 +99,8 @@ g2 -> g3
 
 > **Insight:** Relax the order, solve the counting problem, then prove an order exists. Many "minimum operations" problems hide a walk or a flow once you stop asking *when* each operation happens.
 
+The same move cracked a second problem this week. In Codeforces 2271E, Array Emptying, the editorial lets *any* element be split, moves every split before every erase, and only then argues the schedule is legal[^cf1126].
+
 ## The one rule: never step back along the same card
 
 A move needs two **different** cards. In the walk, that means two consecutive edges are never the same card. Forget this and BFS cheerfully walks card 1 forward and then straight back.
@@ -311,6 +313,22 @@ weighted median slope 7/3, cost 10; best on a 0.01 grid: cost 1001/100 at x=233/
 
 Pitfall from the editorial: the final answer fits in 64 bits, but intermediate comparisons of the rational slopes can overflow, so its sample uses `__int128`. The general rule: Σ w<sub>i</sub>|x − p<sub>i</sub>| is minimised at a weighted median, so any "scale then absolute value" cost becomes a sort.
 
+### Everything else this week, in one line each
+
+Every other problem from the week's contests, with the editorial's key idea. Pick any that catch your eye.
+
+- **[CF 2271D, Target Infection](https://codeforces.com/contest/2271/problem/D):** binary search on a function that is not monotonic, which works because the count changes by at most 1 per shift, so every value in between is hit[^cf1126].
+- **[CF 2271F, Beautiful Pillers](https://codeforces.com/contest/2271/problem/F):** the answer is always 0, 1 or 2, and only three candidates need checking for 1[^cf1126].
+- **[CF 2271C, XOR Problem](https://codeforces.com/contest/2271/problem/C):** design the prefix XORs instead of the array: walk 0..x−1 and back, then x..2x−1 and back[^cf1126].
+- **[CF 2271B, MEX Game](https://codeforces.com/contest/2271/problem/B):** mirror strategy by pairing equal cards[^cf1126].
+- **[CF 2275H, A Problem to Warm Up the Eyebrows](https://codeforces.com/contest/2275/problem/H):** expand the squared submatrix sum into pairs of cells; signs cancel by parity, leaving O(nm)[^cf1125].
+- **[CF 2275F, Tea Blend](https://codeforces.com/contest/2275/problem/F):** reduce numbers to their square-free kernels, then count equal kernels[^cf1125].
+- **[CF 2275G, Copper Squander](https://codeforces.com/contest/2275/problem/G):** keep an MST per component, then sell tree edges while the saving beats a rising reconnection cost, found by binary search on prefix sums[^cf1125].
+- **[ABC479 F, Narrow Passage](https://atcoder.jp/contests/abc479/tasks/abc479_f):** minimum adjacent swaps with empty cells is the inversion count of a built sequence; split the pairs by type to handle 10<sup>9</sup> cells[^ed479f].
+- **[ARC232 A, Two in the Range](https://atcoder.jp/contests/arc232/tasks/arc232_a):** every DP set is a contiguous range with both ends moving right, so each transition is a two-pointer step[^ed232a].
+- **[ARC232 D, Delete Different](https://atcoder.jp/contests/arc232/tasks/arc232_d):** count sequences by running the deletion backwards, as insertions, in O(N<sup>3</sup>)[^ed232d].
+- **[ARC232 E, Doubling](https://atcoder.jp/contests/arc232/tasks/arc232_e):** generating functions with a family of exponents 2<sup>j</sup> − 1, only O(log K) of which matter[^ed232e].
+
 ## How to recognise a walk next time
 
 Back to the four cards. The puzzle looked like a search over 2<sup>N</sup> states, and it was a BFS over 2N arcs. The signals:
@@ -347,7 +365,7 @@ Practice, from closest to furthest:
 - **What was run:** every block of output above is real, from one 2.1 GHz Xeon machine. The C++ solution matched the 2<sup>N</sup> brute force on 10,000 random cases and the hand-checked cases in `cases.txt`, ran clean under AddressSanitizer and UBSan, and was timed at N = 250,000. The naive scan at N = 250,000 was not run to completion; "minutes" is an extrapolation from the 4× per doubling trend. Nothing was submitted to the AtCoder judge.
 - **The contest:** the walk model and the proof that a legal order exists come from the official ARC232 B editorial; the twice rule, the figures and the wrong-model comparisons are this post's own. The ARC232 C and ABC479 G summaries follow their editorials.
 - **The 3SUM paper:** claims are as stated in the preprint's abstract and body; it is not peer reviewed, and none of it was reproduced here.
-- **Sweep gaps:** Codeforces problem pages and editorials for this week's rounds (1125, 1126, 1127) could not be fetched for this issue, so they are not covered.
+- **Sweep gaps:** the editorial for Codeforces Round 1127 (contests 2273 and 2274) had not loaded its solutions when checked, and 2271H's editorial was not yet written, so those problems are not listed. CodeChef and LeetCode contests were not swept. The one-line ideas above are summaries of their editorials and were not implemented here.
 
 </details>
 
@@ -360,3 +378,9 @@ Practice, from closest to furthest:
 [^cfblog]: towersfreak2006, [3-SUM Conjecture and APSP Conjecture FALSE?!](https://codeforces.com/blog/entry/157443), Codeforces, 2026.
 [^ed232c]: evima, [ARC232 C official editorial](https://atcoder.jp/contests/arc232/editorial/27126), AtCoder, 2026.
 [^ed479g]: physics0523, [ABC479 G official editorial](https://atcoder.jp/contests/abc479/editorial/27132), AtCoder, 2026.
+[^cf1126]: employed, [Editorial of DeepInfra Round 1 (Codeforces Round 1126)](https://codeforces.com/blog/entry/157590), Codeforces, 2026.
+[^cf1125]: K1o0n, [Codeforces Round 1125 (Div. 3) editorial](https://codeforces.com/blog/entry/157528), Codeforces, 2026.
+[^ed479f]: cn449, [ABC479 F official editorial](https://atcoder.jp/contests/abc479/editorial/27142), AtCoder, 2026.
+[^ed232a]: evima, [ARC232 A official editorial](https://atcoder.jp/contests/arc232/editorial/27124), AtCoder, 2026.
+[^ed232d]: evima, [ARC232 D official editorial](https://atcoder.jp/contests/arc232/editorial/27127), AtCoder, 2026.
+[^ed232e]: evima, [ARC232 E official editorial](https://atcoder.jp/contests/arc232/editorial/27128), AtCoder, 2026.
