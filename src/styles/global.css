@@ -766,6 +766,21 @@ a.topic-link { text-decoration: none; } a.topic-link:hover { color: var(--trace)
 .lab-fastcopy .fc-tl { position: relative; height: 1.1rem; margin: 0 .9rem; border-bottom: 1px solid var(--lab-rule); overflow: hidden; }
 .lab-fastcopy .fc-tick { position: absolute; bottom: 0; width: 2px; height: 100%; background: #00aebb; transform: translateX(-1px); }
 .lab-fastcopy .fc-tick.drop { background: #ffd43b; height: 140%; }
+/* ecc.ts: the 72-bit word simulator. Lab panels are always dark. */
+.lab-ecc .ecc-val { min-width: 8rem; text-align: center; font-size: .75rem; }
+.lab-ecc .ecc-hint { padding: .7rem .9rem 0; color: var(--lab-dim); font-size: .72rem; }
+.lab-ecc .ecc-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; max-width: 640px; margin: .6rem auto 0; padding: 0 .9rem; }
+.lab-ecc .ecc-cell { aspect-ratio: 1; min-width: 0; padding: 0; border: 1px solid var(--lab-rule); border-radius: 4px; background: #0a1e1d; color: var(--lab-dim); font: 400 .6rem var(--mono); cursor: pointer; transition: background .2s, border-color .2s, color .2s; }
+.lab-ecc .ecc-cell.chk { background: #12302d; }
+.lab-ecc .ecc-cell.hit { background: #ff6b6b; border-color: #ff6b6b; color: #031211; font-weight: 700; }
+.lab-ecc .ecc-cell.fixed { background: #51cf66; border-color: #51cf66; color: #031211; font-weight: 700; }
+.lab-ecc .ecc-cell.blamed { background: #ffd43b; border-color: #ffd43b; color: #031211; font-weight: 700; box-shadow: 0 0 0 2px #ffd43b66; }
+.lab-ecc .ecc-synd { padding: .6rem .9rem 0; color: var(--lab-dim); font-size: .75rem; text-align: center; }
+.lab-ecc .ecc-verdict { min-height: 2.6em; margin: .5rem .9rem 0; padding: .45rem .7rem; border-left: 3px solid var(--lab-rule); font-size: .78rem; }
+.lab-ecc .ecc-verdict.corrected { border-color: #51cf66; }
+.lab-ecc .ecc-verdict.detected { border-color: #00aebb; }
+.lab-ecc .ecc-verdict.miscorrected, .lab-ecc .ecc-verdict.silent { border-color: #ffd43b; color: #ffd43b; }
+@media (prefers-reduced-motion: reduce) { .lab-ecc .ecc-cell { transition: none; } }
 .lab-ocs .oc-svg { display: block; width: 100%; max-width: 760px; height: auto; margin: .6rem auto 0; }
 .lab-ocs .oc-svg text { font-family: var(--mono); }
 .lab-ocs .oc-lane { display: flex; justify-content: space-between; max-width: 760px; margin: 0 auto; padding: 0 .9rem; color: var(--lab-dim); font-size: .72rem; }
