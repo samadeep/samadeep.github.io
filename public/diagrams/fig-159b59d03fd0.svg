@@ -1,0 +1,38 @@
+<svg style="font-family:'Aptos Mono','JetBrains Mono',ui-monospace,monospace" class="fig-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 765 339" width="765" height="339" role="img" aria-label="Three panels. One flip: a hit flips bit 5, the decoder's syndrome points at bit 5, it flips it back, data correct. Two flips: bits 5 and 40 flip, overall parity is even but the syndrome is not zero, the decoder raises an uncorrectable error and the machine stops, nothing silently wrong. Three flips: bits 5, 40 and 61 flip, overall parity is odd so it looks like one flip, the syndrome points at bit 16, the decoder flips bit 16 and four bits are now wrong, logged as corrected."><style>/* ```fig diagrams (src/lib/remark-fig.mjs). Palette from the Claude Code docs Subagents / Agent Teams figure. */
+.fig-svg {
+  --f-panel: #e9ecef; --f-panel-edge: #ffffff; --f-ink: #1e1e1e; --f-body: #495057; --f-life: #ced4da;
+  --f-main: #ffc9c9; --f-worker: #ffd8a8; --f-peer: #d0bfff; --f-shared: #a5d8ff; --f-box: #ffffff;
+  --f-allow: #b2f2bb; --f-deny: #ffa8a8; --f-ask: #ffec99;
+  --f-muted: #868e96; --f-lost: #e03131; --f-good: #2f9e44;
+  font-family: 'Aptos Mono', 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace;
+}
+[data-theme='dark'] .fig-svg {
+  --f-panel: #202225; --f-panel-edge: #2b2e33; --f-ink: #d3d3d3; --f-body: #adb5bd; --f-life: #45494f;
+  --f-main: #5b2c2c; --f-worker: #4c2a01; --f-peer: #483a71; --f-shared: #154163; --f-box: #2c2f33;
+  --f-allow: #1f4a2a; --f-deny: #6b2121; --f-ask: #4d4111;
+  --f-muted: #6f757c; --f-lost: #ff6b6b; --f-good: #51cf66;
+}
+.fig-svg .fpanel { fill: var(--f-panel); stroke: var(--f-panel-edge); stroke-width: 2; }
+.fig-svg .ftitle { fill: var(--f-ink); font-weight: 500; }
+.fig-svg .ftitle-in { fill: var(--f-body); font-weight: 700; letter-spacing: .02em; }
+.fig-svg .fn { stroke: var(--f-ink); stroke-width: 1.6; }
+.fig-svg .fn-main { fill: var(--f-main); } .fig-svg .fn-worker { fill: var(--f-worker); } .fig-svg .fn-peer { fill: var(--f-peer); }
+.fig-svg .fn-shared { fill: var(--f-shared); stroke-dasharray: 2 3; stroke-linecap: round; }
+.fig-svg .fn-box { fill: var(--f-box); } .fig-svg .fn-allow { fill: var(--f-allow); } .fig-svg .fn-deny { fill: var(--f-deny); } .fig-svg .fn-ask { fill: var(--f-ask); }
+.fig-svg .fn-result { fill: none; stroke-width: 2; stroke-dasharray: 1.5 4; stroke-linecap: round; }
+.fig-svg .ft { fill: var(--f-ink); font-weight: 500; }
+.fig-svg .ft-card { font-weight: 700; }
+.fig-svg .fb { fill: var(--f-body); font-weight: 400; }
+.fig-svg .fi { color: var(--f-body); }
+.fig-svg .fe { fill: none; stroke: var(--f-ink); stroke-width: 1.8; }
+.fig-svg .fa { fill: var(--f-ink); stroke: none; }
+.fig-svg .fl { fill: var(--f-ink); font-weight: 400; }
+.fig-svg .fp { fill: var(--f-panel); }
+.fig-svg .fe-muted { stroke: var(--f-muted); stroke-width: 1.6; } .fig-svg .tone-muted { fill: var(--f-muted); }
+.fig-svg .fe-lost { stroke: var(--f-lost); stroke-dasharray: 6 4; } .fig-svg .tone-lost { fill: var(--f-lost); }
+.fig-svg .fe-good { stroke: var(--f-good); } .fig-svg .tone-good { fill: var(--f-good); }
+.fig-svg .fe-dashed { stroke-dasharray: 5 4; }
+.fig-svg .flife { stroke: var(--f-life); stroke-width: 1.5; fill: none; }
+.fig-svg .fnote { fill: var(--f-panel); stroke-width: 1.2; }
+.fig-svg .fnote { stroke: var(--f-ink); } .fig-svg .fnote.tone-lost { stroke: var(--f-lost); fill: var(--f-panel); }
+</style><rect class="fpanel" x="1" y="45" width="225" height="293" rx="16"/><text class="ftitle" x="113.5" y="24" text-anchor="middle" dominant-baseline="central" font-size="22"><tspan x="113.5" y="24">1 flip</tspan></text><rect class="fpanel" x="252" y="45" width="225" height="293" rx="16"/><text class="ftitle" x="364.6" y="24" text-anchor="middle" dominant-baseline="central" font-size="22"><tspan x="364.6" y="24">2 flips</tspan></text><rect class="fpanel" x="503.1" y="45" width="260" height="293" rx="16"/><text class="ftitle" x="633.1" y="24" text-anchor="middle" dominant-baseline="central" font-size="22"><tspan x="633.1" y="24">3 flips</tspan></text><path class="fe" d="M113.5 111V137"/><path class="fa " d="M113.5 145L109.2 137L117.9 137Z"/><path class="fe" d="M113.5 205V231"/><path class="fa " d="M113.5 239L109.2 231L117.9 231Z"/><path class="fe" d="M364.6 111V137"/><path class="fa " d="M364.6 145L360.2 137L368.9 137Z"/><path class="fe" d="M364.6 205V231"/><path class="fa " d="M364.6 239L360.2 231L368.9 231Z"/><path class="fe" d="M633.1 111V137"/><path class="fa " d="M633.1 145L628.7 137L637.4 137Z"/><path class="fe fe-lost" d="M633.1 205V245"/><path class="fa tone-lost" d="M633.1 253L628.7 245L637.4 245Z"/><rect class="fp" x="584.5" y="221" width="97.2" height="16"/><text class="fl tone-lost" x="633.1" y="229" text-anchor="middle" dominant-baseline="central" font-size="11"><tspan x="633.1" y="229">syndrome = 16</tspan></text><rect class="fn fn-deny" x="26" y="70" width="175" height="41" rx="8"/><text class="ft" x="113.5" y="90.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="113.5" y="90.5">bit 5 flips</tspan></text><rect class="fn fn-worker" x="26" y="145" width="175" height="60" rx="8"/><text class="ft" x="113.5" y="165.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="113.5" y="165.5">syndrome points</tspan><tspan x="113.5" y="184.5">at bit 5</tspan></text><rect class="fn fn-allow" x="26" y="239" width="175" height="60" rx="8"/><text class="ft" x="113.5" y="259.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="113.5" y="259.5">flip it back</tspan><tspan x="113.5" y="278.5">data correct</tspan></text><rect class="fn fn-deny" x="277" y="70" width="175" height="41" rx="8"/><text class="ft" x="364.6" y="90.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="364.6" y="90.5">bits 5, 40 flip</tspan></text><rect class="fn fn-worker" x="277" y="145" width="175" height="60" rx="8"/><text class="ft" x="364.6" y="165.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="364.6" y="165.5">parity even,</tspan><tspan x="364.6" y="184.5">syndrome not 0</tspan></text><rect class="fn fn-ask" x="277" y="239" width="175" height="60" rx="8"/><text class="ft" x="364.6" y="259.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="364.6" y="259.5">machine-check</tspan><tspan x="364.6" y="278.5">nothing silent</tspan></text><rect class="fn fn-deny" x="528.1" y="70" width="210" height="41" rx="8"/><text class="ft" x="633.1" y="90.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="633.1" y="90.5">bits 5, 40, 61 flip</tspan></text><rect class="fn fn-worker" x="528.1" y="145" width="210" height="60" rx="8"/><text class="ft" x="633.1" y="165.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="633.1" y="165.5">parity odd:</tspan><tspan x="633.1" y="184.5">looks like 1 flip</tspan></text><rect class="fn fn-deny" x="528.1" y="253" width="210" height="60" rx="8"/><text class="ft" x="633.1" y="273.5" text-anchor="middle" dominant-baseline="central" font-size="14"><tspan x="633.1" y="273.5">-X- flips bit 16</tspan><tspan x="633.1" y="292.5">4 bits wrong</tspan></text></svg>
