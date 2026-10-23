@@ -187,4 +187,5 @@ for (const el of document.querySelectorAll<HTMLElement>('[data-lab]')) {
   else if (el.dataset.lab === 'ratelimit') import('./ratelimit').then((m) => m.rateLimitLab(el));
   else if (el.dataset.lab === 'fastcopy') import('./fastcopy').then((m) => m.fastCopyLab(el));
   else if (el.dataset.lab === 'ocs') import('./ocs').then((m) => m.ocsLab(el));
+  else if (el.dataset.lab === 'agentbox') import('./agentbox').then((m) => m.agentBoxLab(el));
 }

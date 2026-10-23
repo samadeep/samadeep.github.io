@@ -775,6 +775,25 @@ a.topic-link { text-decoration: none; } a.topic-link:hover { color: var(--trace)
 .lab-ocs .oc-status { text-align: center; padding: .4rem .9rem 0; font-size: .78rem; }
 .lab-ocs .oc-val { min-width: 14rem; text-align: center; font-size: .75rem; }
 
+/* agent density: one knob (share running), a strip of sessions, two host gauges */
+.lab-agentbox .ab-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .8rem; padding: .8rem .9rem .2rem; }
+.lab-agentbox .ab-ctl-l { color: var(--lab-dim); font-size: .75rem; }
+.lab-agentbox .ab-slider { flex: 1; min-width: 9rem; max-width: 22rem; accent-color: #00aebb; }
+.lab-agentbox .ab-val { min-width: 2.6rem; text-align: right; color: var(--lab-ink); font-variant-numeric: tabular-nums; }
+.lab-agentbox .ab-svg { display: block; width: 100%; max-width: 420px; height: auto; margin: .5rem auto 0; }
+.lab-agentbox .ab-legend { display: flex; justify-content: center; gap: 1.2rem; color: var(--lab-dim); font-size: .72rem; padding: .2rem 0 0; }
+.lab-agentbox .ab-k::before { content: ''; display: inline-block; width: .6rem; height: .6rem; border-radius: 50%; margin-right: .35rem; vertical-align: baseline; }
+.lab-agentbox .ab-k-on::before { background: #00aebb; }
+.lab-agentbox .ab-k-off::before { background: #3a514f; }
+.lab-agentbox .ab-gauges { padding: .8rem .9rem 0; display: grid; gap: .55rem; }
+.lab-agentbox .ab-gauge { display: grid; grid-template-columns: 9rem 1fr auto; align-items: center; gap: .6rem; }
+.lab-agentbox .ab-gl { color: var(--lab-dim); font-size: .75rem; }
+.lab-agentbox .ab-track { height: .7rem; border-radius: 4px; background: var(--lab-rule); overflow: hidden; }
+.lab-agentbox .ab-fill { display: block; height: 100%; width: 0; background: #00aebb; transition: width .25s ease; }
+.lab-agentbox .ab-fill.dim { background: #55615e; }
+.lab-agentbox .ab-count { min-width: 4rem; text-align: right; color: var(--lab-ink); font-variant-numeric: tabular-nums; font-size: .82rem; }
+@media (max-width: 560px) { .lab-agentbox .ab-gauge { grid-template-columns: 7rem 1fr auto; } .lab-agentbox .ab-gl { font-size: .7rem; } }
+
 /* numbered references: GFM footnotes shown as [1], with a visible list at the end */
 .prose sup:has(> a[data-footnote-ref]) { font-size: .72em; vertical-align: .35em; line-height: 0; }
 a[data-footnote-ref] { text-decoration: none; color: var(--trace); font-variant-numeric: tabular-nums; }
