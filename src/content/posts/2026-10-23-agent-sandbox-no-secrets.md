@@ -124,7 +124,7 @@ gw -> box "document (no token)"
 
 > **Insight:** The security boundary of an agent is not the wall around the sandbox. It is the broker on the other side of the one hole in that wall.
 
-This is why I'd argue the isolation-technology choice is oversold. A perfect hypervisor around a box that holds a refresh token still loses to one injected email. A leaky container that holds nothing leaks nothing worth having. Isolation still matters, but for a narrower job than the marketing suggests: keeping one tenant's *compute* off another's, and surviving the moment the model runs genuinely hostile code. Which brings us to the argument everyone actually has.
+This is why the isolation-technology choice is oversold. A perfect hypervisor around a box that holds a refresh token still loses to one injected email. A leaky container that holds nothing leaks nothing worth having. Isolation still matters, but for a narrower job than the marketing suggests: keeping one tenant's *compute* off another's, and surviving the moment the model runs genuinely hostile code. Which brings us to the argument everyone actually has.
 
 ## The box itself: four ways to draw the wall
 
@@ -220,7 +220,7 @@ curl -O https://samadeep.github.io/labs/agent-sandbox/lab.sh && sudo sh lab.sh a
 
 - The lab models the **credential and network** boundary (no secrets in the box, no NIC, broker-mediated egress, identity that isn't a key). It does **not** model the hypervisor wall itself: the "box" is a network namespace, not a Firecracker microVM, so it demonstrates the zero-secrets design, not VM escape resistance.
 - The density figures (512 GiB host, 2 GiB base, 0.5 GiB active delta, 0.02 GiB idle, 2.5 GiB per always-on VM) are an **illustrative model**, not measured from any provider. The shape is real; the constants are chosen for a clean example.
-- All per-vendor latency and density numbers are **each vendor's published claims**, gathered from the sources below, not a benchmark I ran. Where a vendor publishes no number, the table says so.
+- All per-vendor latency and density numbers are **each vendor's published claims**, gathered from the sources below, not a controlled benchmark. Where a vendor publishes no number, the table says so.
 
 </details>
 
