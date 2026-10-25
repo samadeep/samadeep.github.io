@@ -758,6 +758,19 @@ a.topic-link { text-decoration: none; } a.topic-link:hover { color: var(--trace)
 .lab-ratelimit .rl-track { width: 9rem; height: .55rem; border-radius: 3px; background: var(--lab-rule); overflow: hidden; }
 .lab-ratelimit .rl-fill { display: block; height: 100%; width: 0; background: #00aebb; }
 .lab-ratelimit .rl-val { min-width: 11rem; text-align: center; font-size: .75rem; }
+.lab-cliff .cl-svg { display: block; width: 100%; max-width: 620px; height: auto; margin: .6rem auto 0; }
+.lab-cliff .cl-svg text { font-family: var(--mono); }
+.lab-cliff .cl-val { min-width: 12rem; text-align: center; font-size: .75rem; }
+.lab-cliff .cl-axis { display: grid; gap: .15rem; max-width: 760px; margin: .3rem auto .4rem; padding: 0 .9rem; font-size: .75rem; color: var(--lab-dim); text-align: center; }
+.lab-cliff .cl-wall { color: #ff6b6b; }
+.lab-cliff .cl-dot { color: #00aebb; }
+.lab-cliff .cl-dot.gone { color: #ff6b6b; }
+.lab-cliff .cl-meters { display: grid; gap: .45rem; max-width: 760px; margin: .4rem auto 0; padding: 0 .9rem; }
+.lab-cliff .cl-row { display: grid; grid-template-columns: 9.5rem 1fr 8.5rem; gap: .6rem; align-items: center; color: var(--lab-dim); font-size: .75rem; white-space: pre; }
+.lab-cliff .cl-track { height: .55rem; border-radius: 3px; background: var(--lab-rule); overflow: hidden; }
+.lab-cliff .cl-fill { display: block; height: 100%; width: 0; background: #00aebb; transition: width .12s linear; }
+.lab-cliff .cl-num { text-align: right; }
+@media (max-width: 520px) { .lab-cliff .cl-row { grid-template-columns: 1fr; gap: .2rem; } .lab-cliff .cl-num { text-align: left; } }
 .lab-fastcopy .fc-svg { display: block; width: 100%; max-width: 760px; height: auto; margin: .6rem auto 0; }
 .lab-fastcopy .fc-svg text { font-family: var(--mono); }
 .lab-fastcopy .fc-lanes { max-width: 760px; margin: .5rem auto 0; padding: 0 .9rem; color: var(--lab-dim); font-size: .72rem; }
