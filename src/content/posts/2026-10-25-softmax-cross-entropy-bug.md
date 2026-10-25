@@ -16,6 +16,8 @@ tags: [softmax, cross-entropy, floating-point, adam, grokking, numerical-stabili
 
 </aside>
 
+*A runnable companion to Barron, Gnanapragasam and Tschannen's [A Fix for Softmax and Cross-Entropy](https://arxiv.org/abs/2610.31642). The two bugs and their fixes are theirs; the simulator, the lab and every output quoted below were run for this post.*
+
 Feed three logits into the cross-entropy that ships with JAX and Optax: the right class at `9`, the two wrong ones at `-9`, everything in float32.
 
 ```text
@@ -252,6 +254,8 @@ Only what was measured here or in the paper:
 - **Loss computed in bf16:** the cliff is at margin 5.55, a target probability of just 99.6%. Check whether your loss kernel upcasts logits to fp32 first.
 - **Loss in fp32:** the cliff moves to 16.64 ($$q_t = 1 - 5.9\times10^{-8}$$). Models reach it when they memorise, and with default Adam ($$\epsilon = 10^{-8}$$) the resting margin of 18.42 sits past it, so a long run on data the model already fits is aimed at it.
 - **Distillation or a KL penalty with the student near its target:** in bf16 the false gradient at student = teacher was `4.9e-4` here, far above Adam's $$\epsilon$$.
+- **Label smoothing keeps you off the cliff.** With smoothing $$\alpha$$ the loss is minimised at margin $$\log\frac{1-\alpha}{\alpha}$$ (plus a hair for small $$K$$): 2.2 for $$\alpha = 0.1$$, 4.6 for $$\alpha = 0.01$$, both below even bf16's 5.55. There is nothing pulling the margin further.
+- **Cost of the fix:** a mask and an elementwise op next to a reduction the loss already does; the authors report no meaningful slowdown[^paper]. Not timed here.
 - **A cheap check:** count rows whose loss is exactly `0.0`, or log the largest $$|\sum_k g_k|$$ per batch. A correct softmax gradient sums to zero.
 
 The paper's own caveat: margins this extreme and students this close are uncommon in standard large-scale training[^paper].
