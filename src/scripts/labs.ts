@@ -3,6 +3,8 @@
 //     -> editable Python + terminal, run in the reader's browser with Pyodide (in a Web Worker)
 //   <div data-lab="stream"></div>
 //     -> token streaming demo: direct vs a gzip proxy, per-token vs batched writes, drop and resume
+//   <div data-lab="bbnode"></div>
+//     -> one B-tree node searched three ways (std, inline keys, prefix + inline), lines and heap reads counted
 // The "full" distribution, not the npm package: npm ships the Python core only, so imported packages
 // (numpy, ...) 404 there. Same version either way.
 const PYODIDE = 'https://cdn.jsdelivr.net/pyodide/v314.0.7/full/';
@@ -188,4 +190,5 @@ for (const el of document.querySelectorAll<HTMLElement>('[data-lab]')) {
   else if (el.dataset.lab === 'fastcopy') import('./fastcopy').then((m) => m.fastCopyLab(el));
   else if (el.dataset.lab === 'ocs') import('./ocs').then((m) => m.ocsLab(el));
   else if (el.dataset.lab === 'agentbox') import('./agentbox').then((m) => m.agentBoxLab(el));
+  else if (el.dataset.lab === 'bbnode') import('./bbnode').then((m) => m.bbNodeLab(el));
 }

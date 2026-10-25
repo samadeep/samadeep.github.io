@@ -1,0 +1,37 @@
+# machine: Intel(R) Xeon(R) Processor @ 2.10GHz, 2 vCPUs, L2 4 MiB, L3 260 MiB, 7 GiB RAM, rustc 1.97.0 (2d8144b78 2026-07-07)
+# glibc malloc, -C target-cpu=native
+u64 keys, 10000000 entries, 4000000 random lookups that hit
+  build  std BTreeMap           610.0 ns/insert
+  build  bbtree                 483.8 ns/insert
+  get    round 0: std 1002.9 ns   bbtree  314.5 ns   bbtree get_many(16)  202.5 ns   (3.19x, 4.95x)
+  get    round 1: std 1054.4 ns   bbtree  303.5 ns   bbtree get_many(16)  191.9 ns   (3.47x, 5.49x)
+URL keys (e.g. https://en.wikipedia.org/wiki/Mount_of_ae0bf34d), 2000000 entries, 2000000 random lookups that hit
+  build  std BTreeMap          1427.7 ns/insert
+  build  bbtree                 832.7 ns/insert
+  get    round 0: std 1847.1 ns   bbtree  684.3 ns   (2.70x)
+  get    round 1: std 1837.4 ns   bbtree  671.9 ns   (2.73x)
+memory std    u64 10000000 entries:   279.1 MiB resident,  29.3 B/entry
+memory bbtree u64 10000000 entries:   512.1 MiB resident,  53.7 B/entry
+memory std    url 2000000 entries:   253.1 MiB resident, 132.7 B/entry
+memory bbtree url 2000000 entries:   273.6 MiB resident, 143.5 B/entry
+# mimalloc, -C target-cpu=native
+u64 keys, 10000000 entries, 4000000 random lookups that hit
+  build  std BTreeMap           536.0 ns/insert
+  build  bbtree                 351.6 ns/insert
+  get    round 0: std  794.4 ns   bbtree  237.0 ns   bbtree get_many(16)  154.3 ns   (3.35x, 5.15x)
+  get    round 1: std  771.2 ns   bbtree  236.4 ns   bbtree get_many(16)  152.2 ns   (3.26x, 5.07x)
+URL keys (e.g. https://en.wikipedia.org/wiki/Mount_of_ae0bf34d), 2000000 entries, 2000000 random lookups that hit
+  build  std BTreeMap          1084.3 ns/insert
+  build  bbtree                 687.4 ns/insert
+  get    round 0: std 1525.5 ns   bbtree  586.5 ns   (2.60x)
+  get    round 1: std 1384.2 ns   bbtree  581.5 ns   (2.38x)
+memory std    u64 10000000 entries:   300.0 MiB resident,  31.5 B/entry
+memory bbtree u64 10000000 entries:   256.0 MiB resident,  26.8 B/entry
+memory std    url 2000000 entries:   254.0 MiB resident, 133.2 B/entry
+memory bbtree url 2000000 entries:   266.0 MiB resident, 139.5 B/entry
+# mimalloc, portable build (no target-cpu=native)
+u64 keys, 10000000 entries, 4000000 random lookups that hit
+  build  std BTreeMap           528.3 ns/insert
+  build  bbtree                 394.5 ns/insert
+  get    round 0: std  767.3 ns   bbtree  373.0 ns   bbtree get_many(16)  281.9 ns   (2.06x, 2.72x)
+  get    round 1: std  754.1 ns   bbtree  375.8 ns   bbtree get_many(16)  284.3 ns   (2.01x, 2.65x)
