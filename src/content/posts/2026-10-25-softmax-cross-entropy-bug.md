@@ -18,10 +18,12 @@ tags: [softmax, cross-entropy, floating-point, adam, grokking, numerical-stabili
 
 Feed three logits into the cross-entropy that ships with JAX and Optax: the right class at `9`, the two wrong ones at `-9`, everything in float32.
 
-```python
-z = [9.0, -9.0, -9.0]          # target is class 0
-loss  ->  0.0
-grad  ->  [0.0, 1.523e-08, 1.523e-08]
+```text
+z    -> [9.0, -9.0, -9.0]    # class 0, fp32
+loss -> 0.0
+        -X- should be 3.046e-08
+grad -> [0.0, 1.523e-08, 1.523e-08]
+         ^^^ -X- should be -3.046e-08
 ```
 
 A loss of zero means "nothing left to learn". But the gradient disagrees with itself. The two wrong classes still get pushed down by `1.5e-8` each, while the right class gets no push at all. A softmax gradient must always sum to zero (probabilities sum to one, so whatever one logit gains, the others lose). This one sums to `+3.05e-8`.
@@ -209,6 +211,16 @@ With the default $$\epsilon = 10^{-8}$$ that's 18.42, just 1.8 past the fp32 cli
 
 ## A twin bug in distillation
 
+The paper's second bug has the same shape (a small difference rounded away against something big), in a different place:
+
+| | Softmax Collapse | Softmax Cancellation |
+|---|---|---|
+| **Where** | hard labels, once the margin passes $$(b+1)\ln 2$$ | distillation and KL terms, once the student is close to the teacher |
+| **Culprit** | $$1 + e^{-m}$$ rounds to 1.0 | $$q - p$$ subtracts two already-rounded probabilities |
+| **Symptom** | target gradient exactly 0, gradients don't sum to 0 | non-zero gradient when student equals teacher |
+| **Under Adam** | stalls at the cliff, Slingshot spikes | student drifts away from the teacher (bf16) |
+| **Fix** | leave the target out of the sum, finish with `softplus` | compute $$q - p$$ from $$z_S - z_T$$ with `expm1`, `log1p` |
+
 The second bug, **Softmax Cancellation**, shows up when a student copies a teacher's soft probabilities. The gradient is $$q - p$$, student minus teacher, and frameworks compute the two softmaxes separately and subtract. When the student equals the teacher the answer must be exactly 0. It isn't, because the forward pass computes $$p$$ with `softmax` and the backward pass computes $$q$$ as `exp(log_softmax)`, two slightly different routes to the same number. With logits `[2, 1, 0, -1.5, 3.3]` and student = teacher:
 
 ```text
@@ -229,6 +241,20 @@ s_k = \log\frac{q_k}{p_k} = d_k - \operatorname{log1p}\Big(\sum_i p_i\,\operator
 $$
 
 `expm1(x)` returns $$e^x - 1$$ without ever forming $$e^x$$ near 1, and `log1p(x)` returns $$\log(1+x)$$ the same way, so a tiny $$\delta$$ stays tiny instead of being rounded against 1.0. Because $$\sum_i p_i d_i = 0$$ and $$\operatorname{expm1}(x) \ge x$$, the argument to `log1p` is never negative, so it never gets near the $$-1$$ where `log1p` blows up. When $$\delta = 0$$ every term is exactly 0. On the paper's own test (student = teacher + `[-1e-7, 1e-7, 0]` in fp32) it returns `[-4.5955044e-08, 4.1441904e-08, 4.5131423e-09]`, the fp64 answer to every printed digit[^paper].
+
+</details>
+
+<details>
+<summary>Should you worry about your own training run?</summary>
+
+Only what was measured here or in the paper:
+
+- **Loss computed in bf16:** the cliff is at margin 5.55, a target probability of just 99.6%. Check whether your loss kernel upcasts logits to fp32 first.
+- **Loss in fp32:** the cliff moves to 16.64 ($$q_t = 1 - 5.9\times10^{-8}$$). Models reach it when they memorise, and with default Adam ($$\epsilon = 10^{-8}$$) the resting margin of 18.42 sits past it, so a long run on data the model already fits is aimed at it.
+- **Distillation or a KL penalty with the student near its target:** in bf16 the false gradient at student = teacher was `4.9e-4` here, far above Adam's $$\epsilon$$.
+- **A cheap check:** count rows whose loss is exactly `0.0`, or log the largest $$|\sum_k g_k|$$ per batch. A correct softmax gradient sums to zero.
+
+The paper's own caveat: margins this extreme and students this close are uncommon in standard large-scale training[^paper].
 
 </details>
 
