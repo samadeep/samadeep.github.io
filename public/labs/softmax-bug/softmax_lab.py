@@ -1,9 +1,10 @@
 """Two numerical bugs in softmax / cross-entropy (Barron, Gnanapragasam, Tschannen, arXiv 2610.31642).
 
   python softmax_lab.py               the [9, -9, -9] example: loss 0.0, gradients that don't sum to 0
-  python softmax_lab.py --cliff       where each float format drops e^-m, measured vs (p+1) ln 2
+  python softmax_lab.py --cliff       where each float format drops e^-m, measured vs (b+1) ln 2
   python softmax_lab.py --train       a tiny fp32 classifier under Adam: standard vs fixed cross-entropy
   python softmax_lab.py --distill     student == teacher, the gradient should be exactly 0
+  python softmax_lab.py --online      the streaming ("online") softmax used by fused kernels, same bug
 
 Pure numpy. bf16 is emulated by rounding float32 to 8 significant bits (round to nearest even).
 """
@@ -52,7 +53,7 @@ def example():
     print("\ntrue (fp64): loss 3.0460e-08, grad [-3.0460e-08  1.5230e-08  1.5230e-08], sum 0")
 
 def cliff():
-    print("format  bits p   measured cliff   (p+1)*ln2   q_t at the cliff")
+    print("format  bits b   measured cliff   (b+1)*ln2   q_t at the cliff")
     for name, (dt, r, p) in DTYPES.items():
         found = None
         for m in np.arange(0, 45, 0.01):
@@ -98,6 +99,27 @@ def train(steps=8000, eps=1e-8, wd=0.1, lr=1e-2, seed=0):
               f"second-half loss min {min(late):.1e} max {max(late):.1e}, final median margin {lg[-1][0]:.2f}")
     print(f"log(1/eps) = {np.log(1 / eps):.2f}, the fp32 cliff is 24*ln2 = {24 * np.log(2):.2f}")
 
+def online(z=(9.0, -9.0, -9.0), t=0):
+    """One pass over the logits with a running max M and running sum d (Milakov and Gimelshein, 2018),
+    the way fused kernels avoid a second read. Everything in fp32."""
+    f = np.float32
+    M, d = f(-np.inf), f(0)
+    for x in map(f, z):                                   # d = d * e^(M_old - M) + e^(x - M)
+        Mn = max(M, x)
+        d = f(d * np.exp(f(M - Mn)) + np.exp(f(x - Mn))); M = Mn
+    loss = f(f(M + np.log(d)) - f(z[t]))                  # logsumexp - z_t
+    g_t = f(np.exp(f(f(z[t]) - M)) / d - f(1))
+    print(f"online, standard:  running sum d = {d!r}   loss {loss:.4e}   g_t {g_t:.4e}")
+    # fixed: the target is known, so stream only the others, relative to z_t, then softplus
+    M, S = f(-np.inf), f(0)
+    for j, x in enumerate(map(f, z)):
+        if j == t: continue
+        y = f(x - f(z[t])); Mn = max(M, y)
+        S = f(S * np.exp(f(M - Mn)) + np.exp(f(y - Mn))); M = Mn
+    lse = f(M + np.log(S))                                # log sum_{j != t} e^(z_j - z_t) = -m
+    loss = f(np.logaddexp(f(0), lse))
+    print(f"online, fixed:     others only, lse = {lse:.4f}   loss {loss:.4e}   g_t {-np.exp(lse - loss):.4e}")
+
 def distill():
     zT = np.array([[2.0, 1.0, 0.0, -1.5, 3.3]], np.float32)
     for name, (dt, r, _) in DTYPES.items():
@@ -114,4 +136,5 @@ if __name__ == "__main__":
     if "--cliff" in a: cliff()
     elif "--train" in a: train()
     elif "--distill" in a: distill()
+    elif "--online" in a: online()
     else: example()

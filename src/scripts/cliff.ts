@@ -125,7 +125,7 @@ export function cliffLab(root: HTMLElement) {
       `stored 1 + e^-m  = ${sum === 1 ? '1.0 exactly' : sum.toPrecision(state.fmt === 'fp64' ? 17 : state.fmt === 'fp32' ? 9 : 4)}\n` +
       `standard: loss ${fmt(r(Math.log(sum)))}   g = [${fmt(gStd)}, ${fmt(gOther)}]   sum ${fmt(r(gStd + gOther))}\n` +
       `fixed:    loss ${fmt(loss)}   g = [${fmt(gFix)}, ${fmt(-gFix)}]   sum 0\n` +
-      `cliff for ${state.fmt}: m > ${cliff.toFixed(2)}   (${p} fraction bits, (p+1)*ln 2)`;
+      `cliff for ${state.fmt}: m > ${cliff.toFixed(2)}   (b = ${p} fraction bits, (b+1)*ln 2)`;
   }
 
   let raf = 0, last = 0;
