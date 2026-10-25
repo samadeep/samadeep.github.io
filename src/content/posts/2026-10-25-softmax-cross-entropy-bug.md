@@ -18,7 +18,7 @@ tags: [softmax, cross-entropy, floating-point, adam, grokking, numerical-stabili
 
 *A runnable companion to Barron, Gnanapragasam and Tschannen's [A Fix for Softmax and Cross-Entropy](https://arxiv.org/abs/2610.31642). The two bugs and their fixes are theirs; the simulator, the lab and every output quoted below were run for this post.*
 
-Feed three logits into the cross-entropy that ships with JAX and Optax: the right class at `9`, the two wrong ones at `-9`, everything in float32.
+Feed three logits into the cross-entropy that ships with JAX (or PyTorch, same answer): the right class at `9`, the two wrong ones at `-9`, everything in float32.
 
 ```text
 z    -> [9.0, -9.0, -9.0]    # class 0, fp32
@@ -30,7 +30,7 @@ grad -> [0.0, 1.523e-08, 1.523e-08]
 
 A loss of zero means "nothing left to learn". But the gradient disagrees with itself. The two wrong classes still get pushed down by `1.5e-8` each, while the right class gets no push at all. A softmax gradient must always sum to zero (probabilities sum to one, so whatever one logit gains, the others lose). This one sums to `+3.05e-8`.
 
-That's not a quirk of one library. In October 2026 Jonathan Barron, Dan Gnanapragasam and Michael Tschannen showed that the standard recipe for softmax, log-softmax and cross-entropy, the one in every framework and textbook, has two numerical bugs[^paper]. Softmax plus cross-entropy is the last line of nearly every classifier and language model. So let's see exactly where it breaks.
+PyTorch 2.14's `F.cross_entropy` prints the same numbers. That's not a quirk of one library. In October 2026 Jonathan Barron, Dan Gnanapragasam and Michael Tschannen showed that the standard recipe for softmax, log-softmax and cross-entropy, the one in every framework and textbook, has two numerical bugs[^paper]. Softmax plus cross-entropy is the last line of nearly every classifier and language model. So let's see exactly where it breaks.
 
 <details>
 <summary>Before you start: what this post leans on</summary>
@@ -148,7 +148,18 @@ def cross_entropy(z, t):
     return jax.nn.softplus(jax.nn.logsumexp(others, axis=-1))    # log(1 + e^-m)
 ```
 
-On `[9, -9, -9]` in float32 this returns loss `3.046e-08` and gradient `[-3.046e-08, 1.523e-08, 1.523e-08]`, summing to exactly `0.0`. The paper gives the matching `log_softmax` and `softmax` (same idea, shifting by the argmax instead of the target)[^paper].
+The same thing in PyTorch:
+
+```python
+import torch, torch.nn.functional as F
+
+def cross_entropy(z, t):                                      # per-row loss
+    z_t = z.gather(-1, t[..., None])                          # target logit
+    others = (z - z_t).masked_fill(F.one_hot(t, z.shape[-1]).bool(), float("-inf"))
+    return F.softplus(torch.logsumexp(others, -1))            # log(1 + e^-m)
+```
+
+On `[9, -9, -9]` in float32 both return loss `3.046e-08` and gradient `[-3.046e-08, 1.523e-08, 1.523e-08]`, summing to exactly `0.0` (the PyTorch one also in bf16, where `F.cross_entropy` gives loss 0). On ordinary logits they agree with the built-in losses. The paper gives the matching `log_softmax` and `softmax` (same idea, shifting by the argmax instead of the target)[^paper].
 
 What about fused GPU kernels? Many compute the loss in one pass with an **online softmax**[^online]: a running max $$M$$ and a running sum $$d \leftarrow d\,e^{M_{old}-M} + e^{x-M}$$. The largest logit still adds $$e^0 = 1$$ to $$d$$, so the same rounding happens. A one-pass version of `[9, -9, -9]` in fp32:
 
@@ -282,7 +293,7 @@ Back to those three logits. The loss said `0.0` and meant "done". It was really 
 <details>
 <summary>What this doesn't show</summary>
 
-- **Frameworks tested here:** JAX and Optax on CPU (the `[9,-9,-9]` output above) and a numpy re-implementation of the standard recipe. PyTorch's `F.cross_entropy` was not run for this post; the paper's authors say it's affected, and it uses the same max-shift recipe, but that's their claim, not a measurement here.
+- **Frameworks tested here:** JAX with Optax, and PyTorch 2.14 (`F.cross_entropy`), both on CPU, plus a numpy re-implementation. In PyTorch the target gradient first hits exactly 0 at margins 5.55, 16.64 and 36.74 for bf16, fp32 and fp64, the same cliffs. GPU kernels were not run.
 - **Large models:** the paper itself says such extreme margins and near-identical students are uncommon in standard large-scale training. Whether easy tokens in LLM training hit the cliff (bf16 needs only 99.6% confidence, but most fused kernels compute the loss in fp32) is not measured here.
 - **Slingshot spikes** are the paper's result on grokking transformers and MLPs. The linear model in the lab shows the stall and the flicker at the cliff, not big spikes.
 - **bf16** in the lab is emulated in numpy; real bf16 kernels may round intermediate sums differently.
