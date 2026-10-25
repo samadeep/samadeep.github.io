@@ -1,6 +1,6 @@
 ---
 title: 'The Bug in the Last Line of Every Neural Network'
-description: 'Standard softmax cross-entropy rounds the target gradient to exactly 0 once a model is confident. Why fp32 gives up at margin 16.64, and the fix.'
+description: 'Softmax cross-entropy rounds the target gradient to exactly 0 once a model is confident: margin 5.55 in bf16, 16.64 in fp32. Why, and the fix.'
 hook:
   stat: 'm > 16.64 → g = 0'
   caption: 'past this logit margin, fp32 cross-entropy throws away its own gradient'
@@ -16,17 +16,21 @@ tags: [softmax, cross-entropy, floating-point, adam, grokking, numerical-stabili
 
 </aside>
 
-Feed three logits into the cross-entropy that ships with JAX and Optax: the right class at `9`, the two wrong ones at `-9`, everything in float32.
+*A runnable companion to Barron, Gnanapragasam and Tschannen's [A Fix for Softmax and Cross-Entropy](https://arxiv.org/abs/2610.31642). The two bugs and their fixes are theirs; the simulator, the lab and every output quoted below were run for this post.*
 
-```python
-z = [9.0, -9.0, -9.0]          # target is class 0
-loss  ->  0.0
-grad  ->  [0.0, 1.523e-08, 1.523e-08]
+Feed three logits into the cross-entropy that ships with JAX (or PyTorch, same answer): the right class at `9`, the two wrong ones at `-9`, everything in float32.
+
+```text
+z    -> [9.0, -9.0, -9.0]    # class 0, fp32
+loss -> 0.0
+        -X- should be 3.046e-08
+grad -> [0.0, 1.523e-08, 1.523e-08]
+         ^^^ -X- should be -3.046e-08
 ```
 
 A loss of zero means "nothing left to learn". But the gradient disagrees with itself. The two wrong classes still get pushed down by `1.5e-8` each, while the right class gets no push at all. A softmax gradient must always sum to zero (probabilities sum to one, so whatever one logit gains, the others lose). This one sums to `+3.05e-8`.
 
-That's not a quirk of one library. In October 2026 Jonathan Barron, Dan Gnanapragasam and Michael Tschannen showed that the standard recipe for softmax, log-softmax and cross-entropy, the one in every framework and textbook, has two numerical bugs[^paper]. Softmax plus cross-entropy is the last line of nearly every classifier and language model. So let's see exactly where it breaks.
+PyTorch 2.14's `F.cross_entropy` prints the same numbers. That's not a quirk of one library. In October 2026 Jonathan Barron, Dan Gnanapragasam and Michael Tschannen showed that the standard recipe for softmax, log-softmax and cross-entropy, the one in every framework and textbook, has two numerical bugs[^paper]. Softmax plus cross-entropy is the last line of nearly every classifier and language model. So let's see exactly where it breaks.
 
 <details>
 <summary>Before you start: what this post leans on</summary>
@@ -43,7 +47,7 @@ That's not a quirk of one library. In October 2026 Jonathan Barron, Dan Gnanapra
 | $$q_k = e^{z_k} / \sum_j e^{z_j}$$ | softmax probability |
 | $$m = z_t - \log\sum_{j\ne t} e^{z_j}$$ | the **margin**: how far the right logit sits above all the others combined |
 | $$g_k = q_k - p_k$$ | gradient of cross-entropy with respect to $$z_k$$ ($$p$$ is the target distribution) |
-| $$p$$ (in a float format) | fraction bits: 7 for bf16, 23 for fp32, 52 for fp64 |
+| $$b$$ | fraction bits of a float format: 7 for bf16, 23 for fp32, 52 for fp64 |
 
 </details>
 
@@ -51,7 +55,9 @@ That's not a quirk of one library. In October 2026 Jonathan Barron, Dan Gnanapra
 
 Every framework first subtracts the biggest logit, so $$e^{z}$$ never overflows. When the right class is the biggest, its shifted logit is exactly 0 and its exponential is exactly 1. All the wrong classes together add up to $$e^{-m}$$, a small positive number. So the denominator is
 
-$$1 + e^{-m}$$
+$$
+1 + e^{-m}
+$$
 
 and that sum is the whole bug. Floats near 0 are incredibly fine (fp32 goes down to about $$10^{-38}$$), but floats near 1.0 sit on a grid with steps of $$2^{-23} \approx 1.2\times10^{-7}$$. Add something smaller than half a step and it rounds away.
 
@@ -90,14 +96,16 @@ Play with it. Pick a format, press Train, and watch the moment $$e^{-m}$$ crosse
 
 ## The cliff has an exact address
 
-"Half a step of 1.0" is $$2^{-(p+1)}$$, where $$p$$ is the number of fraction bits. So the gradient dies exactly when $$e^{-m} < 2^{-(p+1)}$$, which is
+"Half a step of 1.0" is $$2^{-(b+1)}$$, where $$b$$ is the number of fraction bits. So the gradient dies exactly when $$e^{-m} < 2^{-(b+1)}$$, which is
 
-$$m > (p+1)\ln 2$$
+$$
+m > (b+1)\ln 2
+$$
 
 Running the lab's sweep (standard cross-entropy, two logits, each format) finds the first margin where the target gradient is exactly 0:
 
 ```text
-format  bits p   measured cliff   (p+1)*ln2   q_t at the cliff
+format  bits b   measured cliff   (b+1)*ln2   q_t at the cliff
 bf16         7             5.55        5.55   1 - 3.9e-03
 fp32        23            16.64       16.64   1 - 5.9e-08
 fp64        52            36.74       36.74   1 - 1.1e-16
@@ -112,13 +120,17 @@ The paper reports 5.5, 16.6 and 36.7; the closed form matches to the hundredth. 
 
 Write the loss for the target class as a function of the differences $$z_j - z_t$$ only:
 
-$$-m = \log\sum_{j\ne t} e^{z_j - z_t}, \qquad \mathcal L = \log(1 + e^{-m}) = \operatorname{softplus}(-m)$$
+$$
+-m = \log\sum_{j\ne t} e^{z_j - z_t}, \qquad \mathcal L = \log(1 + e^{-m}) = \operatorname{softplus}(-m)
+$$
 
 `softplus` is computed stably (it never forms $$1 + e^{-m}$$ when $$e^{-m}$$ is tiny; for small inputs it returns $$e^{-m}$$ itself). Differentiating:
 
-$$g_j = \frac{e^{z_j - z_t}}{1+e^{-m}} \ (j\ne t), \qquad g_t = -\sum_{j\ne t} g_j = -\frac{e^{-m}}{1+e^{-m}}$$
+$$
+g_j = \frac{e^{z_j - z_t}}{1+e^{-m}} \ (j\ne t), \qquad g_t = -\sum_{j\ne t} g_j = -\frac{e^{-m}}{1+e^{-m}}
+$$
 
-The target's gradient is built from the others, so the sum is zero by construction, and $$e^{-m}$$ stays in a numerator where it's never rounded against 1.0. For $$z = [9,-9,-9]$$ that gives loss `3.046e-08` and gradient `[-3.046e-08, 1.523e-08, 1.523e-08]`, matching fp64 to four digits.
+Why does autodiff produce exactly that? The target's slot in `others` is overwritten with the constant `-inf`, so $$z_t$$ reaches the loss only through the $$K-1$$ differences $$z_j - z_t$$. Each carries a $$-1$$ for $$z_t$$, so reverse mode hands the target exactly minus the sum of the rest. Leave the slot as $$z_t - z_t = 0$$ instead and its $$e^0 = 1$$ lands back in the sum, bug included. The sum is zero by construction, and $$e^{-m}$$ stays in a numerator where it's never rounded against 1.0. For $$z = [9,-9,-9]$$ that gives loss `3.046e-08` and gradient `[-3.046e-08, 1.523e-08, 1.523e-08]`, matching fp64 to four digits.
 
 </details>
 
@@ -136,7 +148,27 @@ def cross_entropy(z, t):
     return jax.nn.softplus(jax.nn.logsumexp(others, axis=-1))    # log(1 + e^-m)
 ```
 
-On `[9, -9, -9]` in float32 this returns loss `3.046e-08` and gradient `[-3.046e-08, 1.523e-08, 1.523e-08]`, summing to exactly `0.0`. The paper gives the matching `log_softmax` and `softmax` (same idea, shifting by the argmax instead of the target)[^paper].
+The same thing in PyTorch:
+
+```python
+import torch, torch.nn.functional as F
+
+def cross_entropy(z, t):                                      # per-row loss
+    z_t = z.gather(-1, t[..., None])                          # target logit
+    others = (z - z_t).masked_fill(F.one_hot(t, z.shape[-1]).bool(), float("-inf"))
+    return F.softplus(torch.logsumexp(others, -1))            # log(1 + e^-m)
+```
+
+On `[9, -9, -9]` in float32 both return loss `3.046e-08` and gradient `[-3.046e-08, 1.523e-08, 1.523e-08]`, summing to exactly `0.0` (the PyTorch one also in bf16, where `F.cross_entropy` gives loss 0). On ordinary logits they agree with the built-in losses. The paper gives the matching `log_softmax` and `softmax` (same idea, shifting by the argmax instead of the target)[^paper].
+
+What about fused GPU kernels? Many compute the loss in one pass with an **online softmax**[^online]: a running max $$M$$ and a running sum $$d \leftarrow d\,e^{M_{old}-M} + e^{x-M}$$. The largest logit still adds $$e^0 = 1$$ to $$d$$, so the same rounding happens. A one-pass version of `[9, -9, -9]` in fp32:
+
+```text
+online, standard:  running sum d = np.float32(1.0)   loss 0.0000e+00   g_t 0.0000e+00
+online, fixed:     others only, lse = -17.3069   loss 3.0460e-08   g_t -3.0460e-08
+```
+
+The fix streams just as well: in cross-entropy the target is known up front, so stream only the other logits relative to $$z_t$$ and finish with `softplus`. Whether a given fused kernel does this is something to check in its source; none were read for this post.
 
 ## So who cares about a 1e-8 gradient?
 
@@ -174,7 +206,9 @@ The expectation going in was a big spike. A linear model doesn't give one; it gi
 
 Why does the fixed loss stop at 18.05 and not climb forever? Once a gradient is much smaller than Adam's $$\epsilon$$, the step becomes $$g/\epsilon$$ instead of $$g/|g|$$, and it shrinks with $$e^{-m}$$. Weight decay balances it where $$|g| \approx \epsilon$$, so the margin settles near
 
-$$m^\star \approx \log(1/\epsilon)$$
+$$
+m^\star \approx \log(1/\epsilon)
+$$
 
 ```fig title="Default Adam ε puts the margin's resting point just past the fp32 cliff" alt="One row of boxes along the logit margin axis from 0 to 40: bf16 cliff at 5.55, denied; fp32 cliff at 16.64, denied; Adam's equilibrium log of one over epsilon at 18.42 for epsilon 1e-8, the main box; fp64 cliff at 36.74. The equilibrium sits 1.8 to the right of the fp32 cliff, so a model heading for it must cross the cliff."
 panel logit margin m:  0  →  40
@@ -190,6 +224,16 @@ With the default $$\epsilon = 10^{-8}$$ that's 18.42, just 1.8 past the fp32 cli
 
 ## A twin bug in distillation
 
+The paper's second bug has the same shape (a small difference rounded away against something big), in a different place:
+
+| | Softmax Collapse | Softmax Cancellation |
+|---|---|---|
+| **Where** | hard labels, once the margin passes $$(b+1)\ln 2$$ | distillation and KL terms, once the student is close to the teacher |
+| **Culprit** | $$1 + e^{-m}$$ rounds to 1.0 | $$q - p$$ subtracts two already-rounded probabilities |
+| **Symptom** | target gradient exactly 0, gradients don't sum to 0 | non-zero gradient when student equals teacher |
+| **Under Adam** | stalls at the cliff, Slingshot spikes | student drifts away from the teacher (bf16) |
+| **Fix** | leave the target out of the sum, finish with `softplus` | compute $$q - p$$ from $$z_S - z_T$$ with `expm1`, `log1p` |
+
 The second bug, **Softmax Cancellation**, shows up when a student copies a teacher's soft probabilities. The gradient is $$q - p$$, student minus teacher, and frameworks compute the two softmaxes separately and subtract. When the student equals the teacher the answer must be exactly 0. It isn't, because the forward pass computes $$p$$ with `softmax` and the backward pass computes $$q$$ as `exp(log_softmax)`, two slightly different routes to the same number. With logits `[2, 1, 0, -1.5, 3.3]` and student = teacher:
 
 ```text
@@ -198,20 +242,50 @@ fp32: standard grad at zS == zT  [ 0.00e+00  0.00e+00 -5.59e-09  0.00e+00  0.00e
 fp64: standard grad at zS == zT  [2.78e-17 0.00e+00 0.00e+00 0.00e+00 0.00e+00]   max |g| 2.8e-17
 ```
 
-Adam again treats any gradient above $$\epsilon$$ as a real signal, so in bf16 a student initialised as a perfect copy of its teacher drifts away from it[^paper]. The fix computes $$q - p$$ directly from $$z_S - z_T$$ in log space with `expm1` and `log1p`, which returns exactly 0 when the logits match.
+Adam again treats any gradient above $$\epsilon$$ as a real signal, so in bf16 a student initialised as a perfect copy of its teacher drifts away from it[^paper]. The fix computes $$q - p$$ directly from $$z_S - z_T$$ in log space with `expm1` and `log1p`, which returns exactly 0 when the logits match. Running the paper's version on the same logits gives `[0, 0, 0, 0, 0]` in bf16, fp32 and fp64.
+
+<details>
+<summary>Why expm1 and log1p fix it</summary>
+
+Let $$\delta = z_S - z_T$$ and centre it under the teacher: $$d_k = \delta_k - \sum_i p_i \delta_i$$. Then
+
+$$
+s_k = \log\frac{q_k}{p_k} = d_k - \operatorname{log1p}\Big(\sum_i p_i\,\operatorname{expm1}(d_i)\Big), \qquad q_k - p_k = p_k\,\operatorname{expm1}(s_k)
+$$
+
+`expm1(x)` returns $$e^x - 1$$ without ever forming $$e^x$$ near 1, and `log1p(x)` returns $$\log(1+x)$$ the same way, so a tiny $$\delta$$ stays tiny instead of being rounded against 1.0. Because $$\sum_i p_i d_i = 0$$ and $$\operatorname{expm1}(x) \ge x$$, the argument to `log1p` is never negative, so it never gets near the $$-1$$ where `log1p` blows up. When $$\delta = 0$$ every term is exactly 0. On the paper's own test (student = teacher + `[-1e-7, 1e-7, 0]` in fp32) it returns `[-4.5955044e-08, 4.1441904e-08, 4.5131423e-09]`, the fp64 answer to every printed digit[^paper].
+
+</details>
+
+<details>
+<summary>Should you worry about your own training run?</summary>
+
+Only what was measured here or in the paper:
+
+- **Loss computed in bf16:** the cliff is at margin 5.55, a target probability of just 99.6%. Check whether your loss kernel upcasts logits to fp32 first.
+- **Loss in fp32:** the cliff moves to 16.64 ($$q_t = 1 - 5.9\times10^{-8}$$). Models reach it when they memorise, and with default Adam ($$\epsilon = 10^{-8}$$) the resting margin of 18.42 sits past it, so a long run on data the model already fits is aimed at it.
+- **Distillation or a KL penalty with the student near its target:** in bf16 the false gradient at student = teacher was `4.9e-4` here, far above Adam's $$\epsilon$$.
+- **Label smoothing keeps you off the cliff.** With smoothing $$\alpha$$ the loss is minimised at margin $$\log\frac{1-\alpha}{\alpha}$$ (plus a hair for small $$K$$): 2.2 for $$\alpha = 0.1$$, 4.6 for $$\alpha = 0.01$$, both below even bf16's 5.55. There is nothing pulling the margin further.
+- **Cost of the fix:** a mask and an elementwise op next to a reduction the loss already does; the authors report no meaningful slowdown[^paper]. Not timed here.
+- **A cheap check:** count rows whose loss is exactly `0.0`, or log the largest $$|\sum_k g_k|$$ per batch. A correct softmax gradient sums to zero.
+
+The paper's own caveat: margins this extreme and students this close are uncommon in standard large-scale training[^paper].
+
+</details>
 
 ## Run it
 
 The lab reproduces every number on this page in pure numpy (bf16 is emulated by rounding float32 to 8 significant bits).
 
-<div data-lab="py" data-src="/labs/softmax-bug/softmax_lab.py" data-presets="--cliff|--train|--distill"></div>
+<div data-lab="py" data-src="/labs/softmax-bug/softmax_lab.py" data-presets="--cliff|--train|--distill|--online"></div>
 
 ```zsh
 curl -O https://samadeep.github.io/labs/softmax-bug/softmax_lab.py
 python3 softmax_lab.py            # the [9, -9, -9] example
-python3 softmax_lab.py --cliff    # measured cliff vs (p+1) ln 2
+python3 softmax_lab.py --cliff    # measured cliff vs (b+1) ln 2
 python3 softmax_lab.py --train    # standard vs fixed under AdamW, fp32
 python3 softmax_lab.py --distill  # student == teacher
+python3 softmax_lab.py --online   # one-pass softmax, same bug
 ```
 
 Back to those three logits. The loss said `0.0` and meant "done". It was really saying "I can no longer see how much you have left". Next time a training curve goes perfectly flat at zero, check which side of 16.64 your margins are on.
@@ -219,14 +293,16 @@ Back to those three logits. The loss said `0.0` and meant "done". It was really 
 <details>
 <summary>What this doesn't show</summary>
 
-- **Frameworks tested here:** JAX and Optax on CPU (the `[9,-9,-9]` output above) and a numpy re-implementation of the standard recipe. PyTorch's `F.cross_entropy` was not run for this post; the paper's authors say it's affected, and it uses the same max-shift recipe, but that's their claim, not a measurement here.
+- **Frameworks tested here:** JAX with Optax, and PyTorch 2.14 (`F.cross_entropy`), both on CPU, plus a numpy re-implementation. In PyTorch the target gradient first hits exactly 0 at margins 5.55, 16.64 and 36.74 for bf16, fp32 and fp64, the same cliffs. GPU kernels were not run.
 - **Large models:** the paper itself says such extreme margins and near-identical students are uncommon in standard large-scale training. Whether easy tokens in LLM training hit the cliff (bf16 needs only 99.6% confidence, but most fused kernels compute the loss in fp32) is not measured here.
 - **Slingshot spikes** are the paper's result on grokking transformers and MLPs. The linear model in the lab shows the stall and the flicker at the cliff, not big spikes.
 - **bf16** in the lab is emulated in numpy; real bf16 kernels may round intermediate sums differently.
-- **The fixed `log_softmax`/`softmax`** and the distillation fix are the paper's code; only the hard-target `cross_entropy` above was re-run here.
+- **The fixed `log_softmax`/`softmax`** are the paper's code and were not re-run here; the hard-target `cross_entropy` and the distillation fix were.
+- **Fused kernels:** the online-softmax result is a numpy re-implementation of the algorithm, not any shipped kernel. Many kernels upcast to fp32 first, which moves the cliff to 16.64 but doesn't remove it.
 
 </details>
 
 [^paper]: Jonathan T. Barron, Dan Gnanapragasam, Michael Tschannen, [A Fix for Softmax and Cross-Entropy](https://arxiv.org/abs/2610.31642), arXiv:2610.31642, 2026.
 [^slingshot]: Vimal Thilak et al., [The Slingshot Mechanism: An Empirical Study of Adaptive Optimizers and the Grokking Phenomenon](https://arxiv.org/abs/2206.04817), arXiv:2206.04817, 2022.
+[^online]: Maxim Milakov, Natalia Gimelshein, [Online normalizer calculation for softmax](https://arxiv.org/abs/1805.02867), arXiv:1805.02867, 2018.
 [^stablemax]: Lucas Prieto, Melih Barsbey, Pedro A. M. Mediano, Tolga Birdal, [Grokking at the Edge of Numerical Stability](https://arxiv.org/abs/2501.04697), ICLR, 2025.
